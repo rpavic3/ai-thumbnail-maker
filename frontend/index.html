@@ -5,14 +5,31 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Thumbnail Generator</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
+       :root {
+      --bg: #0e0d11;
+      --surface: #1c1a23;
+      --text: #f5f5f7;
+      --accent: #a78bfa;
+      --accent-hover: #c4b5fd;
+      --input-bg: #2a2733;
+      --logout: #fca5a5;
+      --logout-hover: #f87171;
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       padding: 0;
-      background: #111;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      font-family: 'Outfit', sans-serif;
+      color: var(--text);
       display: flex;
       justify-content: center;
       align-items: flex-start;
@@ -20,122 +37,164 @@
     }
 
     .container {
-      max-width: 720px;
-      width: 90%;
+      width: 100%;
+      max-width: 820px;
       margin-top: 4rem;
-      padding: 2rem;
-      background: #1a1a1a;
-      border-radius: 16px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+      background: var(--surface);
+      border-radius: var(--radius);
+      padding: 3rem 2rem;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      position: relative;
     }
 
     h1 {
+      font-size: 2.6rem;
+      color: var(--accent);
       text-align: center;
       margin-bottom: 1.5rem;
-      font-size: 2rem;
-      color: #00ffe0;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      background: var(--input-bg);
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      color: var(--text);
+      transition: border 0.2s;
+      margin-bottom: 1rem;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
     }
 
     label {
-      display: block;
-      margin-top: 1.2rem;
-      margin-bottom: 0.4rem;
       font-weight: 600;
-    }
-
-    input {
-      width: 100%;
-      padding: 0.75rem;
-      border: none;
-      border-radius: 8px;
-      background: #2c2c2c;
-      color: white;
-      font-size: 1rem;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      display: block;
     }
 
     button {
-      margin-top: 1.5rem;
-      width: 100%;
-      padding: 0.8rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 8px;
-      background: #00ffe0;
+      background: var(--accent);
       color: #000;
-      font-weight: bold;
+      padding: 0.9rem 1.2rem;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: background 0.2s;
     }
 
     button:hover {
-      background: #00d4b3;
+      background: var(--accent-hover);
     }
 
-    #result {
-      margin-top: 2rem;
+    .secondary-button {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
     }
 
-    #result img {
-      width: 100%;
+    .secondary-button:hover {
+      background: var(--accent);
+      color: #000;
+    }
+
+    #auth-status {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      color: #bbb;
+    }
+
+    #result img, #history img {
       max-width: 100%;
-      height: auto;
       border-radius: 12px;
-      box-shadow: 0 0 12px rgba(0,0,0,0.2);
-      margin-top: 1rem;
+      box-shadow: 0 0 16px rgba(0,0,0,0.5);
     }
 
     .prompt-text {
-      background: #222;
+      background: #292733;
       padding: 1rem;
-      border-radius: 8px;
+      border-radius: var(--radius);
       margin-top: 1rem;
       font-size: 0.95rem;
-      line-height: 1.5;
+    }
+
+    .card {
+      background: #222028;
+      padding: 1.2rem;
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+    }
+
+    .card p {
+      margin: 0.5rem 0;
+    }
+
+    #logout-button {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      background: var(--logout);
+      color: #1a1a1a;
+    }
+
+    #logout-button:hover {
+      background: var(--logout-hover);
+      color: white;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>AI Thumbnail Generator</h1>
+    <h1>✨ AI Thumbnail Maker</h1>
 
     <div id="auth">
       <h2>Login or Sign up</h2>
-      <input type="email" id="auth-email" placeholder="Email" required />
-      <input type="password" id="auth-password" placeholder="Password" required />
-      <button type="button" onclick="login()">Log In</button>
-      <button type="button" onclick="signup()">Sign Up</button>
-      <p id="auth-status"></p>
+      <label>Email</label>
+      <input type="email" id="auth-email" placeholder="you@example.com" required />
 
+      <label>Password</label>
+      <input type="password" id="auth-password" placeholder="••••••••" required />
+
+      <button onclick="login()">Log In</button>
+      <button class="secondary-button" onclick="signup()">Sign Up</button>
+      <p id="auth-status"></p>
     </div>
+
     <button id="logout-button" onclick="logout()" style="display: none;">Log Out</button>
 
-    
     <form id="thumbnailForm" style="display: none;">
       <label for="title">Video Title</label>
-      <input type="text" id="title" placeholder="e.g. I turned this pistol into a shotgun" required />
+      <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
 
       <label for="niche">Channel Niche</label>
-      <input type="text" id="niche" placeholder="e.g. Gaming, Tutorials, Cooking" required />
+      <input type="text" id="niche" placeholder="e.g. Education, Gaming, Vlogs" required />
 
-      <button type="submit">Generate Thumbnail</button>
+      <div style="margin-top: 0rem;"><button type="submit">Generate Thumbnail</button></div>
     </form>
 
     <div id="result"></div>
-    <button id="history-button" onclick="fetchHistory()" style="display: none;">Show My History</button>
+    <button id="history-button" onclick="fetchHistory()" style="display: none;" class="secondary-button">Show My History</button>
 
-    <div id="prompt-preview" style="margin-top: 2rem; display: none;">
-      <label for="custom-prompt">Generated Prompt</label>
-      <textarea id="custom-prompt" style="width:100%; height:120px; border-radius:8px; padding:1rem; background:#222; color:white; font-size:1rem;"></textarea>
+    <div id="prompt-preview" style="display: none;">
+      <label for="custom-prompt">Edit Prompt</label>
+      <textarea id="custom-prompt" rows="4"></textarea>
       <button onclick="confirmPrompt()">Generate Thumbnail from This Prompt</button>
     </div>
-    
-    <div id="history" style="margin-top: 2rem;"></div>
 
-    
-    
-
+    <div id="history" style="display: none;"></div>
   </div>
-
   <script>
     const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk";
