@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thumbnail Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #111;
+      color: #fff;
+      font-family: 'Segoe UI', sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 720px;
+      width: 90%;
+      margin-top: 4rem;
+      padding: 2rem;
+      background: #1a1a1a;
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 2rem;
+      color: #00ffe0;
+    }
+
+    label {
+      display: block;
+      margin-top: 1.2rem;
+      margin-bottom: 0.4rem;
+      font-weight: 600;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.75rem;
+      border: none;
+      border-radius: 8px;
+      background: #2c2c2c;
+      color: white;
+      font-size: 1rem;
+    }
+
+    button {
+      margin-top: 1.5rem;
+      width: 100%;
+      padding: 0.8rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #00ffe0;
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+
+    button:hover {
+      background: #00d4b3;
+    }
+
+    #result {
+      margin-top: 2rem;
+    }
+
+    #result img {
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0,0,0,0.2);
+      margin-top: 1rem;
+    }
+
+    .prompt-text {
+      background: #222;
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>AI Thumbnail Generator</h1>
+
+    <div id="auth">
+      <h2>Login or Sign up</h2>
+      <input type="email" id="auth-email" placeholder="Email" required />
+      <input type="password" id="auth-password" placeholder="Password" required />
+      <button type="button" onclick="login()">Log In</button>
+      <button type="button" onclick="signup()">Sign Up</button>
+      <p id="auth-status"></p>
+
+    </div>
+    <button id="logout-button" onclick="logout()" style="display: none;">Log Out</button>
+
+    
+    <form id="thumbnailForm" style="display: none;">
+      <label for="title">Video Title</label>
+      <input type="text" id="title" placeholder="e.g. I turned this pistol into a shotgun" required />
+
+      <label for="niche">Channel Niche</label>
+      <input type="text" id="niche" placeholder="e.g. Gaming, Tutorials, Cooking" required />
+
+      <button type="submit">Generate Thumbnail</button>
+    </form>
+
+    <div id="result"></div>
+    <button id="history-button" onclick="fetchHistory()" style="display: none;">Show My History</button>
+    <div id="history" style="margin-top: 2rem;"></div>
+
+    <div id="prompt-preview" style="margin-top: 2rem; display: none;">
+      <label for="custom-prompt">Generated Prompt</label>
+      <textarea id="custom-prompt" style="width:100%; height:120px; border-radius:8px; padding:1rem; background:#222; color:white; font-size:1rem;"></textarea>
+      <button onclick="confirmPrompt()">Generate Thumbnail from This Prompt</button>
+    </div>
+    
+
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const form = document.getElementById('thumbnailForm');
+    const resultDiv = document.getElementById('result');
+
+    async function login() {
+  const email = document.getElementById("auth-email").value;
+  const password = document.getElementById("auth-password").value;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    document.getElementById("auth-status").innerText = "Login failed: " + error.message;
+  } else {
+    localStorage.setItem("supabase_token", data.session.access_token);
+refreshUI(); // ✅ instantly show the generator
+
+  }
+}
+
+async function signup() {
+  const email = document.getElementById("auth-email").value;
+  const password = document.getElementById("auth-password").value;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    document.getElementById("auth-status").innerText = "Signup failed: " + error.message;
+  } else {
+    document.getElementById("auth-status").innerText = "Signup successful! Check your email.";
+    refreshUI(); // ✅ updates UI right after signup
+  }
+}
+
+async function logout() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  if (error) {
+    console.error("Logout failed:", error.message);
+    return;
+  }
+
+  document.getElementById("auth-status").innerText = "Logged out.";
+  document.getElementById("auth").style.display = "block";
+  document.getElementById("thumbnailForm").style.display = "none";
+  document.getElementById("logout-button").style.display = "none";
+}
+
+
+function refreshUI() {
+  document.getElementById("auth-status").innerText = "Logged in!";
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("thumbnailForm").style.display = "block";
+  document.getElementById("logout-button").style.display = "block";
+  document.getElementById("history-button").style.display = "block"; // ✅ Show history
+}
+
+
+
+    form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  resultDiv.innerHTML = "<p>🧠 Generating prompt...</p>";
+
+  const title = document.getElementById('title').value;
+  const niche = document.getElementById('niche').value;
+
+  try {
+    const session = await supabaseClient.auth.getSession();
+    const token = session.data.session?.access_token;
+
+    if (!token) {
+      resultDiv.innerHTML = '<p style="color:red;">Error: You must be logged in to generate thumbnails.</p>';
+      return;
+    }
+
+    const res = await fetch("http://127.0.0.1:5000/generate_prompt", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ title, niche })
+    });
+
+    const data = await res.json();
+
+    if (data.prompt) {
+      resultDiv.innerHTML = `<p><strong>✅ Prompt Generated!</strong></p>`;
+      document.getElementById("custom-prompt").value = data.prompt;
+      document.getElementById("prompt-preview").style.display = "block";
+    } else {
+      resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+    }
+
+  } catch (err) {
+    resultDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
+  }
+});
+
+
+        // Check login state on page load
+    window.addEventListener("DOMContentLoaded", async () => {
+      const { data, error } = await supabaseClient.auth.getSession();
+
+      if (error) {
+        console.error("Error getting session:", error);
+      }
+
+      if (data.session) {
+  document.getElementById("auth-status").innerText = "Logged in!";
+  document.getElementById("auth").style.display = "none";
+  document.getElementById("thumbnailForm").style.display = "block";
+  document.getElementById("logout-button").style.display = "block"; // ✅ Show logout
+  document.getElementById("history-button").style.display = "block";
+} else {
+  document.getElementById("auth-status").innerText = "You are not logged in.";
+  document.getElementById("auth").style.display = "block";
+  document.getElementById("thumbnailForm").style.display = "none";
+  document.getElementById("logout-button").style.display = "none"; // ✅ Hide logout
+  document.getElementById("history-button").style.display = "none";
+  
+}
+
+    });
+
+
+    async function fetchHistory() {
+  const historyDiv = document.getElementById("history");
+  historyDiv.innerHTML = "<p>📦 Loading your thumbnail history...</p>";
+
+  try {
+    const session = await supabaseClient.auth.getSession();
+    const token = session.data.session?.access_token;
+
+    if (!token) {
+      historyDiv.innerHTML = '<p style="color:red;">You must be logged in to view history.</p>';
+      return;
+    }
+
+    const res = await fetch("http://127.0.0.1:5000/history", {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      if (data.length === 0) {
+        historyDiv.innerHTML = "<p>🕸️ No thumbnails found yet.</p>";
+        return;
+      }
+
+      // Build a grid of thumbnails
+      const items = data.map(item => `
+        <div style="margin-bottom: 1.5rem;">
+          <img src="${item.image_url}" style="max-width:100%; border-radius: 10px;" />
+          <p><strong>Prompt:</strong> ${item.prompt}</p>
+          <p><strong>Title:</strong> ${item.title}</p>
+          <p><strong>Niche:</strong> ${item.niche}</p>
+        </div>
+      `).join("");
+
+      historyDiv.innerHTML = `<div>${items}</div>`;
+    } else {
+      historyDiv.innerHTML = `<p style="color:red;">Error: ${data.error || 'Failed to fetch history.'}</p>`;
+    }
+
+  } catch (err) {
+    historyDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
+  }
+}
+
+async function confirmPrompt() {
+  const prompt = document.getElementById("custom-prompt").value;
+  const session = await supabaseClient.auth.getSession();
+  const token = session.data.session?.access_token;
+
+  if (!token) {
+    resultDiv.innerHTML = '<p style="color:red;">Error: You must be logged in to generate thumbnails.</p>';
+    return;
+  }
+
+  resultDiv.innerHTML = "<p>🎨 Generating image...</p>";
+
+  const title = document.getElementById("title").value;
+  const niche = document.getElementById("niche").value;
+
+  try {
+    const res = await fetch("http://127.0.0.1:5000/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ title, niche, prompt }) // include prompt here!
+    });
+
+    const data = await res.json();
+
+    if (data.image_url) {
+      resultDiv.innerHTML = `
+        <div class="prompt-text"><strong>Prompt:</strong><br>${data.prompt}</div>
+        <img src="${data.image_url}" alt="Generated Thumbnail" />
+      `;
+      document.getElementById("prompt-preview").style.display = "none";
+    } else {
+      resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+    }
+
+  } catch (err) {
+    resultDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
+  }
+}
+
+
+  </script>
+</body>
+</html>
