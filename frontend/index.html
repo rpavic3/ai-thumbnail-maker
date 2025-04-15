@@ -122,13 +122,16 @@
 
     <div id="result"></div>
     <button id="history-button" onclick="fetchHistory()" style="display: none;">Show My History</button>
-    <div id="history" style="margin-top: 2rem;"></div>
 
     <div id="prompt-preview" style="margin-top: 2rem; display: none;">
       <label for="custom-prompt">Generated Prompt</label>
       <textarea id="custom-prompt" style="width:100%; height:120px; border-radius:8px; padding:1rem; background:#222; color:white; font-size:1rem;"></textarea>
       <button onclick="confirmPrompt()">Generate Thumbnail from This Prompt</button>
     </div>
+    
+    <div id="history" style="margin-top: 2rem;"></div>
+
+    
     
 
   </div>
@@ -268,7 +271,19 @@ function refreshUI() {
 
     async function fetchHistory() {
   const historyDiv = document.getElementById("history");
+  const historyButton = document.getElementById("history-button");
+
+  // 🔁 Toggle: if history is visible, hide it
+  if (historyDiv.style.display === "block") {
+    historyDiv.style.display = "none";
+    historyButton.innerText = "Show My History";
+    return;
+  }
+
+  // Else: show it and fetch
+  historyDiv.style.display = "block";
   historyDiv.innerHTML = "<p>📦 Loading your thumbnail history...</p>";
+  historyButton.innerText = "Hide History";
 
   try {
     const session = await supabaseClient.auth.getSession();
@@ -294,7 +309,6 @@ function refreshUI() {
         return;
       }
 
-      // Build a grid of thumbnails
       const items = data.map(item => `
         <div style="margin-bottom: 1.5rem;">
           <img src="${item.image_url}" style="max-width:100%; border-radius: 10px;" />
@@ -313,6 +327,7 @@ function refreshUI() {
     historyDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
   }
 }
+
 
 async function confirmPrompt() {
   const prompt = document.getElementById("custom-prompt").value;
