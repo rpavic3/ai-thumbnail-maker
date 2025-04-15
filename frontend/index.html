@@ -1,170 +1,238 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Thumbnail Generator</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Thumbnail Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
 
-  <style>
-       :root {
-      --bg: #0e0d11;
-      --surface: #1c1a23;
-      --text: #f5f5f7;
-      --accent: #a78bfa;
-      --accent-hover: #c4b5fd;
-      --input-bg: #2a2733;
-      --logout: #fca5a5;
-      --logout-hover: #f87171;
-      --radius: 16px;
-    }
+    <style>
+      :root {
+        --bg: #0e0d11;
+        --surface: #1c1a23;
+        --text: #f5f5f7;
+        --accent: #a78bfa;
+        --accent-hover: #c4b5fd; /* Lighter accent for hover/highlight */
+        --input-bg: #2a2733;
+        --logout: #fca5a5;
+        --logout-hover: #f87171;
+        --alt-tab: #22d3ee;
+        --alt-tab-hover: #38bdf8;
+        --radius: 16px;
+        --tab-inactive: #2e2e38;
+      }
 
-    * {
-      box-sizing: border-box;
-    }
+      * {
+        box-sizing: border-box;
+      }
 
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg);
-      font-family: 'Outfit', sans-serif;
-      color: var(--text);
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      min-height: 100vh;
-    }
+      body {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        font-family: 'Outfit', sans-serif;
+        color: var(--text);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+      }
 
-    .container {
-      width: 100%;
-      max-width: 820px;
-      margin-top: 4rem;
-      background: var(--surface);
-      border-radius: var(--radius);
-      padding: 3rem 2rem;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-      display: flex;
-      flex-direction: column;
-      gap: 1.5rem;
-      position: relative;
-    }
+      .tab-bar {
+        display: flex;
+        width: 100%;
+        max-width: 820px;
+        border-top-left-radius: var(--radius);
+        border-top-right-radius: var(--radius);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+        overflow: hidden;
+        box-shadow: 0 0 12px rgba(0,0,0,0.2);
+      }
 
-    h1 {
-      font-size: 2.6rem;
-      color: var(--accent);
-      text-align: center;
-      margin-bottom: 1.5rem;
-    }
+      .tab-button {
+        flex: 1;
+        padding: 1rem;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none; /* Remove default border */
+        border-top: 3px solid transparent; /* Add space for active border */
+        cursor: pointer;
+        transition: background 0.2s, color 0.2s, border-color 0.2s;
+        border-radius: 0;
+        background: var(--tab-inactive); /* Default inactive background */
+        color: #888; /* Default inactive color */
+      }
 
-    input, textarea {
-      width: 100%;
-      padding: 1rem;
-      font-size: 1rem;
-      background: var(--input-bg);
-      border: 1px solid transparent;
-      border-radius: var(--radius);
-      color: var(--text);
-      transition: border 0.2s;
-      margin-bottom: 1rem;
-    }
+      .tab-button.active {
+        background: var(--accent); /* Active background */
+        color: #000; /* Active text color */
+        border-top: 3px solid var(--accent-hover); /* Modern top border highlight */
+        z-index: 1;
+      }
 
-    input:focus, textarea:focus {
-      outline: none;
-      border-color: var(--accent);
-    }
+      /* Remove the inactive class styles as default is now inactive */
+      /* .tab-button.inactive { ... } */
 
-    label {
-      font-weight: 600;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      display: block;
-    }
+      .tab-button:not(.active):hover {
+          background: #3a3843; /* Slightly lighter bg for inactive hover */
+          color: #ccc;
+      }
 
-    button {
-      background: var(--accent);
-      color: #000;
-      padding: 0.9rem 1.2rem;
-      border: none;
-      border-radius: var(--radius);
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
+      .tab-button.secondary-tab::after {
+        content: "Coming Soon";
+        display: block;
+        font-size: 0.7rem;
+        margin-top: 0.2rem;
+        color: #aaa; /* Adjusted color slightly */
+      }
 
-    button:hover {
-      background: var(--accent-hover);
-    }
+      .container {
+        width: 100%;
+        max-width: 820px;
+        background: var(--surface);
+        border-top-left-radius: 0;
+        border-top-right-radius: 0;
+        border-bottom-left-radius: var(--radius);
+        border-bottom-right-radius: var(--radius);
+        padding: 3rem 2rem;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: relative;
+        /* Adjusted margin for cleaner connection without thick bottom border */
+        margin-top: -1px;
+        z-index: 0; /* Ensure container is behind active tab's z-index */
+      }
 
-    .secondary-button {
-      background: transparent;
-      color: var(--accent);
-      border: 1px solid var(--accent);
-    }
+      h1 {
+        font-size: 2.6rem;
+        color: var(--accent);
+        text-align: center;
+        margin-bottom: 1.5rem;
+      }
 
-    .secondary-button:hover {
-      background: var(--accent);
-      color: #000;
-    }
+      input, textarea {
+        width: 100%;
+        padding: 1rem;
+        font-size: 1rem;
+        background: var(--input-bg);
+        border: 1px solid transparent;
+        border-radius: var(--radius);
+        color: var(--text);
+        transition: border 0.2s;
+        margin-bottom: 1rem;
+      }
 
-    #auth-status {
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      color: #bbb;
-    }
+      input:focus, textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+      }
 
-    #result img, #history img {
-      max-width: 100%;
-      border-radius: 12px;
-      box-shadow: 0 0 16px rgba(0,0,0,0.5);
-    }
+      label {
+        font-weight: 600;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        display: block;
+      }
 
-    .prompt-text {
-      background: #292733;
-      padding: 1rem;
-      border-radius: var(--radius);
-      margin-top: 1rem;
-      font-size: 0.95rem;
-    }
+      button {
+        background: var(--accent);
+        color: #000;
+        padding: 0.9rem 1.2rem;
+        border: none;
+        border-radius: var(--radius);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
 
-    .card {
-      background: #222028;
-      padding: 1.2rem;
-      border-radius: var(--radius);
-      margin-bottom: 1.5rem;
-    }
+      button:hover {
+        background: var(--accent-hover);
+      }
 
-    .card p {
-      margin: 0.5rem 0;
-    }
+      .secondary-button {
+        background: transparent;
+        color: var(--accent);
+        border: 1px solid var(--accent);
+      }
 
-    #logout-button {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      padding: 0.4rem 0.8rem;
-      font-size: 0.85rem;
-      background: var(--logout);
-      color: #1a1a1a;
-    }
+      .secondary-button:hover {
+        background: var(--accent);
+        color: #000;
+      }
 
-    #logout-button:hover {
-      background: var(--logout-hover);
-      color: white;
-    }
-  </style>
+      #auth-status {
+        margin-top: 0.5rem;
+        font-size: 0.9rem;
+        color: #bbb;
+        min-height: 1.2em; /* Reserve space */
+      }
+
+      #result img, #history img {
+        max-width: 100%;
+        border-radius: 12px;
+        box-shadow: 0 0 16px rgba(0,0,0,0.5);
+        display: block; /* Ensure image is block for margin/spacing */
+      }
+
+      .prompt-text {
+        background: #292733;
+        padding: 1rem;
+        border-radius: var(--radius);
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        line-height: 1.5; /* Improve readability */
+        word-wrap: break-word;
+      }
+
+      .card {
+        background: #222028;
+        padding: 1.2rem;
+        border-radius: var(--radius);
+        margin-bottom: 1.5rem;
+      }
+
+      .card p {
+        margin: 0.5rem 0;
+        word-wrap: break-word;
+      }
+      .card p strong {
+          color: var(--text); /* Ensure strong text is clearly visible */
+      }
+
+      #logout-button {
+        position: absolute;
+        top: 1.5rem;
+        right: 1.5rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+        background: var(--logout);
+        color: #1a1a1a;
+        border-radius: calc(var(--radius) / 2); /* Slightly smaller radius */
+      }
+
+      #logout-button:hover {
+        background: var(--logout-hover);
+        color: white;
+      }
+    </style>
 </head>
-<body>
+<body style="margin-top: 0;"> <div class="tab-bar" style="margin-top: 2rem;"> <button id="tab-prompt-gen" class="tab-button active">Prompt Image Gen</button>
+    <button id="tab-png-dump" class="tab-button secondary-tab">PNG Dump</button>
+  </div>
+
   <div class="container">
     <h1>✨ AI Thumbnail Maker</h1>
 
-    <div id="auth">
-      <h2>Login or Sign up</h2>
-      <label>Email</label>
+    <div id="auth" style="display: none;"> <h2>Login or Sign up</h2>
+      <label for="auth-email">Email</label>
       <input type="email" id="auth-email" placeholder="you@example.com" required />
 
-      <label>Password</label>
+      <label for="auth-password">Password</label>
       <input type="password" id="auth-password" placeholder="••••••••" required />
 
       <button onclick="login()">Log In</button>
@@ -172,310 +240,383 @@
       <p id="auth-status"></p>
     </div>
 
-    <button id="logout-button" onclick="logout()" style="display: none;">Log Out</button>
+    <div id="main-app-content" style="display: none; width: 100%;">
+        <button id="logout-button" onclick="logout()">Log Out</button>
 
-    <form id="thumbnailForm" style="display: none;">
-      <label for="title">Video Title</label>
-      <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
+        <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
+            <form id="thumbnailForm">
+                <label for="title">Video Title</label>
+                <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
 
-      <label for="niche">Channel Niche</label>
-      <input type="text" id="niche" placeholder="e.g. Education, Gaming, Vlogs" required />
+                <label for="niche">Channel Niche</label>
+                <input type="text" id="niche" placeholder="e.g. Education, Gaming, Vlogs" required />
 
-      <div style="margin-top: 0rem;"><button type="submit">Generate Thumbnail</button></div>
-    </form>
+                <div style="margin-top: 1.5rem;"><button type="submit">Generate Prompt</button></div>
+            </form>
 
-    <div id="result"></div>
-    <button id="history-button" onclick="fetchHistory()" style="display: none;" class="secondary-button">Show My History</button>
+            <div id="result" style="margin-top: 1.5rem;"></div>
 
-    <div id="prompt-preview" style="display: none;">
-      <label for="custom-prompt">Edit Prompt</label>
-      <textarea id="custom-prompt" rows="4"></textarea>
-      <button onclick="confirmPrompt()">Generate Thumbnail from This Prompt</button>
+            <div id="prompt-preview" style="display: none; margin-top: 1.5rem;">
+                <label for="custom-prompt">Edit Prompt (Optional)</label>
+                <textarea id="custom-prompt" rows="4"></textarea>
+                <button onclick="confirmPrompt()" style="margin-top: 0.5rem;">Generate Thumbnail from This Prompt</button>
+            </div>
+
+            <button id="history-button" onclick="fetchHistory()" class="secondary-button" style="margin-top: 2rem;">Show My History</button>
+            <div id="history" style="display: none; margin-top: 1rem;"></div>
+        </div>
+        </div> <div id="png-dump-content" style="display: none; width: 100%; text-align: center;">
+        <h2>PNG Dump</h2>
+        <p>This section is coming soon!</p>
+        <p style="color: #888;">(Content for the PNG Dump tab will go here)</p>
     </div>
+    </div> <script>
+    let currentSession = null;
 
-    <div id="history" style="display: none;"></div>
-  </div>
-  <script>
     const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Get references to DOM elements
     const form = document.getElementById('thumbnailForm');
     const resultDiv = document.getElementById('result');
+    const authDiv = document.getElementById('auth');
+    const authStatusP = document.getElementById('auth-status');
+    const mainAppContentDiv = document.getElementById('main-app-content'); // Wrapper for Logged-in Prompt Gen
+    const promptGenContentDiv = document.getElementById('prompt-gen-tab-content'); // Content for first tab
+    const pngDumpContentDiv = document.getElementById('png-dump-content'); // Content for second tab (now standalone)
+    const logoutButton = document.getElementById('logout-button');
+    const historyButton = document.getElementById('history-button');
+    const historyDiv = document.getElementById('history');
+    const promptPreviewDiv = document.getElementById('prompt-preview');
 
     async function login() {
-  const email = document.getElementById("auth-email").value;
-  const password = document.getElementById("auth-password").value;
+        authStatusP.innerText = "Logging in...";
+        const email = document.getElementById("auth-email").value;
+        const password = document.getElementById("auth-password").value;
 
-  const { data, error } = await supabaseClient.auth.signInWithPassword({
-    email,
-    password,
-  });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-  if (error) {
-    document.getElementById("auth-status").innerText = "Login failed: " + error.message;
-  } else {
-    localStorage.setItem("supabase_token", data.session.access_token);
-refreshUI(); // ✅ instantly show the generator
+        if (error) {
+            authStatusP.innerText = "Login failed: " + error.message;
+        } else {
+            // authStatusP.innerText = ""; // Clear status - will be hidden anyway
+            currentSession = data.session;
+            updateContentView(); // Update UI based on new state and active tab
+        }
+    }
 
-  }
-}
+    async function signup() {
+        authStatusP.innerText = "Signing up...";
+        const email = document.getElementById("auth-email").value;
+        const password = document.getElementById("auth-password").value;
 
-async function signup() {
-  const email = document.getElementById("auth-email").value;
-  const password = document.getElementById("auth-password").value;
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password,
-  });
+        if (error) {
+            authStatusP.innerText = "Signup failed: " + error.message;
+        } else {
+            authStatusP.innerText = "Signup successful! Check your email for verification.";
+            // Keep auth form visible
+        }
+    }
 
-  if (error) {
-    document.getElementById("auth-status").innerText = "Signup failed: " + error.message;
-  } else {
-    document.getElementById("auth-status").innerText = "Signup successful! Check your email.";
-    refreshUI(); // ✅ updates UI right after signup
-  }
-}
+    async function logout() {
+        // We might show the authStatusP if the active tab is prompt-gen
+        // authStatusP.innerText = "Logging out...";
+        const { error } = await supabaseClient.auth.signOut();
+        currentSession = null; // Clear session
 
-async function logout() {
-  const { error } = await supabaseClient.auth.signOut();
+        if (error) {
+            console.error("Logout failed:", error.message);
+            // Display error in authStatusP if it becomes visible
+            authStatusP.innerText = "Logout failed.";
+        } else {
+             // authStatusP.innerText = "Logged out."; // updateContentView handles messages
+        }
+        updateContentView(); // Update UI based on new state and active tab
+    }
 
-  if (error) {
-    console.error("Logout failed:", error.message);
-    return;
-  }
+    // *** NEW Core function to update visibility based on login state AND active tab ***
+    function updateContentView() {
+        const isLoggedIn = !!currentSession;
+        const activeTabButton = document.querySelector('.tab-button.active');
+        const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen'; // Default to prompt gen if none active
 
-  document.getElementById("auth-status").innerText = "Logged out.";
-  document.getElementById("auth").style.display = "block";
-  document.getElementById("thumbnailForm").style.display = "none";
-  document.getElementById("logout-button").style.display = "none";
-}
+        // --- Hide everything first ---
+        authDiv.style.display = 'none';
+        mainAppContentDiv.style.display = 'none'; // Hide wrapper (contains prompt-gen + logout btn)
+        promptGenContentDiv.style.display = 'none'; // Hide specific prompt-gen content
+        pngDumpContentDiv.style.display = 'none'; // Hide specific png-dump content
 
-
-function refreshUI() {
-  document.getElementById("auth-status").innerText = "Logged in!";
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("thumbnailForm").style.display = "block";
-  document.getElementById("logout-button").style.display = "block";
-  document.getElementById("history-button").style.display = "block"; // ✅ Show history
-}
+        // --- Reset states potentially shown/hidden ---
+        resultDiv.innerHTML = "";
+        historyDiv.style.display = "none";
+        promptPreviewDiv.style.display = "none";
+        if (historyButton) historyButton.innerText = "Show My History";
 
 
+        // --- Show the correct content based on state ---
+        if (isLoggedIn) {
+            // LOGGED IN STATE
+            mainAppContentDiv.style.display = 'block'; // Show wrapper (has logout button)
+
+            if (activeTabId === 'tab-prompt-gen') {
+                promptGenContentDiv.style.display = 'block'; // Show prompt gen form etc.
+            } else if (activeTabId === 'tab-png-dump') {
+                // When logged in, the PNG dump content needs to be shown *inside* the main wrapper
+                // Since we moved it outside, we need to show it separately
+                pngDumpContentDiv.style.display = 'block';
+                // BUT we don't want the prompt gen stuff visible, mainAppContentDiv only serves
+                // to show the logout button in this state when logged in.
+                // Let's refine: Show mainApp ONLY for logged-in prompt-gen? No, logout button needed always when logged in.
+                // Ok, let's keep mainApp visible when logged in.
+                // If PNG dump is active, we show mainApp (for logout btn) AND pngDumpContentDiv.
+            }
+             authStatusP.innerText = ""; // Clear any previous auth messages
+
+        } else {
+            // LOGGED OUT STATE
+            if (activeTabId === 'tab-prompt-gen') {
+                authDiv.style.display = 'block'; // Show login form
+                authStatusP.innerText = "You are not logged in."; // Set default message
+            } else if (activeTabId === 'tab-png-dump') {
+                pngDumpContentDiv.style.display = 'block'; // Show PNG dump content directly
+                 authStatusP.innerText = ""; // No auth message needed here
+            }
+        }
+    }
+
+    // *** NEW Tab Switching Handler ***
+    function handleTabSwitch(button) {
+         // Update active class visually
+         const tabButtons = document.querySelectorAll('.tab-button');
+         tabButtons.forEach(btn => btn.classList.remove('active'));
+         button.classList.add('active');
+
+         // Update the content based on the new active tab and current login state
+         updateContentView();
+    }
+
+
+    // --- Form Submission and API Call Logic (Largely unchanged, added checks) ---
 
     form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  resultDiv.innerHTML = "<p>🧠 Generating prompt...</p>";
+        e.preventDefault();
+        if (!currentSession) {
+             resultDiv.innerHTML = `<p style="color:orange;">Please log in to generate prompts.</p>`;
+             return;
+        }
+        // ... rest of submit logic ...
+         resultDiv.innerHTML = "<p>🧠 Generating prompt...</p>";
+        promptPreviewDiv.style.display = "none";
 
-  const title = document.getElementById('title').value;
-  const niche = document.getElementById('niche').value;
+        const title = document.getElementById('title').value;
+        const niche = document.getElementById('niche').value;
 
-  try {
-    const session = await supabaseClient.auth.getSession();
-    const token = session.data.session?.access_token;
+        try {
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError || !session) {
+                throw new Error(sessionError?.message || "Authentication session error. Please log in again.");
+            }
+            const token = session.access_token;
 
-    if (!token) {
-      resultDiv.innerHTML = '<p style="color:red;">Error: You must be logged in to generate thumbnails.</p>';
-      return;
-    }
+            // Prompt generation endpoint (assuming no auth needed for this one based on previous code)
+             const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate_prompt", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ title, niche })
+             });
+            if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+            const data = await res.json();
 
-    const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate_prompt", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ title, niche })
+            if (data.prompt) {
+                resultDiv.innerHTML = `<p><strong>✅ Prompt Generated!</strong> Review and confirm below.</p>`;
+                document.getElementById("custom-prompt").value = data.prompt;
+                promptPreviewDiv.style.display = "block";
+            } else {
+                throw new Error(data.error || 'Unknown error generating prompt');
+            }
+        } catch (err) {
+            console.error("Prompt generation error:", err);
+            resultDiv.innerHTML = `<p style="color:red;">❌ Error generating prompt: ${err.message}</p>`;
+             if (err.message.includes("Authentication")) {
+                 currentSession = null; // Assume session is invalid
+                 updateContentView(); // Refresh view to logged-out state
+             }
+        }
     });
-
-    const data = await res.json();
-
-    if (data.prompt) {
-      resultDiv.innerHTML = `<p><strong>✅ Prompt Generated!</strong></p>`;
-      document.getElementById("custom-prompt").value = data.prompt;
-      document.getElementById("prompt-preview").style.display = "block";
-    } else {
-      resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
-    }
-
-  } catch (err) {
-    resultDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
-  }
-});
-
-
-        // Check login state on page load
-    window.addEventListener("DOMContentLoaded", async () => {
-      const { data, error } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.error("Error getting session:", error);
-      }
-
-      if (data.session) {
-  document.getElementById("auth-status").innerText = "Logged in!";
-  document.getElementById("auth").style.display = "none";
-  document.getElementById("thumbnailForm").style.display = "block";
-  document.getElementById("logout-button").style.display = "block"; // ✅ Show logout
-  document.getElementById("history-button").style.display = "block";
-} else {
-  document.getElementById("auth-status").innerText = "You are not logged in.";
-  document.getElementById("auth").style.display = "block";
-  document.getElementById("thumbnailForm").style.display = "none";
-  document.getElementById("logout-button").style.display = "none"; // ✅ Hide logout
-  document.getElementById("history-button").style.display = "none";
-  
-}
-
-    });
-
 
     async function fetchHistory() {
-  const historyDiv = document.getElementById("history");
-  const historyButton = document.getElementById("history-button");
+        if (!currentSession) {
+            historyDiv.innerHTML = `<p style="color:orange;">Please log in to view history.</p>`;
+            historyDiv.style.display = "block";
+            return;
+        }
+        // ... rest of history logic ...
+        if (historyDiv.style.display === "block") {
+            historyDiv.style.display = "none";
+            historyButton.innerText = "Show My History";
+            return;
+        }
 
-  // 🔁 Toggle: if history is visible, hide it
-  if (historyDiv.style.display === "block") {
-    historyDiv.style.display = "none";
-    historyButton.innerText = "Show My History";
-    return;
-  }
+        historyDiv.style.display = "block";
+        historyDiv.innerHTML = "<p>📦 Loading your thumbnail history...</p>";
+        historyButton.innerText = "Hide History";
 
-  // Else: show it and fetch
-  historyDiv.style.display = "block";
-  historyDiv.innerHTML = "<p>📦 Loading your thumbnail history...</p>";
-  historyButton.innerText = "Hide History";
+        try {
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError || !session) {
+                throw new Error(sessionError?.message || "Authentication session error. Please log in again.");
+            }
+            const token = session.access_token;
 
-  try {
-    const session = await supabaseClient.auth.getSession();
-    const token = session.data.session?.access_token;
+            const res = await fetch("https://ai-thumbnail-maker.onrender.com/history", {
+                method: "GET",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error(`Server error: ${res.status} ${res.statusText}`);
+            const data = await res.json();
 
-    if (!token) {
-      historyDiv.innerHTML = '<p style="color:red;">You must be logged in to view history.</p>';
-      return;
+            if (data.length === 0) {
+                historyDiv.innerHTML = "<p>🕸️ No thumbnails found yet.</p>";
+                return;
+            }
+
+            const items = data.map(item => `
+                <div class="card" style="margin-bottom: 1.5rem;">
+                <img src="${item.image_url}" alt="Generated thumbnail for ${item.title || 'untitled'}" style="max-width:100%; border-radius: 10px; display: block; margin-bottom: 1rem;" loading="lazy"/>
+                <button onclick="downloadImage('${item.image_url}', '${item.title || 'thumbnail'}')" class="secondary-button" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-bottom: 1rem;">⬇ Download</button>
+                <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
+                <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
+                <p style="font-size: 0.85em; color: #bbb;"><strong>Prompt:</strong> ${item.prompt}</p>
+                </div>
+            `).join("");
+            historyDiv.innerHTML = `<h2>Your Past Thumbnails</h2>${items}`;
+
+        } catch (err) {
+            console.error("History fetch error:", err);
+            historyDiv.innerHTML = `<p style="color:red;">❌ Error fetching history: ${err.message}</p>`;
+            historyButton.innerText = "Show My History";
+             if (err.message.includes("Authentication")) {
+                  currentSession = null; // Assume session is invalid
+                 updateContentView(); // Refresh view to logged-out state
+            }
+        }
     }
 
-    const res = await fetch("https://ai-thumbnail-maker.onrender.com/history", {
-      method: "GET",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      }
-    });
+    async function confirmPrompt() {
+        const prompt = document.getElementById("custom-prompt").value;
+        if (!currentSession) {
+             resultDiv.innerHTML = `<p style="color:orange;">Please log in to generate images.</p>`;
+             return;
+        }
+        // ... rest of confirm prompt logic ...
+         resultDiv.innerHTML = "<p>🎨 Generating image... please wait.</p>";
+        promptPreviewDiv.style.display = "none";
 
-    const data = await res.json();
+        const title = document.getElementById("title").value;
+        const niche = document.getElementById("niche").value;
 
-    if (res.ok) {
-      if (data.length === 0) {
-        historyDiv.innerHTML = "<p>🕸️ No thumbnails found yet.</p>";
-        return;
-      }
+        try {
+            const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+            if (sessionError || !session) {
+                throw new Error(sessionError?.message || "Authentication session error. Please log in again.");
+            }
+            const token = session.access_token;
 
-      const items = data.map(item => `
-  <div style="margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 1px solid #333;">
-    <img src="${item.image_url}" style="max-width:100%; border-radius: 10px;" />
-    <button onclick="downloadImage('${item.image_url}')" style="
-  display: inline-block;
-  margin-top: 0.6rem;
-  margin-bottom: 1rem;
-  padding: 0.5rem 1rem;
-  background: #444;
-  color: #fff;
-  border-radius: 6px;
-  border: none;
-  font-size: 0.9rem;
-  cursor: pointer;
-">⬇ Download</button>
+            const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                body: JSON.stringify({ title, niche, prompt })
+            });
+             if (!res.ok) {
+                 const errorData = await res.json().catch(() => ({ error: `Server error: ${res.status} ${res.statusText}` }));
+                 throw new Error(errorData.error || `Server error: ${res.status} ${res.statusText}`);
+             }
+            const data = await res.json();
 
-    <p><strong>Prompt:</strong> ${item.prompt}</p>
-    <p><strong>Title:</strong> ${item.title}</p>
-    <p><strong>Niche:</strong> ${item.niche}</p>
-  </div>
-`).join("");
-
-
-      historyDiv.innerHTML = `<div>${items}</div>`;
-    } else {
-      historyDiv.innerHTML = `<p style="color:red;">Error: ${data.error || 'Failed to fetch history.'}</p>`;
+            if (data.image_url) {
+                resultDiv.innerHTML = `
+                <h2>Generated Thumbnail:</h2>
+                <img src="${data.image_url}" alt="Generated Thumbnail" style="width: 100%; max-width: 100%; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); margin-top: 1rem;" />
+                <button onclick="downloadImage('${data.image_url}', '${title || 'thumbnail'}')" style="margin-top: 1rem; margin-bottom: 1rem;">⬇ Download</button>
+                <div class="prompt-text"><strong>Final Prompt Used:</strong><br>${data.prompt || prompt}</div>
+                `;
+            } else {
+                throw new Error(data.error || 'Unknown error generating image');
+            }
+        } catch (err) {
+            console.error("Image generation error:", err);
+            resultDiv.innerHTML = `<p style="color:red;">❌ Image Generation Failed: ${err.message}</p>`;
+            promptPreviewDiv.style.display = "block";
+             if (err.message.includes("Authentication")) {
+                 currentSession = null; // Assume session is invalid
+                 updateContentView(); // Refresh view to logged-out state
+            }
+        }
     }
 
-  } catch (err) {
-    historyDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
-  }
-}
+    function downloadImage(url, baseFilename = 'thumbnail') {
+        // ... download image logic (unchanged) ...
+        const safeFilename = baseFilename.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'thumbnail';
+        const filename = `${safeFilename}_${Date.now()}.jpg`;
 
-
-async function confirmPrompt() {
-  const prompt = document.getElementById("custom-prompt").value;
-  const session = await supabaseClient.auth.getSession();
-  const token = session.data.session?.access_token;
-
-  if (!token) {
-    resultDiv.innerHTML = '<p style="color:red;">Error: You must be logged in to generate thumbnails.</p>';
-    return;
-  }
-
-  resultDiv.innerHTML = "<p>🎨 Generating image...</p>";
-
-  const title = document.getElementById("title").value;
-  const niche = document.getElementById("niche").value;
-
-  try {
-    const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({ title, niche, prompt }) // include prompt here!
-    });
-
-    const data = await res.json();
-
-    if (data.image_url) {
-      resultDiv.innerHTML = `
-  <img src="${data.image_url}" alt="Generated Thumbnail" style="width: 100%; max-width: 100%; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); margin-top: 1rem;" />
-  <button onclick="downloadImage('${data.image_url}')" style="
-    display: inline-block;
-    margin-top: 0.8rem;
-    padding: 0.6rem 1.2rem;
-    background: #444;
-    color: #fff;
-    border-radius: 8px;
-    border: none;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-  ">⬇ Download</button>
-  <div class="prompt-text"><strong>Prompt:</strong><br>${data.prompt}</div>
-`;
-
-      document.getElementById("prompt-preview").style.display = "none";
-    } else {
-      resultDiv.innerHTML = `<p style="color:red;">Error: ${data.error}</p>`;
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.blob();
+            })
+            .then(blob => {
+                const blobUrl = URL.createObjectURL(blob);
+                const link = document.createElement("a");
+                link.href = blobUrl;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(blobUrl);
+            })
+            .catch(err => {
+                console.error("Download failed:", err);
+                alert("Failed to download image: " + err.message);
+                const imgElement = resultDiv.querySelector('img');
+                if (imgElement && imgElement.src === url) {
+                    resultDiv.innerHTML += `<p style="color:orange; font-size:0.9em;">Could not download automatically. Right-click image > 'Save Image As...'.</p>`;
+                }
+            });
     }
 
-  } catch (err) {
-    resultDiv.innerHTML = `<p style="color:red;">Request failed: ${err.message}</p>`;
-  }
-}
 
-function downloadImage(url) {
-  fetch(url)
-    .then(response => response.blob())
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = blobUrl;
-      link.download = "thumbnail.jpg"; // Optional: customize filename
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(blobUrl); // cleanup
-    })
-    .catch(err => {
-      alert("Failed to download image: " + err.message);
+    // --- Initialization and Auth State Change Listener ---
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Initial check for existing session
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
+        if (error) console.error("Error getting session on load:", error);
+
+        currentSession = session; // Store session globally
+        updateContentView(); // Set initial UI state based on session AND active tab
+
+        // Setup tab listeners
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                handleTabSwitch(button); // Call the handler which updates class and calls updateContentView
+            });
+        });
     });
-}
 
 
+    // Listen for auth state changes
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+        console.log('Auth State Change:', event, session);
+        // Update view only if the session state actually changed
+        if (currentSession !== session) {
+            currentSession = session;
+            updateContentView(); // Update UI based on new state and active tab
+        }
+    });
 
   </script>
 </body>
