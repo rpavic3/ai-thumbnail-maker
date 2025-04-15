@@ -216,7 +216,7 @@ function refreshUI() {
       return;
     }
 
-    const res = await fetch("http://127.0.0.1:5000/generate_prompt", {
+    const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate_prompt", {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -279,7 +279,7 @@ function refreshUI() {
       return;
     }
 
-    const res = await fetch("http://127.0.0.1:5000/history", {
+    const res = await fetch("https://ai-thumbnail-maker.onrender.com/history", {
       method: "GET",
       headers: {
         "Authorization": `Bearer ${token}`
@@ -330,7 +330,7 @@ async function confirmPrompt() {
   const niche = document.getElementById("niche").value;
 
   try {
-    const res = await fetch("http://127.0.0.1:5000/generate", {
+    const res = await fetch("https://ai-thumbnail-maker.onrender.com/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
