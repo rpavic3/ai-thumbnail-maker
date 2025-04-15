@@ -1,6 +1,6 @@
 flask
 flask-cors
-openai
+openai==0.28
 requests
 supabase
 python-dotenv
