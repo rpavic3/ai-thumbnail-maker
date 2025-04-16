@@ -29,65 +29,67 @@ CORS(app) # Allow requests from your frontend domain
 
 # --- NEW: Helper function for user credits ---
 # --- REPLACE your existing function with this one ---
+# --- REPLACE your existing function AGAIN with this SAFER version ---
 def ensure_user_has_credit_row(user_id):
-    """Checks if user exists in 'users' table, inserts if not with 5 credits."""
+    """Checks if user exists in 'users' table, inserts if not with 5 credits. Safer data access."""
     try:
         print(f"🔍 Checking for existing credits row for user {user_id}...")
         existing_response = supabase.table("users").select("id").eq("id", user_id).maybe_single().execute()
 
-        # Explicitly check if the response object itself is None (unexpected but defensive)
+        # Check if the response object itself exists (defensive)
         if existing_response is None:
             print(f"❌ Supabase query for existing user {user_id} returned None object!")
             raise ConnectionError("Supabase query failed unexpectedly (existing check)")
 
-        # Check the data attribute as before
+        # Check if user exists based on data attribute
+        # maybe_single() returns data=None if not found
         if existing_response.data is None:
             print(f"🆕 No credits row found for user {user_id}. Creating one with 5 credits.")
             insert_response = supabase.table("users").insert({"id": user_id, "credits": 5}).execute()
 
-            # Explicitly check if the insert response object is None
+            # Check if the insert response object exists (defensive)
             if insert_response is None:
                 print(f"❌ Supabase insert for new user {user_id} returned None object!")
                 raise ConnectionError("Supabase query failed unexpectedly (insert check)")
 
-            # Check if insert was successful (supabase-py v2+ includes inserted data)
-            # Check both data and potential error attributes for more info
-            if insert_response.data and len(insert_response.data) > 0:
-                 print(f"✅ Successfully created credits row for user {user_id}. Data: {insert_response.data}")
+            # *** Safely check insert_response.data using getattr ***
+            inserted_data = getattr(insert_response, 'data', None)
+            if inserted_data and len(inserted_data) > 0:
+                 print(f"✅ Successfully created credits row for user {user_id}. Data: {inserted_data}")
                  return 5 # Return initial credits
             else:
                  # Log more details if insert seemed to fail
                  status = getattr(insert_response, 'status_code', 'N/A')
                  error_msg = getattr(insert_response, 'error', 'N/A')
-                 data_content = getattr(insert_response, 'data', 'N/A')
-                 print(f"❌ Failed to insert credits row for user {user_id}. Status: {status}, Error: {error_msg}, Data: {data_content}")
+                 print(f"❌ Failed to insert credits row for user {user_id}. Status: {status}, Error: {error_msg}, Data: {inserted_data}")
                  raise Exception("Failed to initialize user credits after insert attempt.")
         else:
             # User exists, fetch their credits
             print(f"✅ User {user_id} already has credits row. Fetching credits...")
             credits_response = supabase.table("users").select("credits").eq("id", user_id).single().execute()
 
-            # Explicitly check if the credits response object is None
+            # Check if the credits response object exists (defensive)
             if credits_response is None:
                 print(f"❌ Supabase query for existing user credits {user_id} returned None object!")
                 raise ConnectionError("Supabase query failed unexpectedly (credits fetch)")
 
-            # .single() should ensure data exists if no exception was raised by it, but check data defensively
-            if credits_response.data and "credits" in credits_response.data:
-                 print(f"🪙 Credits found for user {user_id}: {credits_response.data['credits']}")
-                 return credits_response.data["credits"]
+            # *** Safely check credits_response.data using getattr ***
+            credits_data = getattr(credits_response, 'data', None)
+            # Also ensure 'credits' key exists in the dictionary if data is present
+            if credits_data and "credits" in credits_data:
+                 print(f"🪙 Credits found for user {user_id}: {credits_data['credits']}")
+                 return credits_data["credits"]
             else:
-                 # This case should be rare if .single() worked as expected
+                 # Log more details if fetching credits failed
                  status = getattr(credits_response, 'status_code', 'N/A')
                  error_msg = getattr(credits_response, 'error', 'N/A')
-                 data_content = getattr(credits_response, 'data', 'N/A')
-                 print(f"❌ Fetched existing user {user_id} but couldn't find credits. Status: {status}, Error: {error_msg}, Data: {data_content}")
+                 print(f"❌ Fetched existing user {user_id} but couldn't find credits data. Status: {status}, Error: {error_msg}, Data: {credits_data}")
                  raise ValueError("Failed to retrieve credits for existing user.")
 
     except Exception as e:
         # Log the specific error type as well for better debugging
         print(f"❌ Error in ensure_user_has_credit_row for {user_id}: {type(e).__name__} - {e}")
-        raise e # Re-raise the exception so the calling function knows something went wrong
+        raise e # Re-raise the exception
 
 
 # Flux image generation function (Unchanged)
