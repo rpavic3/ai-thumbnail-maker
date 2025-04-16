@@ -30,66 +30,36 @@ CORS(app) # Allow requests from your frontend domain
 # --- NEW: Helper function for user credits ---
 # --- REPLACE your existing function with this one ---
 # --- REPLACE your existing function AGAIN with this SAFER version ---
+# --- TEMPORARY TEST VERSION ---
 def ensure_user_has_credit_row(user_id):
-    """Checks if user exists in 'users' table, inserts if not with 5 credits. Safer data access."""
+    """
+    TEMPORARY TEST FUNCTION:
+    Checks if the Supabase connection works by querying the 'thumbnail' table
+    instead of the 'users' table. Returns a dummy credit value if successful.
+    """
     try:
-        print(f"🔍 Checking for existing credits row for user {user_id}...")
-        existing_response = supabase.table("users").select("id").eq("id", user_id).maybe_single().execute()
+        print("🧪 TEST: Attempting to query 'thumbnail' table instead of 'users'...")
+        # Query the thumbnail table - assumes this table exists and has an 'id' column
+        test_thumb_response = supabase.table("thumbnail").select("id").limit(1).execute()
 
-        # Check if the response object itself exists (defensive)
-        if existing_response is None:
-            print(f"❌ Supabase query for existing user {user_id} returned None object!")
-            raise ConnectionError("Supabase query failed unexpectedly (existing check)")
-
-        # Check if user exists based on data attribute
-        # maybe_single() returns data=None if not found
-        if existing_response.data is None:
-            print(f"🆕 No credits row found for user {user_id}. Creating one with 5 credits.")
-            insert_response = supabase.table("users").insert({"id": user_id, "credits": 5}).execute()
-
-            # Check if the insert response object exists (defensive)
-            if insert_response is None:
-                print(f"❌ Supabase insert for new user {user_id} returned None object!")
-                raise ConnectionError("Supabase query failed unexpectedly (insert check)")
-
-            # *** Safely check insert_response.data using getattr ***
-            inserted_data = getattr(insert_response, 'data', None)
-            if inserted_data and len(inserted_data) > 0:
-                 print(f"✅ Successfully created credits row for user {user_id}. Data: {inserted_data}")
-                 return 5 # Return initial credits
-            else:
-                 # Log more details if insert seemed to fail
-                 status = getattr(insert_response, 'status_code', 'N/A')
-                 error_msg = getattr(insert_response, 'error', 'N/A')
-                 print(f"❌ Failed to insert credits row for user {user_id}. Status: {status}, Error: {error_msg}, Data: {inserted_data}")
-                 raise Exception("Failed to initialize user credits after insert attempt.")
+        # Check if the response object itself is None (the core issue we were seeing)
+        if test_thumb_response is None:
+             print("❌ TEST FAILED: Querying 'thumbnail' table returned None object!")
+             # Raise the specific error we were seeing before if it happens here too
+             raise ConnectionError("TEST FAILED: thumbnail query returned None")
         else:
-            # User exists, fetch their credits
-            print(f"✅ User {user_id} already has credits row. Fetching credits...")
-            credits_response = supabase.table("users").select("credits").eq("id", user_id).single().execute()
-
-            # Check if the credits response object exists (defensive)
-            if credits_response is None:
-                print(f"❌ Supabase query for existing user credits {user_id} returned None object!")
-                raise ConnectionError("Supabase query failed unexpectedly (credits fetch)")
-
-            # *** Safely check credits_response.data using getattr ***
-            credits_data = getattr(credits_response, 'data', None)
-            # Also ensure 'credits' key exists in the dictionary if data is present
-            if credits_data and "credits" in credits_data:
-                 print(f"🪙 Credits found for user {user_id}: {credits_data['credits']}")
-                 return credits_data["credits"]
-            else:
-                 # Log more details if fetching credits failed
-                 status = getattr(credits_response, 'status_code', 'N/A')
-                 error_msg = getattr(credits_response, 'error', 'N/A')
-                 print(f"❌ Fetched existing user {user_id} but couldn't find credits data. Status: {status}, Error: {error_msg}, Data: {credits_data}")
-                 raise ValueError("Failed to retrieve credits for existing user.")
+             # If we get a valid response object (even with empty data), the connection worked
+             print(f"✅ TEST SUCCEEDED: Queried 'thumbnail' table. Response data: {getattr(test_thumb_response, 'data', 'N/A')}")
+             # Since this is just a test, we can't return actual credits.
+             # Return a default value (like 5) to allow the flow to continue.
+             print("🧪 TEST: Returning dummy credits (5) to continue flow.")
+             return 5 # Return dummy value
 
     except Exception as e:
-        # Log the specific error type as well for better debugging
-        print(f"❌ Error in ensure_user_has_credit_row for {user_id}: {type(e).__name__} - {e}")
-        raise e # Re-raise the exception
+        # Log any error during the test query
+        print(f"❌ TEST ERROR during thumbnail query: {type(e).__name__} - {e}")
+        raise e # Re-raise the exception so the main endpoint knows something failed
+# --- END OF TEMPORARY TEST VERSION ---
 
 
 # Flux image generation function (Unchanged)
