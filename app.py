@@ -32,7 +32,7 @@ def ensure_user_has_credit_row(user_id):
     """Checks if user exists in 'users' table, inserts if not with 5 credits. Safer data access."""
     try:
         print(f"🔍 Checking for existing credits row for user {user_id}...")
-        existing_response = supabase.table("users").select("id").eq("id", user_id).maybe_single().execute()
+        existing_response = supabase.table("user_credits_data").select("id").eq("id", user_id).maybe_single().execute()
 
         # Check if the response object itself exists (defensive)
         if existing_response is None:
@@ -43,7 +43,7 @@ def ensure_user_has_credit_row(user_id):
         # maybe_single() returns data=None if not found
         if existing_response.data is None:
             print(f"🆕 No credits row found for user {user_id}. Creating one with 5 credits.")
-            insert_response = supabase.table("users").insert({"id": user_id, "credits": 5}).execute()
+            insert_response = supabase.table("user_credits_data").insert({"id": user_id, "credits": 5}).execute()
 
             # Check if the insert response object exists (defensive)
             if insert_response is None:
@@ -64,7 +64,7 @@ def ensure_user_has_credit_row(user_id):
         else:
             # User exists, fetch their credits
             print(f"✅ User {user_id} already has credits row. Fetching credits...")
-            credits_response = supabase.table("users").select("credits").eq("id", user_id).single().execute()
+            credits_response = supabase.table("user_credits_data").select("credits").eq("id", user_id).single().execute()
 
             # Check if the credits response object exists (defensive)
             if credits_response is None:
@@ -249,7 +249,7 @@ def generate():
 
         # --- 5. Deduct Credit ---
         try:
-             update_response = supabase.table("users").update({"credits": current_credits - 1}).eq("id", user_id).execute()
+             update_response = supabase.table("user_credits_data").update({"credits": current_credits - 1}).eq("id", user_id).execute()
              if update_response.data:
                  print(f"💸 Deducted 1 credit for user {user_id}. Remaining: {current_credits - 1}")
              else:
