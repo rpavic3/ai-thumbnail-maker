@@ -4,4 +4,3 @@ openai==0.28
 requests
 supabase
 python-dotenv
-gunicorn
