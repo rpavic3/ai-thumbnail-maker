@@ -35,9 +35,9 @@ def ensure_user_has_credit_row(user_id):
         existing_response = supabase.table("user_credits_data").select("id").eq("id", user_id).maybe_single().execute()
 
         # Check if the response object itself exists (defensive)
-        if existing_response is None:
-            print(f"❌ Supabase query for existing user {user_id} returned None object!")
-            raise ConnectionError("Supabase query failed unexpectedly (existing check)")
+        if existing_response.error:
+            print(f"❌ Supabase connection error: {existing_response.error}")
+            raise ConnectionError(f"Supabase query failed: {existing_response.error.message} (existing check)")
 
         # Check if user exists based on data attribute
         # maybe_single() returns data=None if not found
@@ -46,9 +46,9 @@ def ensure_user_has_credit_row(user_id):
             insert_response = supabase.table("user_credits_data").insert({"id": user_id, "credits": 5}).execute()
 
             # Check if the insert response object exists (defensive)
-            if insert_response is None:
-                print(f"❌ Supabase insert for new user {user_id} returned None object!")
-                raise ConnectionError("Supabase query failed unexpectedly (insert check)")
+            if insert_response.error:
+                print(f"❌ Supabase insert error: {insert_response.error}")
+                raise ConnectionError(f"Supabase insert failed: {insert_response.error.message} (insert check)")
 
             # *** Safely check insert_response.data using getattr ***
             inserted_data = getattr(insert_response, 'data', None)
@@ -67,9 +67,9 @@ def ensure_user_has_credit_row(user_id):
             credits_response = supabase.table("user_credits_data").select("credits").eq("id", user_id).single().execute()
 
             # Check if the credits response object exists (defensive)
-            if credits_response is None:
-                print(f"❌ Supabase query for existing user credits {user_id} returned None object!")
-                raise ConnectionError("Supabase query failed unexpectedly (credits fetch)")
+            if credits_response.error:
+                print(f"❌ Supabase credits fetch error: {credits_response.error}")
+                raise ConnectionError(f"Supabase query failed: {credits_response.error.message} (credits fetch)")
 
             # *** Safely check credits_response.data using getattr ***
             credits_data = getattr(credits_response, 'data', None)
