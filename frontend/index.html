@@ -105,12 +105,13 @@
       }
 
       h1 {
-        font-size: 2.6rem;
-        color: var(--accent);
-        text-align: center;
-        margin-bottom: 1.5rem;
-        margin-top: 0; /* Adjusted margin */
-      }
+  font-size: 2.6rem;
+  color: var(--accent);
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0; /* Keep this if you have it */
+  padding-top: 2rem; /* <<< ADD THIS LINE */
+}
 
       h2 {
         margin-top: 0; /* Adjusted margin */
@@ -247,16 +248,37 @@
 
       /* --- Style for credit display --- */
       .credits-display {
-        position: absolute;
-        top: 2.2rem; /* Adjust vertical position */
-        left: 1.5rem; /* Adjust horizontal position */
-        font-size: 0.9rem;
-        color: var(--accent);
-        font-weight: 600;
-        background-color: rgba(0,0,0, 0.2); /* Optional subtle background */
-        padding: 0.3rem 0.6rem;
-        border-radius: 8px;
-      }
+  position: absolute;
+  top: 0.4rem;  /* Original top position */
+  left: 1.5rem; /* Position from the left */
+  font-size: 0.9rem;
+  color: var(--accent);
+  font-weight: 600;
+  background-color: rgba(0,0,0, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  z-index: 10;
+  /* text-align: left; /* Default, no need to specify */
+}
+
+      /* --- NEW: User Info (Email) Display Styling --- */
+      .user-info-display {
+  position: absolute;
+  top: 2.2rem;  /* Original top position */
+  left: 1.5rem; /* Position from the left */
+  font-size: 0.85rem;
+  color: #ccc;
+  background-color: rgba(0,0,0, 0.2);
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  z-index: 10;
+  /* text-align: left; /* Default, no need to specify */
+  /* Prevent long emails breaking layout */
+  max-width: calc(100% - 3rem); /* Adjust max-width */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
     </style>
 </head>
 <body style="margin-top: 0;">
@@ -287,6 +309,10 @@
 
         <div id="credits-container" class="credits-display" style="display: none;">
             Credits: <span id="credits-display">--</span>
+        </div>
+
+        <div id="user-info-display" class="user-info-display" style="display: none;">
+            Logged in as: <span id="user-email-display"></span>
         </div>
 
         <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
@@ -353,6 +379,8 @@
     const generatePromptButton = document.getElementById('generate-prompt-button');
     const confirmPromptButton = document.getElementById('confirm-prompt-button');
     const creditWarningP = document.getElementById('credit-warning'); // Warning message
+    const userInfoDisplayDiv = document.getElementById('user-info-display');
+    const userEmailDisplaySpan = document.getElementById('user-email-display');
 
     // --- Utility to update Credit UI and Button States ---
     function updateCreditState(credits) {
@@ -485,61 +513,72 @@
 
     // --- Core View Update Logic ---
     function updateContentView() {
-        const isLoggedIn = !!currentSession;
-        const activeTabButton = document.querySelector('.tab-button.active');
-        const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
+    const isLoggedIn = !!currentSession;
+    const activeTabButton = document.querySelector('.tab-button.active');
+    const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
 
-        console.log(`Updating content view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
+    console.log(`Updating content view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
 
-        // Hide everything first
-        authDiv.style.display = 'none';
-        mainAppContentDiv.style.display = 'none';
-        promptGenContentDiv.style.display = 'none';
-        pngDumpContentDiv.style.display = 'none';
-        creditsContainer.style.display = 'none'; // Hide credits initially
+    // Hide sections initially
+    authDiv.style.display = 'none';
+    mainAppContentDiv.style.display = 'none';
+    promptGenContentDiv.style.display = 'none';
+    pngDumpContentDiv.style.display = 'none';
+    creditsContainer.style.display = 'none';
+    userInfoDisplayDiv.style.display = 'none'; // <<< HIDE email display initially
 
-        // Reset states potentially shown/hidden
-        resultDiv.innerHTML = ""; // Clear previous results
-        historyDiv.style.display = "none"; // Hide history
-        promptPreviewDiv.style.display = "none"; // Hide prompt edit/confirm
-        if (historyButton) historyButton.innerText = "Show My History";
+    // Reset common states
+    resultDiv.innerHTML = "";
+    historyDiv.style.display = "none";
+    promptPreviewDiv.style.display = "none";
+    if (historyButton) historyButton.innerText = "Show My History";
 
+    if (isLoggedIn) {
+        // LOGGED IN STATE
+        mainAppContentDiv.style.display = 'block'; // Show wrapper
+        authStatusP.innerText = ""; // Clear auth messages
 
-        if (isLoggedIn) {
-            // LOGGED IN STATE
-            mainAppContentDiv.style.display = 'block'; // Show wrapper (logout btn, credits)
+        // Show correct tab content
+        if (activeTabId === 'tab-prompt-gen') {
+            promptGenContentDiv.style.display = 'block';
+        } else if (activeTabId === 'tab-png-dump') {
+             pngDumpContentDiv.style.display = 'block';
+        }
 
-            if (activeTabId === 'tab-prompt-gen') {
-                promptGenContentDiv.style.display = 'block';
-                // Credits visibility handled by updateCreditState
-            } else if (activeTabId === 'tab-png-dump') {
-                 pngDumpContentDiv.style.display = 'block'; // Show PNG content
-                 // Keep promptGenContentDiv hidden
-            }
-            authStatusP.innerText = ""; // Clear any previous auth messages
-
-            // Ensure credits are fetched or UI reflects current state
-             if (currentUserCredits === null) {
-                updateCreditState(null); // Show loading state initially if credits not known
-                fetchUserCredits(); // Trigger fetch
-             } else {
-                updateCreditState(currentUserCredits); // Ensure UI reflects current known state
-             }
-
+        // Update credits display (fetches if necessary)
+        if (currentUserCredits === null) {
+            updateCreditState(null); // Show loading state
+            // fetchUserCredits(); // fetchUserCredits is now called by onAuthStateChange listener
         } else {
-            // LOGGED OUT STATE
-            currentUserCredits = null; // Clear credit state variable
-            updateCreditState(null); // Ensure UI is reset (buttons disabled, display hidden)
+            updateCreditState(currentUserCredits);
+        }
 
-            if (activeTabId === 'tab-prompt-gen') {
-                authDiv.style.display = 'block';
-                authStatusP.innerText = "Please log in to generate thumbnails.";
-            } else if (activeTabId === 'tab-png-dump') {
-                pngDumpContentDiv.style.display = 'block';
-                authStatusP.innerText = ""; // No auth message needed for this tab when logged out
-            }
+        // *** NEW: Update Email Display ***
+        if (currentSession && currentSession.user && currentSession.user.email) {
+            userEmailDisplaySpan.innerText = currentSession.user.email;
+            userInfoDisplayDiv.style.display = 'block'; // Show the element
+        } else {
+            userEmailDisplaySpan.innerText = ''; // Clear if email not found
+            userInfoDisplayDiv.style.display = 'none'; // Hide if email not found
+        }
+
+    } else {
+        // LOGGED OUT STATE
+        currentUserCredits = null; // Clear credit state variable
+        updateCreditState(null); // Reset credits UI
+        userEmailDisplaySpan.innerText = ''; // <<< CLEAR email display
+        userInfoDisplayDiv.style.display = 'none'; // <<< HIDE email display
+
+        // Show correct tab content
+        if (activeTabId === 'tab-prompt-gen') {
+            authDiv.style.display = 'block';
+            authStatusP.innerText = "Please log in to generate thumbnails.";
+        } else if (activeTabId === 'tab-png-dump') {
+            pngDumpContentDiv.style.display = 'block';
+            authStatusP.innerText = "";
         }
     }
+}
 
     // --- Tab Switching ---
     function handleTabSwitch(button) {
