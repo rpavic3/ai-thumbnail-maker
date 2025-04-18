@@ -143,37 +143,55 @@ def get_user_id_from_token(auth_header):
 
 
 # --- NEW Endpoint to get user profile/credits ---
+# In app.py
+
 @app.route("/get_profile", methods=["GET"])
 def get_profile():
     print("📥 /get_profile endpoint called")
     auth_header = request.headers.get("Authorization")
+    user_id = None # Define user_id outside try block to use in logging
     try:
         user_id = get_user_id_from_token(auth_header)
 
-        # Fetch profile data (specifically credits)
+        # Fetch profile data
         profile_response = supabase.table("profiles").select("credits").eq("id", user_id).maybe_single().execute()
 
-        if profile_response.data:
-            credits = profile_response.data.get("credits", 0) # Default to 0 if somehow null
-            print(f"✅ Fetched credits for user {user_id}: {credits}")
-            return jsonify({"credits": credits})
+        # --- MODIFIED CHECK ---
+        # First check if maybe_single() found a row (returned something other than None)
+        if profile_response:
+             # Now check if the response object actually contains data
+             # (Should generally be true if profile_response is not None, but good practice)
+             if hasattr(profile_response, 'data') and profile_response.data:
+                 credits = profile_response.data.get("credits", 5) # Default to 5 if credits column is somehow null
+                 print(f"✅ Fetched credits for user {user_id}: {credits}")
+                 return jsonify({"credits": credits})
+             else:
+                 # This case means we got a response object, but it had no data. Unexpected.
+                 print(f"⚠️ Profile response received, but no data found for user {user_id}. Response: {profile_response}. Returning 0 credits.")
+                 return jsonify({"credits": 0}) # Or handle as an error
         else:
-            # This case should ideally not happen if the trigger works,
-            # but handle it defensively. Maybe create a profile here?
-            # For now, return 0 credits or an error.
-            print(f"⚠️ Profile not found for user {user_id}. Returning 0 credits.")
-            # Optionally create profile:
-            # supabase.table("profiles").insert({"id": user_id, "credits": 5}).execute()
-            # return jsonify({"credits": 5})
-            return jsonify({"credits": 0}) # Or return jsonify({"error": "Profile not found"}), 404
+            # profile_response is None, meaning maybe_single() found nothing. THIS IS THE LIKELY CASE.
+            print(f"⚠️ Profile not found for user {user_id} in /get_profile (maybe_single returned None). Returning 0 credits.")
+            # Optional: You could create the profile here if it's missing,
+            # but it might be better to handle that during signup/first action.
+            # For now, just return 0.
+            return jsonify({"credits": 0})
 
     except Exception as e:
-        print(f"❌ Error in /get_profile: {e}")
-        # Distinguish between auth errors and other errors
-        if "token" in str(e).lower() or "unauthorized" in str(e).lower():
-             return jsonify({"error": str(e)}), 401
-        else:
-             return jsonify({"error": "Failed to fetch profile data."}), 500
+        # Log error using the user_id if available
+        user_id_str = f" for user {user_id}" if user_id else ""
+        print(f"❌ Error in /get_profile{user_id_str}: {e}")
+
+        error_message = str(e)
+        status_code = 500
+        # Make error message more user-friendly if it's the NoneType error
+        if isinstance(e, AttributeError) and "'NoneType' object has no attribute 'data'" in error_message:
+             error_message = "Failed to retrieve profile data (Profile might be missing)."
+             # Keep status_code 500 as it indicates a server-side handling issue before this fix
+        elif "token" in error_message.lower() or "unauthorized" in error_message.lower():
+             status_code = 401
+        # Add more specific error handling if needed
+        return jsonify({"error": error_message}), status_code
 
 
 @app.route("/generate", methods=["POST"])
