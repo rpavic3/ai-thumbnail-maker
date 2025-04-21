@@ -481,23 +481,37 @@
     }
 
     async function signup() {
-    authStatusP.innerText = "Signing up...";
-    const email = document.getElementById("auth-email").value;
-    const password = document.getElementById("auth-password").value;
-    authStatusP.innerText = "Signing up..."; // Clear previous potentially
+        authStatusP.innerText = "Processing signup..."; // Initial feedback
+        const email = document.getElementById("auth-email").value;
+        const password = document.getElementById("auth-password").value;
 
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        // Call Supabase signUp
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
-    if (error) {
-         // Explicit error from Supabase (e.g., bad password format, etc.)
-        authStatusP.innerText = "Signup failed: " + error.message;
-    } else {
-         // No explicit error from Supabase.
-         // This branch runs for BOTH new users needing confirmation AND existing confirmed users.
-         // Since differentiating seems unreliable, use a message that covers both.
-         authStatusP.innerText = "Processing signup request. Please check your email for verification or try logging in if already registered.";
+        if (error) {
+            // Case 1: Supabase returned an explicit error (e.g., password too short, invalid email format)
+            console.error("Signup Error:", error);
+            authStatusP.innerText = "Signup failed: " + error.message;
+        } else if (data.user && !data.session) {
+            // Case 2: No error, but user exists and session is null.
+            // This is the typical response when the email is already registered and verified.
+            console.log("Signup attempt for existing verified email:", email);
+            authStatusP.innerText = "Email already exists. Please try logging in.";
+        } else if (data.user && data.session) {
+             // Case 3: Signup successful AND user is immediately logged in (e.g., Auto-confirm enabled, unlikely default)
+             console.log("Signup successful and logged in:", email);
+             // onAuthStateChange will handle the UI update, clear any messages here
+             authStatusP.innerText = "";
+        } else if (data.user) {
+             // Case 4: User created, but needs verification (most common successful signup)
+             console.log("Signup successful, verification needed:", email);
+             authStatusP.innerText = "Signup successful! Please check your email for a verification link.";
+        } else {
+             // Case 5: Unexpected scenario (no error, no user) - Log it
+             console.warn("Unexpected signup response:", data);
+             authStatusP.innerText = "An unexpected issue occurred during signup. Please try again.";
+        }
     }
-}
 
     async function logout() {
         console.log("Logging out...");
