@@ -481,22 +481,44 @@
     }
 
     async function signup() {
-        authStatusP.innerText = "Signing up...";
-        const email = document.getElementById("auth-email").value;
-        const password = document.getElementById("auth-password").value;
+    authStatusP.innerText = "Signing up..."; // Show initial status
+    const email = document.getElementById("auth-email").value;
+    const password = document.getElementById("auth-password").value;
 
-        // Clear previous errors immediately
-        authStatusP.innerText = "Signing up...";
+    // Clear previous errors immediately if signup clicked again
+    authStatusP.innerText = "Signing up...";
 
-        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+    // Call Supabase Auth API
+    const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
-        if (error) {
-            authStatusP.innerText = "Signup failed: " + error.message;
+    if (error) {
+        // --- Scenario 1: Supabase returned an explicit error ---
+        // This catches things like invalid passwords, network errors,
+        // or potentially specific "User already exists" errors if Supabase config changes.
+        authStatusP.innerText = "Signup failed: " + error.message;
+
+    } else {
+        // --- Scenario 2: Supabase did NOT return an explicit error ---
+        // Now we check the 'data' object to see what actually happened.
+
+        if (data && data.user && data.user.email_confirmed_at) {
+            // --- Sub-Scenario 2a: User exists AND is already confirmed ---
+            // signUp likely did nothing but returned the existing user info without an error.
+            authStatusP.innerText = "This email is already registered. Please Log In.";
+
+        } else if (data && data.user) {
+             // --- Sub-Scenario 2b: User likely created but needs confirmation ---
+             // (Or confirmation might be disabled, but this message is usually safe)
+             authStatusP.innerText = "Signup successful! Check your email for verification.";
+
         } else {
-            authStatusP.innerText = "Signup successful! Check your email for verification.";
-            // Keep auth form visible for potential login after verification
+             // --- Sub-Scenario 2c: Unexpected - No error, but also no user data? ---
+             // This shouldn't usually happen, but good to have a fallback.
+             console.warn("Supabase signUp returned no error and no user data.", data);
+             authStatusP.innerText = "Signup status uncertain. Please try logging in or check your email.";
         }
     }
+}
 
     async function logout() {
         console.log("Logging out...");
