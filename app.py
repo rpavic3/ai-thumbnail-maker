@@ -1,12 +1,14 @@
 # Keep existing imports
 from supabase import create_client, Client
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 import openai
 import json
 import requests
 import os
 from dotenv import load_dotenv
+import stripe
+
 load_dotenv()
 
 # 🔐 Supabase credentials
@@ -20,6 +22,17 @@ openai.api_key = os.environ.get("OPENAI_API_KEY")
 
 # 🔐 Flux (FAL) key
 FAL_API_KEY = os.environ.get("FAL_API_KEY")
+
+stripe.api_key = os.environ.get("STRIPE_SECRET_KEY") # <<< ADD THIS (Use your sk_live_...)
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
+
+# --- Map Stripe Price IDs to Credit Amounts ---
+# !!! IMPORTANT: Replace with YOUR actual Price IDs from Stripe Live mode !!!
+PRICE_ID_TO_CREDITS = {
+    "price_1RGPLZFj9LYfI1R0bRYP2IJn": 50,   # Example: Your Price ID for the 50 credit pack
+    # Add entries for all the credit packs you created in Stripe
+}
+
 
 app = Flask(__name__)
 CORS(app) # Consider restricting origins in production: CORS(app, origins=["YOUR_VERCEL_DOMAIN"])
@@ -330,6 +343,163 @@ def get_history():
              return jsonify({"error": str(e)}), 401
         else:
              return jsonify({"error": f"Failed to fetch history: {e}"}), 500
+        
+@app.route("/create-checkout-session", methods=["POST"])
+def create_checkout_session():
+    print("📥 /create-checkout-session called")
+    auth_header = request.headers.get("Authorization")
+    data = request.json
+    price_id = data.get('priceId')
+
+    if not price_id:
+        print("❌ Price ID missing in request")
+        return jsonify({"error": "Price ID is required."}), 400
+
+    # !!! IMPORTANT: Replace with YOUR Vercel frontend domain !!!
+    YOUR_FRONTEND_DOMAIN = "https://ai-thumbnail-maker-seven.vercel.app" # Or your custom domain
+
+    try:
+        # 1. Verify user
+        user_id = get_user_id_from_token(auth_header)
+        print(f"✅ User {user_id} requesting checkout for price {price_id}")
+
+        # 2. Define redirect URLs
+        success_url = f"{YOUR_FRONTEND_DOMAIN}?payment=success&session_id={{CHECKOUT_SESSION_ID}}"
+        cancel_url = f"{YOUR_FRONTEND_DOMAIN}?payment=cancel"
+
+        # 3. Create Stripe Checkout Session
+        print(f"Creating Stripe session for Price ID: {price_id}")
+        checkout_session = stripe.checkout.Session.create(
+            line_items=[{'price': price_id, 'quantity': 1}],
+            mode='payment',
+            success_url=success_url,
+            cancel_url=cancel_url,
+            # Pass user_id and price_id for the webhook
+            metadata={
+                'supabase_user_id': user_id,
+                'price_id': price_id
+            }
+        )
+        print(f"✅ Stripe session created: {checkout_session.id}")
+        # Return the session URL to the frontend
+        return jsonify({'url': checkout_session.url})
+
+    except stripe.error.StripeError as e:
+        print(f"❌ Stripe Error creating session: {e}")
+        # Provide a user-friendly message if available
+        user_message = getattr(e, 'user_message', str(e))
+        return jsonify({"error": f"Stripe error: {user_message}"}), 500
+    except Exception as e:
+        print(f"❌ Error creating checkout session: {e}")
+        if "token" in str(e).lower() or "unauthorized" in str(e).lower():
+            return jsonify({"error": str(e)}), 401
+        else:
+            return jsonify({"error": "Failed to create checkout session."}), 500
+        
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    print("🔔 /stripe-webhook received event")
+    payload = request.data
+    sig_header = request.headers.get('Stripe-Signature')
+    event = None
+
+    if not STRIPE_WEBHOOK_SECRET:
+        print("❌ Webhook Error: Signing secret not configured on server.")
+        return jsonify(error="Webhook secret not configured"), 500
+
+    try:
+        # Verify the event signature
+        event = stripe.Webhook.construct_event(
+            payload, sig_header, STRIPE_WEBHOOK_SECRET
+        )
+        print(f"✅ Webhook signature verified for event: {event['type']}")
+    except ValueError as e:
+        # Invalid payload
+        print(f"❌ Invalid webhook payload: {e}")
+        return jsonify(error="Invalid payload"), 400
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid signature
+        print(f"❌ Invalid webhook signature: {e}")
+        return jsonify(error="Invalid signature"), 400
+    except Exception as e:
+        print(f"❌ Error constructing webhook event: {e}")
+        return jsonify(error="Webhook error"), 500 # Use 500 for generic server errors
+
+
+    # Handle the checkout.session.completed event
+    if event['type'] == 'checkout.session.completed':
+        session = event['data']['object']
+        print(f"Processing 'checkout.session.completed' for session: {session.get('id')}")
+
+        # Check if payment was successful
+        if session.get('payment_status') == 'paid':
+            metadata = session.get('metadata')
+            if not metadata:
+                print("❌ Metadata missing from checkout session.")
+                # Acknowledge receipt but indicate issue
+                return jsonify(status="Metadata missing"), 200 # Still return 200 OK to Stripe
+
+            user_id = metadata.get('supabase_user_id')
+            price_id = metadata.get('price_id')
+
+            if not user_id or not price_id:
+                print("❌ User ID or Price ID missing from metadata.")
+                return jsonify(status="Missing metadata fields"), 200 # Still return 200 OK
+
+            # Look up credits to add based on the price ID
+            credits_to_add = PRICE_ID_TO_CREDITS.get(price_id)
+            if credits_to_add is None:
+                print(f"⚠️ Unrecognized price_id in webhook metadata: {price_id}")
+                return jsonify(status="Unrecognized price ID"), 200 # Still return 200 OK
+
+            print(f"Attempting to grant {credits_to_add} credits to user {user_id} for price {price_id}")
+
+            # --- Securely Update Credits in Supabase ---
+            try:
+                # 1. Get current credits
+                profile_res = supabase.table("profiles").select("credits").eq("id", user_id).maybe_single().execute()
+
+                current_credits = 0
+                if profile_res and hasattr(profile_res, 'data') and profile_res.data:
+                    current_credits = profile_res.data.get("credits", 0)
+                else:
+                    # Handle missing profile - maybe create one? For now, assume 0.
+                    print(f"⚠️ Profile not found for user {user_id} during credit update. Starting credit count at 0.")
+                    # Consider inserting profile: supabase.table("profiles").insert({"id": user_id, "credits": 0}).execute()
+
+                # 2. Calculate new total
+                new_total_credits = current_credits + credits_to_add
+                print(f"   Updating credits for {user_id}: {current_credits} -> {new_total_credits}")
+
+                # 3. Update the database
+                update_res = supabase.table("profiles").update({"credits": new_total_credits}).eq("id", user_id).execute()
+
+                # Check for update errors
+                if hasattr(update_res, 'error') and update_res.error:
+                     print(f"❌ Supabase DB Error updating credits for user {user_id}. Error: {update_res.error}")
+                     return jsonify(error="Failed to update credits in DB"), 500 # Return 500 so Stripe retries
+                # Also check if data was actually returned (indicates success)
+                elif not (hasattr(update_res, 'data') and update_res.data):
+                     print(f"❌ Supabase DB Warning: Update command for user {user_id} might not have updated rows (returned no data).")
+                     # Depending on library version, this might indicate the user_id didn't match.
+                     # Treat as error for retry.
+                     return jsonify(error="Failed to update credits (user not found?)"), 500
+                else:
+                     print(f"✅ Credits successfully updated for user {user_id}.")
+
+            except Exception as db_error:
+                print(f"❌ Database exception during credit update for user {user_id}: {db_error}")
+                return jsonify(error="Database update failed"), 500 # Return 500 so Stripe retries
+
+        else:
+             print(f"Payment status was not 'paid': {session.get('payment_status')}")
+             # No credits granted for unpaid sessions
+
+    else:
+        print(f"🤷‍♀️ Unhandled event type received: {event['type']}")
+
+    # Acknowledge the webhook event was received successfully
+    return jsonify(success=True), 200
 
 
 if __name__ == "__main__":

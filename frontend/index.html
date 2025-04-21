@@ -6,6 +6,7 @@
     <title>AI Thumbnail Maker</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.5/dist/umd/supabase.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://js.stripe.com/v3/"></script>
 
     <style>
       :root {
@@ -306,6 +307,15 @@
 
     <div id="main-app-content" style="display: none; width: 100%;">
         <button id="logout-button" onclick="logout()">Log Out</button>
+        <div id="purchase-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--input-bg);">
+            <h2>Buy More Credits</h2>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="buy-credits-button" data-price-id="price_1RGPLZFj9LYfI1R0bRYP2IJn">
+                    Buy 50 Credits (€8.00) </button>
+                
+                </div>
+            <p id="purchase-status" style="margin-top: 1rem; color: #bbb; min-height: 1.2em;"></p>
+        </div>
 
         <div id="credits-container" class="credits-display" style="display: none;">
             Credits: <span id="credits-display">--</span>
@@ -355,6 +365,9 @@
     // !!! IMPORTANT: Replace with your actual Render Backend URL !!!
     const BACKEND_URL = "https://ai-thumbnail-maker.onrender.com"; // Your Render backend URL
 
+    const STRIPE_PUBLISHABLE_KEY = "pk_live_51RGO3VFj9LYfI1R0cQJetymluTuFJypOZ50kEaYzTNuyldVzHAp44DzqZWasbk5mBd2Rw0x5dXW4zAJxnPsP7SKK00aGiig0wu"; // Use your pk_live_... key
+    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY); // Initialize Stripe.js
+
     // --- Supabase Client Initialization ---
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -381,6 +394,79 @@
     const creditWarningP = document.getElementById('credit-warning'); // Warning message
     const userInfoDisplayDiv = document.getElementById('user-info-display');
     const userEmailDisplaySpan = document.getElementById('user-email-display');
+
+    const purchaseStatusP = document.getElementById('purchase-status');
+    const purchaseSection = document.getElementById('purchase-section');
+
+
+    if (purchaseSection) {
+    purchaseSection.addEventListener('click', async (event) => {
+        // Target the button specifically, even if user clicks text inside
+        const button = event.target.closest('.buy-credits-button');
+
+        if (button) { // Check if a buy button was actually clicked
+            event.preventDefault(); // Prevent potential form submission issues if nested
+
+            if (!currentSession) {
+                purchaseStatusP.innerText = "Please log in to purchase credits.";
+                return;
+            }
+
+            const priceId = button.dataset.priceId; // Get priceId from data attribute
+            if (!priceId) {
+                 console.error("Buy button clicked but missing data-price-id attribute.");
+                 purchaseStatusP.innerText = "Error: Purchase option misconfigured.";
+                 return;
+            }
+
+            const originalButtonText = button.innerText; // Store original text
+            console.log(`Initiating purchase for price ID: ${priceId}`);
+            purchaseStatusP.innerText = "Processing..."; // Show status
+            button.disabled = true; // Disable button
+            button.innerText = "Redirecting..."; // Change button text
+
+            try {
+                const token = currentSession.access_token;
+                // Call your backend to create the checkout session
+                const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ priceId: priceId }) // Send the price ID
+                });
+
+                if (!res.ok) {
+                    const errorData = await res.json().catch(() => ({ error: `Server error initiating purchase: ${res.status}` }));
+                    throw new Error(errorData.error || `Failed to start purchase: ${res.status}`);
+                }
+
+                const data = await res.json();
+
+                if (data.url) {
+                    // Redirect customer to Stripe Checkout
+                    console.log("Redirecting to Stripe Checkout URL:", data.url);
+                    window.location.href = data.url;
+                    // Note: If using session ID instead of URL:
+                    // const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+                    // if (result.error) { throw new Error(result.error.message); }
+                } else {
+                    throw new Error("Could not get checkout URL from server.");
+                }
+
+            } catch (err) {
+                console.error("Purchase initiation failed:", err);
+                purchaseStatusP.innerText = `Error: ${err.message}`;
+                button.disabled = false; // Re-enable button on error
+                button.innerText = originalButtonText; // Restore original text
+            }
+        }
+    });
+} else {
+     console.warn("Purchase section not found. Purchase buttons will not work.");
+}
+
 
     // --- Utility to update Credit UI and Button States ---
     function updateCreditState(credits) {
@@ -860,16 +946,78 @@
 
     // --- Initialization and Auth State Change Listener ---
     document.addEventListener('DOMContentLoaded', () => {
-        // Setup tab listeners
-        const tabButtons = document.querySelectorAll('.tab-button');
-        tabButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                handleTabSwitch(button);
-            });
+    // --- Existing Logic: Setup tab listeners ---
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            handleTabSwitch(button);
         });
-        console.log("DOM Loaded. Initializing auth listener.");
-         // Initial check for session is handled by onAuthStateChange firing on load
     });
+    console.log("DOM Loaded. Initializing auth listener.");
+    // Note: Initial check for session is handled by onAuthStateChange firing later
+
+    // --- NEW Logic: Check for Stripe Redirect Status ---
+    console.log("Checking for payment redirect status...");
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    const sessionId = urlParams.get('session_id'); // Optional: You might use this ID later
+
+    // Use purchase status paragraph, fallback to general auth status
+    // Ensure 'purchaseStatusP' and 'authStatusP' are defined globally before this listener runs
+    const statusTargetElement = typeof purchaseStatusP !== 'undefined' ? purchaseStatusP : authStatusP;
+
+    if (paymentStatus === 'success') {
+        console.log("Payment successful redirect detected. Session:", sessionId);
+        if (statusTargetElement) {
+            statusTargetElement.innerText = "Payment successful! Credits should update shortly.";
+            statusTargetElement.style.color = 'lightgreen'; // Indicate success visually
+        }
+
+        // Attempt to fetch credits again sooner.
+        // Use a small delay to increase chance session is ready / webhook has run
+        setTimeout(() => {
+            // Important: Only fetch if logged in, session might not be ready yet
+             if (currentSession) {
+                 console.log("Attempting early credit refresh after payment success.");
+                 fetchUserCredits();
+             }
+             // Reset message after a longer delay
+             setTimeout(() => {
+                 // Check if the element still exists and has the success message before clearing
+                 if (statusTargetElement && statusTargetElement.innerText.includes("Payment successful")) {
+                    statusTargetElement.innerText = '';
+                    statusTargetElement.style.color = '#bbb'; // Reset color
+                 }
+             }, 5000); // Reset after 5 seconds
+        }, 1000); // Refresh attempt after 1 second
+
+
+        // Clean the URL parameters so they don't show on refresh
+        if (window.history.replaceState) {
+             window.history.replaceState(null, '', window.location.pathname);
+        }
+
+    } else if (paymentStatus === 'cancel') {
+        console.log("Payment cancelled redirect detected.");
+        if (statusTargetElement) {
+             statusTargetElement.innerText = "Purchase cancelled.";
+             statusTargetElement.style.color = 'orange'; // Indicate cancellation
+        }
+        // Clean the URL parameters
+         if (window.history.replaceState) {
+             window.history.replaceState(null, '', window.location.pathname);
+         }
+         // Reset message after a delay
+         setTimeout(() => {
+            if (statusTargetElement && statusTargetElement.innerText.includes("Purchase cancelled")) {
+                statusTargetElement.innerText = '';
+                statusTargetElement.style.color = '#bbb'; // Reset color
+            }
+         }, 5000); // Reset after 5 seconds
+    }
+    // --- End of NEW Logic ---
+
+}); // End of DOMContentLoaded listener
 
     // Listen for auth state changes (login, logout, token refresh, initial load)
     supabaseClient.auth.onAuthStateChange((event, session) => {
