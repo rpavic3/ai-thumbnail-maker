@@ -488,37 +488,15 @@
 
     const { data, error } = await supabaseClient.auth.signUp({ email, password });
 
-    // Log for continued debugging if needed
-    console.log("--- Running Signup Logic ---");
-    console.log("Error:", error);
-    console.log("Data:", data);
-
     if (error) {
-        // Explicit error from Supabase
+         // Explicit error from Supabase (e.g., bad password format, etc.)
         authStatusP.innerText = "Signup failed: " + error.message;
     } else {
-        // No explicit error. Let's try checking the property with bracket notation.
-        let isAlreadyConfirmed = false;
-        if (data && data.user && data.user['email_confirmed_at']) { // Check using bracket notation
-             isAlreadyConfirmed = true;
-             console.log("Bracket Check: 'email_confirmed_at' exists and is truthy.");
-        } else {
-             console.log("Bracket Check: 'email_confirmed_at' is missing or falsy.");
-        }
-
-        if (isAlreadyConfirmed) {
-            // Scenario: User exists AND is already confirmed
-            authStatusP.innerText = "This email is already registered. Please Log In.";
-        } else if (data && data.user) {
-            // Scenario: New user OR email_confirmed_at check failed/was falsy
-            authStatusP.innerText = "Signup successful! Check your email for verification.";
-        } else {
-            // Scenario: Unexpected - No error, but also no user data?
-            console.warn("Supabase signUp returned no error and no user data.", data);
-            authStatusP.innerText = "Signup status uncertain. Please try logging in or check your email.";
-        }
+         // No explicit error from Supabase.
+         // This branch runs for BOTH new users needing confirmation AND existing confirmed users.
+         // Since differentiating seems unreliable, use a message that covers both.
+         authStatusP.innerText = "Processing signup request. Please check your email for verification or try logging in if already registered.";
     }
-    console.log("--- Signup Logic Complete ---");
 }
 
     async function logout() {
