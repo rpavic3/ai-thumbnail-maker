@@ -356,7 +356,7 @@ def create_checkout_session():
         return jsonify({"error": "Price ID is required."}), 400
 
     # !!! IMPORTANT: Replace with YOUR Vercel frontend domain !!!
-    YOUR_FRONTEND_DOMAIN = "https://ai-thumbnail-maker-seven.vercel.app" # Or your custom domain
+    YOUR_FRONTEND_DOMAIN = "https://https://ai-thumbnail-copilot.vercel.app" # Or your custom domain
 
     try:
         # 1. Verify user
