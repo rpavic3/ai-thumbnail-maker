@@ -29,7 +29,7 @@ STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET")
 # --- Map Stripe Price IDs to Credit Amounts ---
 # !!! IMPORTANT: Replace with YOUR actual Price IDs from Stripe Live mode !!!
 PRICE_ID_TO_CREDITS = {
-    "price_1RGOIOCGxXGvdBD8dor7mjr3": 50,   # Example: Your Price ID for the 50 credit pack
+    "price_1RGPLZFj9LYfI1R0bRYP2IJn": 50,   # Example: Your Price ID for the 50 credit pack
     # Add entries for all the credit packs you created in Stripe
 }
 
