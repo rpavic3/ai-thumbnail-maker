@@ -197,6 +197,13 @@
           color: var(--accent); /* Prevent hover text color change */
       }
 
+      /* NEW: Style for smaller purchase buttons */
+      .buy-credits-button {
+          padding: 0.6rem 1rem; /* Reduced padding */
+          font-size: 0.9rem; /* Reduced font size */
+          /* Inherits other button styles */
+      }
+
 
       #auth-status {
         margin-top: 0.5rem;
@@ -265,7 +272,6 @@
         padding: 0.3rem 0.6rem;
         border-radius: 8px;
         z-index: 10;
-        /* text-align: left; /* Default, no need to specify */
       }
 
       /* --- User Info (Email) Display Styling --- */
@@ -279,8 +285,6 @@
         padding: 0.3rem 0.6rem;
         border-radius: 8px;
         z-index: 10;
-        /* text-align: left; /* Default, no need to specify */
-        /* Prevent long emails breaking layout */
         max-width: calc(100% - 3rem); /* Adjust max-width */
         white-space: nowrap;
         overflow: hidden;
@@ -289,122 +293,107 @@
 
       /* --- How It Works Section Styling --- */
       #how-it-works-section {
-        /* Container Styling */
-        width: 100%;              /* Take full width */
-        max-width: 820px;         /* Match your main container width */
-        margin: 3rem auto;        /* Center horizontally, add vertical spacing */
-        padding: 2.5rem 2rem;     /* Internal padding (top/bottom, left/right) */
-        background: var(--surface); /* Use your defined surface color */
-        border-radius: var(--radius); /* Match your standard border radius */
-        text-align: center;       /* Center the main heading */
-        color: var(--text);       /* Default text color */
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3); /* Optional: Add some depth */
+        width: 100%;
+        max-width: 820px;
+        margin: 3rem auto;
+        padding: 2.5rem 2rem;
+        background: var(--surface);
+        border-radius: var(--radius);
+        text-align: center;
+        color: var(--text);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
       }
 
       #how-it-works-section h2 {
-        color: var(--accent);       /* Use accent color for the main heading */
-        margin-top: 0;              /* Remove default top margin */
-        margin-bottom: 2.5rem;      /* Space below the heading */
-        font-size: 1.8rem;          /* Adjust size as needed */
+        color: var(--accent);
+        margin-top: 0;
+        margin-bottom: 2.5rem;
+        font-size: 1.8rem;
         font-weight: 700;
       }
 
-      /* Container for the individual step cards */
       .steps-container {
-        /* Changed from flex to block for vertical layout */
         display: block;
-        text-align: left; /* Reset text alignment for card content */
+        text-align: left;
       }
 
-      /* Individual step card styling */
       .step-card {
-        /* Changed from flex item to block item taking full width */
-        width: 100%;              /* Make card take full available width */
-        max-width: none;          /* Remove the 240px limit */
-        box-sizing: border-box;   /* Include padding in the 100% width calculation */
-        margin-bottom: 2rem;      /* Add margin for vertical spacing */
-
-        /* Keep existing styles */
-        background: var(--input-bg); /* Use input background for contrast */
-        padding: 1.5rem;          /* Padding inside the card */
-        border-radius: calc(var(--radius) / 1.5); /* Slightly smaller radius */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-        display: flex;            /* Use flexbox for internal layout */
-        flex-direction: column;   /* Stack content vertically */
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
+        margin-bottom: 2rem;
+        background: var(--input-bg);
+        padding: 1.5rem;
+        border-radius: calc(var(--radius) / 1.5);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        display: flex;
+        flex-direction: column;
       }
 
-      /* Styling for the step number (e.g., "1.") */
-      .step-card .step-number { /* Add class="step-number" to the span */
+      .step-card .step-number {
         font-size: 1.6rem;
-        font-weight: 700;         /* Bold */
-        color: var(--accent);     /* Accent color */
-        display: block;           /* Ensure it takes its own space */
+        font-weight: 700;
+        color: var(--accent);
+        display: block;
         margin-bottom: 0.5rem;
         line-height: 1;
       }
 
-      /* Styling for the step title (e.g., "Enter Video Details") */
       .step-card h3 {
         margin-top: 0;
         margin-bottom: 1rem;
-        font-size: 1.3rem;       /* Increased size from 1.15rem */
+        font-size: 1.3rem;
         font-weight: 600;
         color: var(--text);
       }
 
-      /* Styling for the images within step cards */
       .step-card img {
-        max-width: 100%;          /* Make image responsive */
-        height: auto;             /* Maintain aspect ratio */
-        border-radius: 8px;       /* Slightly rounded corners for image */
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
         margin-bottom: 1rem;
-        display: block;           /* Ensure proper spacing */
-        border: 1px solid #444;   /* Optional: subtle border around screenshot */
+        display: block;
+        border: 1px solid #444;
       }
 
-      /* Styling for the descriptive paragraph within step cards */
       .step-card p {
-        font-size: 1.05rem;       /* Increased size from 0.9rem */
-        color: #ccc;              /* Slightly lighter/muted text color */
-        line-height: 1.6;         /* Slightly increased line-height */
-        margin-bottom: 0;         /* Remove default bottom margin */
-        flex-grow: 1;             /* Allow paragraph to fill space if cards vary slightly in height */
+        font-size: 1.05rem;
+        color: #ccc;
+        line-height: 1.6;
+        margin-bottom: 0;
+        flex-grow: 1;
       }
 
-      /* Styling for the optional CTA Button at the bottom */
       #how-it-works-section button {
-        /* Inherit general button styles or redefine */
         margin-top: 2.5rem;
         padding: 0.9rem 1.5rem;
-        background: var(--accent-hover); /* Using hover color for emphasis */
-        color: #000;              /* Dark text on light button */
+        background: var(--accent-hover);
+        color: #000;
         border: none;
         border-radius: var(--radius);
         font-size: 1rem;
         font-weight: 600;
         cursor: pointer;
-        transition: opacity 0.2s, transform 0.2s; /* Add transitions */
+        transition: opacity 0.2s, transform 0.2s;
       }
 
       #how-it-works-section button:hover {
-        opacity: 0.9;             /* Slight fade on hover */
-        transform: translateY(-2px); /* Slight lift on hover */
+        opacity: 0.9;
+        transform: translateY(-2px);
       }
 
-      /* Responsive Adjustments (Example for smaller screens) */
       @media (max-width: 600px) {
         #how-it-works-section {
-            padding: 2rem 1rem; /* Reduce padding on smaller screens */
+            padding: 2rem 1rem;
         }
-
         #how-it-works-section h2 {
-            font-size: 1.6rem; /* Slightly smaller heading */
+            font-size: 1.6rem;
         }
         .step-card h3 {
-            font-size: 1.2rem; /* Slightly smaller than desktop */
+            font-size: 1.2rem;
         }
         .step-card p {
-            font-size: 1rem; /* Slightly smaller than desktop */
+            font-size: 1rem;
         }
       }
 
@@ -413,19 +402,14 @@
           color: var(--accent);
           text-decoration: underline;
           font-weight: bold;
-          margin-left: 0.5em; /* Add some space before the link */
+          margin-left: 0.5em;
       }
       #credit-warning a:hover {
           color: var(--accent-hover);
       }
 
-      /* Style for the horizontal rule separator */
-      hr.section-separator {
-          border: none;
-          border-top: 1px solid var(--input-bg);
-          margin: 2.5rem 0; /* Adjust vertical spacing */
-      }
-
+      /* Style for the horizontal rule separator (REMOVED as purchase section moved) */
+      /* hr.section-separator { ... } */
 
     </style>
 </head>
@@ -462,6 +446,15 @@
             Logged in as: <span id="user-email-display"></span>
         </div>
 
+        <div id="purchase-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--input-bg);">
+            <h2>Buy More Credits</h2>
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <button class="buy-credits-button" data-price-id="price_1RGPLZFj9LYfI1R0bRYP2IJn">
+                    Buy 50 Credits (€8.00) </button>
+                </div>
+            <p id="purchase-status" style="margin-top: 1rem; color: #bbb; min-height: 1.2em;"></p>
+        </div>
+
         <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
             <form id="thumbnailForm">
                 <label for="title">Video Title</label>
@@ -483,16 +476,7 @@
             <button id="history-button" onclick="fetchHistory()" class="secondary-button" style="margin-top: 2rem;">Show My History</button>
             <div id="history" style="display: none; margin-top: 1rem;"></div>
 
-            <hr class="section-separator">
-
-            <div id="purchase-section"> <h2>Buy More Credits</h2>
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                    <button class="buy-credits-button" data-price-id="price_1RGPLZFj9LYfI1R0bRYP2IJn">
-                        Buy 50 Credits (€8.00) </button>
-                    </div>
-                <p id="purchase-status" style="margin-top: 1rem; color: #bbb; min-height: 1.2em;"></p>
             </div>
-        </div>
 
         <div id="png-dump-content" style="display: none; width: 100%; text-align: center;">
             <h2>PNG Dump</h2>
@@ -521,7 +505,8 @@
             <p>Generate your unique, eye-catching thumbnail in seconds!</p>
         </div>
     </div>
-    <button onclick="scrollToElement('auth')" style="margin-top: 2.5rem; background: var(--accent-hover); color: #000;"> Sign Up Now & Get 5 Free Credits!
+    <button onclick="scrollToElement('auth')" style="margin-top: 2.5rem; background: var(--accent-hover); color: #000;">
+        Sign Up Now & Get 5 Free Credits!
     </button>
 </div>
 
@@ -720,9 +705,17 @@
     }
 
     async function logout() {
-        console.log("Logging out...");
-        await supabaseClient.auth.signOut();
-        // UI updates handled by onAuthStateChange
+        console.log("--- Logout function called ---"); // Log when function starts
+        try {
+            const { error } = await supabaseClient.auth.signOut();
+            if (error) {
+                console.error("--- Supabase signOut error:", error.message); // Log Supabase specific error
+            } else {
+                console.log("--- Supabase signOut successful (callback pending) ---"); // Log success from Supabase call
+            }
+        } catch (e) {
+             console.error("--- Error during logout function execution:", e); // Log any unexpected errors
+        }
     }
 
     // --- Core View Update Logic ---
@@ -754,6 +747,10 @@
             if(howItWorksSection) howItWorksSection.style.display = 'none';
             authStatusP.innerText = "";
 
+            // MOVED Purchase section logic here for correct placement
+            if (purchaseSection) purchaseSection.style.display = 'block';
+
+
             if (activeTabId === 'tab-prompt-gen') {
                 promptGenContentDiv.style.display = 'block';
             } else if (activeTabId === 'tab-png-dump') {
@@ -779,6 +776,7 @@
             updateCreditState(null);
             userInfoDisplayDiv.style.display = 'none';
             mainAppContentDiv.style.display = 'none';
+            if (purchaseSection) purchaseSection.style.display = 'none'; // Hide purchase section when logged out
 
             if (activeTabId === 'tab-prompt-gen') {
                 authDiv.style.display = 'block';
@@ -840,8 +838,9 @@
         const prompt = document.getElementById("custom-prompt").value;
         if (!currentSession) { resultDiv.innerHTML = `<p style="color:orange;">Please log in first.</p>`; return; }
         if (currentUserCredits !== null && currentUserCredits <= 0) {
-             resultDiv.innerHTML = `<p style="color:orange;">Insufficient credits.</p>`;
-             updateCreditState(0); return;
+             // The warning with the link is already displayed by updateCreditState
+             // resultDiv.innerHTML = `<p style="color:orange;">Insufficient credits.</p>`; // Keep this line? Optional.
+             return;
         }
         resultDiv.innerHTML = "<p>🎨 Generating image... (costs 1 credit).</p>";
         promptPreviewDiv.style.display = "none";
@@ -961,19 +960,33 @@
 
     // Listen for auth state changes
     supabaseClient.auth.onAuthStateChange((event, session) => {
-        console.log('Auth State Change Event:', event, session);
+        console.log('--- Auth State Change Event Received ---:', event, session); // Log every event
         const sessionJustChanged = currentSession?.access_token !== session?.access_token;
-        currentSession = session;
+        currentSession = session; // Update global session *first*
 
-        if (sessionJustChanged || event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        // Determine if this specific event should trigger a UI update
+        // Update on initial load, sign in, sign out, or if the session object actually changed
+        const shouldUpdateUI = event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT' || sessionJustChanged;
+
+        console.log(` ---> Session changed? ${sessionJustChanged}`);
+        console.log(` ---> Event type: ${event}`);
+        console.log(` ---> Should update UI based on event/change? ${shouldUpdateUI}`);
+
+        if (shouldUpdateUI) {
+             console.log(` ---> Calling updateContentView() due to event: ${event} or session change.`);
              updateContentView(); // Update visibility
              if (session) {
+                 console.log(` ---> Session exists, calling fetchUserCredits()`);
                  fetchUserCredits(); // Fetch credits if logged in
              } else {
+                 console.log(` ---> Session is null (logged out), calling updateCreditState(null)`);
                  updateCreditState(null); // Clear credits if logged out
              }
         } else if (event === "TOKEN_REFRESHED") {
+             console.log(` ---> Token refreshed, calling fetchUserCredits()`);
              if (session) fetchUserCredits(); // Re-fetch credits on refresh
+        } else {
+             console.log(` ---> Event ${event} did not trigger UI update.`);
         }
     });
 
