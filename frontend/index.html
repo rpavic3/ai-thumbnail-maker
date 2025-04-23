@@ -117,7 +117,7 @@
         text-align: center;
         margin-bottom: 1.5rem;
         margin-top: 0; /* Keep this if you have it */
-        padding-top: 2rem; /* <<< ADD THIS LINE */
+        padding-top: 2rem;
       }
 
       h2 {
@@ -268,7 +268,7 @@
         /* text-align: left; /* Default, no need to specify */
       }
 
-      /* --- NEW: User Info (Email) Display Styling --- */
+      /* --- User Info (Email) Display Styling --- */
       .user-info-display {
         position: absolute;
         top: 2.2rem;  /* Original top position */
@@ -347,7 +347,7 @@
       .step-card h3 {
         margin-top: 0;
         margin-bottom: 1rem;
-        font-size: 1.3rem;       /* UPDATED: Increased size from 1.15rem */
+        font-size: 1.3rem;       /* Increased size from 1.15rem */
         font-weight: 600;
         color: var(--text);
       }
@@ -364,9 +364,9 @@
 
       /* Styling for the descriptive paragraph within step cards */
       .step-card p {
-        font-size: 1.45rem;       /* UPDATED: Increased size from 0.9rem */
+        font-size: 1.05rem;       /* Increased size from 0.9rem */
         color: #ccc;              /* Slightly lighter/muted text color */
-        line-height: 1.6;         /* UPDATED: Slightly increased line-height for better readability */
+        line-height: 1.6;         /* Slightly increased line-height */
         margin-bottom: 0;         /* Remove default bottom margin */
         flex-grow: 1;             /* Allow paragraph to fill space if cards vary slightly in height */
       }
@@ -397,13 +397,9 @@
             padding: 2rem 1rem; /* Reduce padding on smaller screens */
         }
 
-        /* No changes needed for .steps-container or .step-card here anymore,
-           as they are already block/full-width by default */
-
         #how-it-works-section h2 {
             font-size: 1.6rem; /* Slightly smaller heading */
         }
-        /* Optional: Adjust step card text sizes slightly for mobile if needed */
         .step-card h3 {
             font-size: 1.2rem; /* Slightly smaller than desktop */
         }
@@ -412,9 +408,31 @@
         }
       }
 
+      /* Style for the link within the credit warning */
+      #credit-warning a {
+          color: var(--accent);
+          text-decoration: underline;
+          font-weight: bold;
+          margin-left: 0.5em; /* Add some space before the link */
+      }
+      #credit-warning a:hover {
+          color: var(--accent-hover);
+      }
+
+      /* Style for the horizontal rule separator */
+      hr.section-separator {
+          border: none;
+          border-top: 1px solid var(--input-bg);
+          margin: 2.5rem 0; /* Adjust vertical spacing */
+      }
+
+
     </style>
 </head>
-<body style="margin-top: 0;"> <div class="tab-bar" style="margin-top: 2rem;"> <button id="tab-prompt-gen" class="tab-button active">Prompt Image Gen</button>
+<body style="margin-top: 0;">
+
+ <div class="tab-bar" style="margin-top: 2rem;">
+    <button id="tab-prompt-gen" class="tab-button active">Prompt Image Gen</button>
     <button id="tab-png-dump" class="tab-button secondary-tab">PNG Dump</button>
  </div>
 
@@ -423,16 +441,13 @@
 
     <div id="auth" style="display: none;">
         <h2>Login or Sign up</h2>
-
         <p id="signup-encouragement" style="color: var(--accent); text-align: center; margin-bottom: 1.5rem; font-size: 1.05rem;">
             ✨ New here? Sign up to get <strong>5 free credits</strong> and start creating amazing thumbnails! ✨
         </p>
         <label for="auth-email">Email</label>
         <input type="email" id="auth-email" placeholder="you@example.com" required />
-
         <label for="auth-password">Password</label>
         <input type="password" id="auth-password" placeholder="••••••••" required />
-
         <button onclick="login()">Log In</button>
         <button class="secondary-button" onclick="signup()">Sign Up</button>
         <p id="auth-status"></p>
@@ -440,19 +455,9 @@
 
     <div id="main-app-content" style="display: none; width: 100%;">
         <button id="logout-button" onclick="logout()">Log Out</button>
-        <div id="purchase-section" style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--input-bg);">
-            <h2>Buy More Credits</h2>
-            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                <button class="buy-credits-button" data-price-id="price_1RGPLZFj9LYfI1R0bRYP2IJn">
-                    Buy 50 Credits (€8.00) </button>
-                </div>
-            <p id="purchase-status" style="margin-top: 1rem; color: #bbb; min-height: 1.2em;"></p>
-        </div>
-
         <div id="credits-container" class="credits-display" style="display: none;">
             Credits: <span id="credits-display">--</span>
         </div>
-
         <div id="user-info-display" class="user-info-display" style="display: none;">
             Logged in as: <span id="user-email-display"></span>
         </div>
@@ -461,10 +466,8 @@
             <form id="thumbnailForm">
                 <label for="title">Video Title</label>
                 <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
-
                 <label for="niche">Channel Niche</label>
                 <input type="text" id="niche" placeholder="e.g. Education, Gaming, Vlogs" required />
-
                 <div style="margin-top: 1.5rem;"><button type="submit" id="generate-prompt-button">Generate Prompt</button></div>
             </form>
 
@@ -474,71 +477,66 @@
                 <label for="custom-prompt">Edit Prompt (Optional)</label>
                 <textarea id="custom-prompt" rows="4"></textarea>
                 <button onclick="confirmPrompt()" id="confirm-prompt-button" style="margin-top: 0.5rem;">Generate Thumbnail (Cost: 1 Credit)</button>
-                <p id="credit-warning" style="color: orange; font-size: 0.9em; margin-top: 0.5em; display: none;">You have 0 credits remaining.</p>
+                <p id="credit-warning" style="color: orange; font-size: 0.9em; margin-top: 0.5em; display: none;"></p>
             </div>
 
             <button id="history-button" onclick="fetchHistory()" class="secondary-button" style="margin-top: 2rem;">Show My History</button>
             <div id="history" style="display: none; margin-top: 1rem;"></div>
+
+            <hr class="section-separator">
+
+            <div id="purchase-section"> <h2>Buy More Credits</h2>
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                    <button class="buy-credits-button" data-price-id="price_1RGPLZFj9LYfI1R0bRYP2IJn">
+                        Buy 50 Credits (€8.00) </button>
+                    </div>
+                <p id="purchase-status" style="margin-top: 1rem; color: #bbb; min-height: 1.2em;"></p>
+            </div>
         </div>
+
+        <div id="png-dump-content" style="display: none; width: 100%; text-align: center;">
+            <h2>PNG Dump</h2>
+            <p>This section is coming soon!</p>
+            <p style="color: #888;">(Content for the PNG Dump tab will go here)</p>
         </div>
-
-    <div id="png-dump-content" style="display: none; width: 100%; text-align: center;">
-        <h2>PNG Dump</h2>
-        <p>This section is coming soon!</p>
-        <p style="color: #888;">(Content for the PNG Dump tab will go here)</p>
-    </div>
-  </div>
-
-  <div id="how-it-works-section" style="display: none;"> <h2 style="color: var(--accent); margin-bottom: 2rem;">Create Thumbnails in 3 Easy Steps</h2>
-
+    </div> </div> <div id="how-it-works-section" style="display: none;">
+    <h2 style="color: var(--accent); margin-bottom: 2rem;">Create Thumbnails in 3 Easy Steps</h2>
     <div class="steps-container">
-
         <div class="step-card">
             <span class="step-number" style="font-size: 1.5rem; font-weight: bold; color: var(--accent);">1.</span>
             <h3 style="margin-top: 0.5rem; margin-bottom: 1rem;">Enter Video Details</h3>
             <img src="images/step1-input.png" alt="Screenshot of entering video title and niche">
             <p>Provide your video title and channel niche to give the AI context.</p>
         </div>
-
         <div class="step-card">
             <span class="step-number" style="font-size: 1.5rem; font-weight: bold; color: var(--accent);">2.</span>
             <h3 style="margin-top: 0.5rem; margin-bottom: 1rem;">Get Prompt Ideas</h3>
             <img src="images/step2-prompt.png" alt="Screenshot showing AI generated prompt">
-            <p>Our AI suggests a visual prompt. You can <strong>edit it or use it as is.</strong></p>
+            <p>Our AI suggests a visual prompt. You can edit it or use it as is.</p>
         </div>
-
         <div class="step-card">
             <span class="step-number" style="font-size: 1.5rem; font-weight: bold; color: var(--accent);">3.</span>
             <h3 style="margin-top: 0.5rem; margin-bottom: 1rem;">Generate Thumbnail</h3>
             <img src="images/step3-thumbnail.png" alt="Screenshot of a generated thumbnail">
             <p>Generate your unique, eye-catching thumbnail in seconds!</p>
         </div>
-
     </div>
-
-    <button onclick="scrollToAuth()" style="margin-top: 2.5rem; background: var(--accent-hover); color: #000;">
-        Sign Up Now & Get 5 Free Credits!
+    <button onclick="scrollToElement('auth')" style="margin-top: 2.5rem; background: var(--accent-hover); color: #000;"> Sign Up Now & Get 5 Free Credits!
     </button>
-
 </div>
 
  <script>
     // --- Configuration ---
-    // !!! IMPORTANT: Replace with your actual Supabase URL and Anon Key !!!
-    const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co"; // Your Supabase URL
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk"; // Your Supabase ANON Key
-    // !!! IMPORTANT: Replace with your actual Render Backend URL !!!
-    const BACKEND_URL = "https://ai-thumbnail-maker.onrender.com"; // Your Render backend URL
-
-    const STRIPE_PUBLISHABLE_KEY = "pk_live_51RGO3VFj9LYfI1R0cQJetymluTuFJypOZ50kEaYzTNuyldVzHAp44DzqZWasbk5mBd2Rw0x5dXW4zAJxnPsP7SKK00aGiig0wu"; // Use your pk_live_... key
-    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY); // Initialize Stripe.js
-
-    // --- Supabase Client Initialization ---
+    const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk";
+    const BACKEND_URL = "https://ai-thumbnail-maker.onrender.com";
+    const STRIPE_PUBLISHABLE_KEY = "pk_live_51RGO3VFj9LYfI1R0cQJetymluTuFJypOZ50kEaYzTNuyldVzHAp44DzqZWasbk5mBd2Rw0x5dXW4zAJxnPsP7SKK00aGiig0wu";
+    const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // --- Global state ---
     let currentSession = null;
-    let currentUserCredits = null; // To store the fetched credits
+    let currentUserCredits = null;
 
     // --- DOM Element References ---
     const form = document.getElementById('thumbnailForm');
@@ -552,126 +550,107 @@
     const historyButton = document.getElementById('history-button');
     const historyDiv = document.getElementById('history');
     const promptPreviewDiv = document.getElementById('prompt-preview');
-    const creditsContainer = document.getElementById('credits-container'); // Credit display container
-    const creditsDisplaySpan = document.getElementById('credits-display'); // The actual number span
+    const creditsContainer = document.getElementById('credits-container');
+    const creditsDisplaySpan = document.getElementById('credits-display');
     const generatePromptButton = document.getElementById('generate-prompt-button');
     const confirmPromptButton = document.getElementById('confirm-prompt-button');
-    const creditWarningP = document.getElementById('credit-warning'); // Warning message
+    const creditWarningP = document.getElementById('credit-warning');
     const userInfoDisplayDiv = document.getElementById('user-info-display');
     const userEmailDisplaySpan = document.getElementById('user-email-display');
-
     const purchaseStatusP = document.getElementById('purchase-status');
     const purchaseSection = document.getElementById('purchase-section');
 
-
-
+    // --- Purchase Button Event Listener ---
     if (purchaseSection) {
-    purchaseSection.addEventListener('click', async (event) => {
-        // Target the button specifically, even if user clicks text inside
-        const button = event.target.closest('.buy-credits-button');
-
-        if (button) { // Check if a buy button was actually clicked
-            event.preventDefault(); // Prevent potential form submission issues if nested
-
-            if (!currentSession) {
-                purchaseStatusP.innerText = "Please log in to purchase credits.";
-                return;
-            }
-
-            const priceId = button.dataset.priceId; // Get priceId from data attribute
-            if (!priceId) {
-                 console.error("Buy button clicked but missing data-price-id attribute.");
-                 purchaseStatusP.innerText = "Error: Purchase option misconfigured.";
-                 return;
-            }
-
-            const originalButtonText = button.innerText; // Store original text
-            console.log(`Initiating purchase for price ID: ${priceId}`);
-            purchaseStatusP.innerText = "Processing..."; // Show status
-            button.disabled = true; // Disable button
-            button.innerText = "Redirecting..."; // Change button text
-
-            try {
-                const token = currentSession.access_token;
-                // Call your backend to create the checkout session
-                const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ priceId: priceId }) // Send the price ID
-                });
-
-                if (!res.ok) {
-                    const errorData = await res.json().catch(() => ({ error: `Server error initiating purchase: ${res.status}` }));
-                    throw new Error(errorData.error || `Failed to start purchase: ${res.status}`);
+        purchaseSection.addEventListener('click', async (event) => {
+            const button = event.target.closest('.buy-credits-button');
+            if (button) {
+                event.preventDefault();
+                if (!currentSession) {
+                    purchaseStatusP.innerText = "Please log in to purchase credits.";
+                    return;
                 }
-
-                const data = await res.json();
-
-                if (data.url) {
-                    // Redirect customer to Stripe Checkout
-                    console.log("Redirecting to Stripe Checkout URL:", data.url);
-                    window.location.href = data.url;
-                    // Note: If using session ID instead of URL:
-                    // const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
-                    // if (result.error) { throw new Error(result.error.message); }
-                } else {
-                    throw new Error("Could not get checkout URL from server.");
+                const priceId = button.dataset.priceId;
+                if (!priceId) {
+                     console.error("Buy button missing data-price-id attribute.");
+                     purchaseStatusP.innerText = "Error: Purchase option misconfigured.";
+                     return;
                 }
-
-            } catch (err) {
-                console.error("Purchase initiation failed:", err);
-                purchaseStatusP.innerText = `Error: ${err.message}`;
-                button.disabled = false; // Re-enable button on error
-                button.innerText = originalButtonText; // Restore original text
+                const originalButtonText = button.innerText;
+                purchaseStatusP.innerText = "Processing...";
+                button.disabled = true;
+                button.innerText = "Redirecting...";
+                try {
+                    const token = currentSession.access_token;
+                    const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                        body: JSON.stringify({ priceId: priceId })
+                    });
+                    if (!res.ok) {
+                        const errorData = await res.json().catch(() => ({ error: `Server error: ${res.status}` }));
+                        throw new Error(errorData.error || `Failed to start purchase: ${res.status}`);
+                    }
+                    const data = await res.json();
+                    if (data.url) {
+                        window.location.href = data.url;
+                    } else {
+                        throw new Error("Could not get checkout URL.");
+                    }
+                } catch (err) {
+                    console.error("Purchase initiation failed:", err);
+                    purchaseStatusP.innerText = `Error: ${err.message}`;
+                    button.disabled = false;
+                    button.innerText = originalButtonText;
+                }
             }
-        }
-    });
-} else {
-     console.warn("Purchase section not found. Purchase buttons will not work.");
-}
+        });
+    } else {
+         console.warn("Purchase section not found.");
+    }
 
 
     // --- Utility to update Credit UI and Button States ---
     function updateCreditState(credits) {
         currentUserCredits = credits; // Update global variable
 
-        // NEW: Handle 'loading' state
+        // Handle 'loading' state
         if (credits === 'loading') {
             creditsDisplaySpan.innerText = 'Loading...'; // Show loading text
             creditsContainer.style.display = 'block'; // Make container visible
-            // Disable buttons while loading credits to prevent actions based on unknown state
             confirmPromptButton.disabled = true;
-            creditWarningP.style.display = 'none';
-            confirmPromptButton.innerText = "Generate Thumbnail (Loading Credits...)"; // Update button text
-            return; // Exit function early for loading state
+            creditWarningP.style.display = 'none'; // Hide warning while loading
+            confirmPromptButton.innerText = "Generate Thumbnail (Loading Credits...)";
+            return;
         }
 
-        // Existing logic for number or null
+        // Handle number or null
         if (credits !== null && credits >= 0) {
             creditsDisplaySpan.innerText = credits;
-            creditsContainer.style.display = 'block'; // Show credit display
+            creditsContainer.style.display = 'block';
 
-            // Enable/disable buttons based on credits
             const hasEnoughCredits = credits > 0;
             confirmPromptButton.disabled = !hasEnoughCredits;
-            creditWarningP.style.display = hasEnoughCredits ? 'none' : 'block'; // Show/hide warning
+
             if (!hasEnoughCredits) {
+                // Show warning and add "Buy Credits" link
+                creditWarningP.innerHTML = `You have 0 credits remaining. <a href="#" onclick="event.preventDefault(); scrollToElement('purchase-section');">Buy More Credits?</a>`;
+                creditWarningP.style.display = 'block';
                 confirmPromptButton.innerText = "Generate Thumbnail (0 Credits Left)";
             } else {
+                // Hide warning when credits > 0
+                creditWarningP.style.display = 'none';
+                creditWarningP.innerHTML = ''; // Clear content
                 confirmPromptButton.innerText = "Generate Thumbnail (Cost: 1 Credit)";
             }
         } else {
             // Hide credits if null or negative (error state or logged out)
             creditsContainer.style.display = 'none';
-            creditsDisplaySpan.innerText = '--'; // Reset to default placeholder
-            // Disable generation buttons if credits unknown or error
+            creditsDisplaySpan.innerText = '--';
             confirmPromptButton.disabled = true;
-            creditWarningP.style.display = 'none';
-             // Reset button text for logged out state
-             if (!currentSession) {
+            creditWarningP.style.display = 'none'; // Hide warning
+            creditWarningP.innerHTML = ''; // Clear content
+             if (!currentSession) { // Reset button text for logged out state
                  confirmPromptButton.innerText = "Generate Thumbnail (Cost: 1 Credit)";
              }
         }
@@ -680,13 +659,11 @@
     // --- Function to Fetch User Credits ---
     async function fetchUserCredits() {
         if (!currentSession) {
-            console.log("Not logged in, cannot fetch credits.");
-            updateCreditState(null); // Reset credit state if somehow called when logged out
+            updateCreditState(null);
             return;
         }
-
         console.log("Fetching user credits...");
-        updateCreditState('loading'); // <<< SET UI TO LOADING STATE HERE
+        updateCreditState('loading'); // Set UI to loading state
 
         try {
             const token = currentSession.access_token;
@@ -694,35 +671,23 @@
                 method: "GET",
                 headers: { "Authorization": `Bearer ${token}` }
             });
-
-            if (res.status === 401) { // Handle expired/invalid token explicitly
-                console.warn("Token invalid/expired fetching credits. Logging out.");
-                await logout(); // Force logout
-                return; // Stop further processing
+            if (res.status === 401) {
+                await logout(); return;
             }
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: `Server error fetching credits: ${res.status}` }));
+                const errorData = await res.json().catch(() => ({ error: `Server error: ${res.status}` }));
                 throw new Error(errorData.error || `Failed to fetch credits: ${res.status}`);
             }
-
             const data = await res.json();
-            console.log("Credits fetched:", data.credits);
-            updateCreditState(data.credits); // Update UI and state with actual credits
-
+            updateCreditState(data.credits); // Update UI with actual credits
         } catch (err) {
             console.error("Error fetching credits:", err);
-            // Show error only if relevant (e.g., not during logout)
             if(currentSession) {
-                // Display error in auth status, or potentially near the credit display itself
                 authStatusP.innerText = `Error loading credits. Try refreshing.`;
-                // Optionally update credit display to show error state
-                // creditsDisplaySpan.innerText = 'Error';
-                // creditsContainer.style.display = 'block';
             }
-            // Reset to null state which hides the display and disables buttons
-            updateCreditState(null);
-            if (err.message.includes("token") || err.message.includes("Authent")) { // If backend indicates token issue
-                 await logout(); // Force logout
+            updateCreditState(null); // Reset credits on error
+            if (err.message.includes("token") || err.message.includes("Authent")) {
+                 await logout();
             }
         }
     }
@@ -733,52 +698,31 @@
         authStatusP.innerText = "Logging in...";
         const email = document.getElementById("auth-email").value;
         const password = document.getElementById("auth-password").value;
-
-        // Clear previous errors immediately
-        authStatusP.innerText = "Logging in...";
-
         const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
         if (error) {
             authStatusP.innerText = "Login failed: " + error.message;
-            updateCreditState(null); // Reset credits on failed login
+            updateCreditState(null);
         } else {
-            // Session update and UI changes handled by onAuthStateChange
-            authStatusP.innerText = ""; // Clear status
+            authStatusP.innerText = "";
         }
     }
 
     async function signup() {
-    authStatusP.innerText = "Signing up...";
-    const email = document.getElementById("auth-email").value;
-    const password = document.getElementById("auth-password").value;
-    authStatusP.innerText = "Signing up..."; // Clear previous potentially
-
-    const { data, error } = await supabaseClient.auth.signUp({ email, password });
-
-    if (error) {
-         // Explicit error from Supabase (e.g., bad password format, etc.)
-        authStatusP.innerText = "Signup failed: " + error.message;
-    } else {
-         // No explicit error from Supabase.
-         // This branch runs for BOTH new users needing confirmation AND existing confirmed users.
-         // Since differentiating seems unreliable, use a message that covers both.
-         authStatusP.innerText = "Processing signup request. Please check your email for verification or try logging in if already registered.";
+        authStatusP.innerText = "Signing up...";
+        const email = document.getElementById("auth-email").value;
+        const password = document.getElementById("auth-password").value;
+        const { data, error } = await supabaseClient.auth.signUp({ email, password });
+        if (error) {
+            authStatusP.innerText = "Signup failed: " + error.message;
+        } else {
+            authStatusP.innerText = "Processing signup request. Please check your email for verification or try logging in if already registered.";
+        }
     }
-}
-
 
     async function logout() {
         console.log("Logging out...");
-        const { error } = await supabaseClient.auth.signOut();
-        // State updates (currentSession = null, UI changes) handled by onAuthStateChange
-        if (error) {
-            console.error("Logout failed:", error.message);
-             // Display error briefly if needed, though UI usually updates quickly
-             // authStatusP.innerText = "Logout failed.";
-        } else {
-             console.log("Logout successful callback received.");
-        }
+        await supabaseClient.auth.signOut();
+        // UI updates handled by onAuthStateChange
     }
 
     // --- Core View Update Logic ---
@@ -786,9 +730,6 @@
         const isLoggedIn = !!currentSession;
         const activeTabButton = document.querySelector('.tab-button.active');
         const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
-
-        console.log(`Updating content view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
-
         const howItWorksSection = document.getElementById('how-it-works-section');
 
         // Hide sections initially
@@ -796,11 +737,9 @@
         mainAppContentDiv.style.display = 'none';
         promptGenContentDiv.style.display = 'none';
         pngDumpContentDiv.style.display = 'none';
-        creditsContainer.style.display = 'none'; // Hide initially
+        creditsContainer.style.display = 'none';
         userInfoDisplayDiv.style.display = 'none';
-        if(howItWorksSection) {
-            howItWorksSection.style.display = 'none';
-         }
+        if(howItWorksSection) howItWorksSection.style.display = 'none';
 
         // Reset common states
         resultDiv.innerHTML = "";
@@ -809,61 +748,45 @@
         if (historyButton) historyButton.innerText = "Show My History";
 
         if (isLoggedIn) {
-            // LOGGED IN STATE
+            // Logged In View
             mainAppContentDiv.style.display = 'block';
             authDiv.style.display = 'none';
-             if(howItWorksSection) {
-                howItWorksSection.style.display = 'none';
-             }
-
+            if(howItWorksSection) howItWorksSection.style.display = 'none';
             authStatusP.innerText = "";
 
-            // Show correct tab content
             if (activeTabId === 'tab-prompt-gen') {
                 promptGenContentDiv.style.display = 'block';
             } else if (activeTabId === 'tab-png-dump') {
                  pngDumpContentDiv.style.display = 'block';
             }
 
-            // Update credits display
             if (currentUserCredits === null) {
-                // If logged in but credits haven't been loaded yet, show loading state
-                updateCreditState('loading'); // <<< SHOW LOADING STATE HERE INITIALLY
-                // fetchUserCredits() will be called by the onAuthStateChange listener
+                updateCreditState('loading'); // Show loading initially
             } else {
-                // If credits are already known (e.g., from previous fetch), display them
                 updateCreditState(currentUserCredits);
             }
 
-            // Update Email Display
-            if (currentSession && currentSession.user && currentSession.user.email) {
+            if (currentSession.user?.email) {
                 userEmailDisplaySpan.innerText = currentSession.user.email;
                 userInfoDisplayDiv.style.display = 'block';
             } else {
-                userEmailDisplaySpan.innerText = '';
                 userInfoDisplayDiv.style.display = 'none';
             }
 
         } else {
-            // LOGGED OUT STATE
+            // Logged Out View
             currentUserCredits = null;
-            updateCreditState(null); // Reset credits UI (hides display, resets buttons)
-            userEmailDisplaySpan.innerText = '';
+            updateCreditState(null);
             userInfoDisplayDiv.style.display = 'none';
             mainAppContentDiv.style.display = 'none';
 
-            // Show correct tab content
             if (activeTabId === 'tab-prompt-gen') {
                 authDiv.style.display = 'block';
-                if(howItWorksSection) {
-                     howItWorksSection.style.display = 'block';
-                  }
+                if(howItWorksSection) howItWorksSection.style.display = 'block';
                 authStatusP.innerText = "Please log in to generate thumbnails.";
             } else if (activeTabId === 'tab-png-dump') {
                 pngDumpContentDiv.style.display = 'block';
-                if(howItWorksSection) {
-                     howItWorksSection.style.display = 'none';
-                  }
+                if(howItWorksSection) howItWorksSection.style.display = 'none';
                 authStatusP.innerText = "";
             }
         }
@@ -874,390 +797,183 @@
          const tabButtons = document.querySelectorAll('.tab-button');
          tabButtons.forEach(btn => btn.classList.remove('active'));
          button.classList.add('active');
-         updateContentView(); // Update UI based on new active tab and login state
+         updateContentView();
     }
 
 
     // --- API Call Logic ---
-
     // Generate Prompt (Step 1)
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!currentSession) {
-             resultDiv.innerHTML = `<p style="color:orange;">Please log in to generate prompts.</p>`;
-             return;
+             resultDiv.innerHTML = `<p style="color:orange;">Please log in first.</p>`; return;
         }
-        // Optional: Check credits even for prompt generation if desired
-        // if (currentUserCredits !== null && currentUserCredits <= 0) {
-        //     resultDiv.innerHTML = `<p style="color:orange;">You need credits to generate prompts.</p>`;
-        //     return;
-        // }
-
         resultDiv.innerHTML = "<p>🧠 Generating prompt...</p>";
-        promptPreviewDiv.style.display = "none"; // Hide confirm section
-        generatePromptButton.disabled = true; // Disable button during processing
-
+        promptPreviewDiv.style.display = "none";
+        generatePromptButton.disabled = true;
         const title = document.getElementById('title').value;
         const niche = document.getElementById('niche').value;
-
         try {
-             // Add Authorization header if you secured this endpoint
-             // const token = currentSession.access_token;
             const res = await fetch(`${BACKEND_URL}/generate_prompt`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    // "Authorization": `Bearer ${token}` // Add if needed
-                },
+                method: "POST", headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ title, niche })
              });
-
             if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: `Server error generating prompt: ${res.status}` }));
+                const errorData = await res.json().catch(() => ({ error: `Server error: ${res.status}` }));
                 throw new Error(errorData.error || `Server error: ${res.status}`);
             }
             const data = await res.json();
-
             if (data.prompt) {
-                resultDiv.innerHTML = `<p><strong>✅ Prompt Generated!</strong> Review and confirm below.</p>`;
+                resultDiv.innerHTML = `<p><strong>✅ Prompt Generated!</strong> Review below.</p>`;
                 document.getElementById("custom-prompt").value = data.prompt;
                 promptPreviewDiv.style.display = "block";
-                // Re-check credit state to ensure confirm button enabled/disabled correctly
-                updateCreditState(currentUserCredits);
-            } else {
-                throw new Error(data.error || 'Unknown error generating prompt');
-            }
+                updateCreditState(currentUserCredits); // Re-check button state
+            } else { throw new Error(data.error || 'Unknown error'); }
         } catch (err) {
-            console.error("Prompt generation error:", err);
-            resultDiv.innerHTML = `<p style="color:red;">❌ Error generating prompt: ${err.message}</p>`;
-            // If the error was auth-related (e.g., if you added auth check)
-             if (err.message.includes("token") || err.message.includes("Unauthorized")) {
-                 await logout(); // Force logout if token issue detected
-             }
-        } finally {
-             generatePromptButton.disabled = false; // Re-enable button
-        }
+            resultDiv.innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
+            if (err.message.includes("token") || err.message.includes("Unauthorized")) await logout();
+        } finally { generatePromptButton.disabled = false; }
     });
 
-    // Generate Image (Confirm Prompt - Step 2 - Costs 1 credit)
+    // Generate Image (Confirm Prompt - Step 2)
     async function confirmPrompt() {
         const prompt = document.getElementById("custom-prompt").value;
-        if (!currentSession) {
-             resultDiv.innerHTML = `<p style="color:orange;">Please log in to generate images.</p>`;
-             return;
-        }
-
-        // Frontend Credit Check
+        if (!currentSession) { resultDiv.innerHTML = `<p style="color:orange;">Please log in first.</p>`; return; }
         if (currentUserCredits !== null && currentUserCredits <= 0) {
-             resultDiv.innerHTML = `<p style="color:orange;">Insufficient credits to generate image.</p>`;
-             updateCreditState(0); // Ensure UI reflects 0 credits
-             return;
+             resultDiv.innerHTML = `<p style="color:orange;">Insufficient credits.</p>`;
+             updateCreditState(0); return;
         }
-
-        resultDiv.innerHTML = "<p>🎨 Generating image... please wait (this costs 1 credit).</p>";
-        promptPreviewDiv.style.display = "none"; // Hide confirm section during generation
-        confirmPromptButton.disabled = true; // Disable button during processing
+        resultDiv.innerHTML = "<p>🎨 Generating image... (costs 1 credit).</p>";
+        promptPreviewDiv.style.display = "none";
+        confirmPromptButton.disabled = true;
         confirmPromptButton.innerText = "Generating...";
-
         const title = document.getElementById("title").value;
         const niche = document.getElementById("niche").value;
-
         try {
             const token = currentSession.access_token;
             const res = await fetch(`${BACKEND_URL}/generate`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify({ title, niche, prompt })
             });
-
-            const responseBody = await res.text(); // Read body once to handle both JSON and non-JSON errors
-
+            const responseBody = await res.text();
             if (!res.ok) {
-                let errorData;
-                try {
-                    errorData = JSON.parse(responseBody);
-                } catch (parseError) {
-                    // If parsing fails, use the raw text and status
-                    errorData = { error: `Server error: ${res.status} ${res.statusText}. Response: ${responseBody}` };
-                }
-                 // Check for specific errors from backend
-                if (res.status === 403 && errorData.error?.includes("Insufficient credits")) {
-                     throw new Error("Insufficient credits."); // Throw specific error for frontend handling
-                } else if (res.status === 401) {
-                     throw new Error("Authentication error. Please log in again.");
-                }
-                // Use the parsed error message if available, otherwise the generic one
+                let errorData; try { errorData = JSON.parse(responseBody); } catch { errorData = { error: `Server error: ${res.status}` }; }
+                if (res.status === 403 && errorData.error?.includes("Insufficient credits")) throw new Error("Insufficient credits.");
+                else if (res.status === 401) throw new Error("Authentication error.");
                 throw new Error(errorData.error || `Server error: ${res.status}`);
             }
-
-            // Only parse if response was ok
             const data = JSON.parse(responseBody);
-
             if (data.image_url) {
-                resultDiv.innerHTML = `
-                    <h2>Generated Thumbnail:</h2>
-                    <img src="${data.image_url}" alt="Generated Thumbnail" style="width: 100%; max-width: 100%; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); margin-top: 1rem;" />
-                    <button onclick="downloadImage('${data.image_url}', '${title || 'thumbnail'}')" style="margin-top: 1rem; margin-bottom: 1rem;">⬇ Download</button>
-                    <div class="prompt-text"><strong>Final Prompt Used:</strong><br>${data.prompt || prompt}</div>
-                    `;
-                // Update credits on successful generation
-                if (data.new_credits !== undefined) {
-                     updateCreditState(data.new_credits);
-                     console.log(`✅ Image generated. Credits remaining: ${data.new_credits}`);
-                } else {
-                     console.warn("Backend did not return new credit count. Fetching manually.");
-                     fetchUserCredits(); // Fallback to fetching credits again
-                }
-            } else {
-                throw new Error(data.error || 'Unknown error generating image');
-            }
+                resultDiv.innerHTML = `<h2>Generated Thumbnail:</h2><img src="${data.image_url}" alt="Generated Thumbnail" style="width: 100%; max-width: 100%; border-radius: 12px; box-shadow: 0 0 12px rgba(0,0,0,0.2); margin-top: 1rem;" /><button onclick="downloadImage('${data.image_url}', '${title || 'thumbnail'}')" style="margin-top: 1rem; margin-bottom: 1rem;">⬇ Download</button><div class="prompt-text"><strong>Final Prompt:</strong><br>${data.prompt || prompt}</div>`;
+                if (data.new_credits !== undefined) updateCreditState(data.new_credits);
+                else fetchUserCredits(); // Fallback
+            } else { throw new Error(data.error || 'Unknown error'); }
         } catch (err) {
-            console.error("Image generation error:", err);
-            resultDiv.innerHTML = `<p style="color:red;">❌ Image Generation Failed: ${err.message}</p>`;
-            promptPreviewDiv.style.display = "block"; // Show prompt edit again on failure
-
-            // Handle specific errors
-            if (err.message.includes("Insufficient credits")) {
-                 updateCreditState(0); // Ensure UI shows 0 credits
-                 resultDiv.innerHTML += `<p style="color:orange;">You have run out of credits.</p>`; // Add specific message
-            } else if (err.message.includes("Authentication")) {
-                await logout(); // Force logout if auth error
-            } else {
-                // For other errors, re-enable the button but reflect current credit state
-                updateCreditState(currentUserCredits);
-            }
+            resultDiv.innerHTML = `<p style="color:red;">❌ Failed: ${err.message}</p>`;
+            promptPreviewDiv.style.display = "block"; // Show prompt edit again
+            if (err.message.includes("Insufficient credits")) updateCreditState(0);
+            else if (err.message.includes("Authentication")) await logout();
+            else updateCreditState(currentUserCredits); // Re-enable button if credits > 0
         }
-        // No finally block needed here as button state/text is handled by updateCreditState
+        // Button state/text handled by updateCreditState calls within try/catch
     }
 
     // --- History Fetch ---
     async function fetchHistory() {
-         if (!currentSession) {
-             historyDiv.innerHTML = `<p style="color:orange;">Please log in to view history.</p>`;
-             historyDiv.style.display = "block";
-             return;
-         }
-        // Toggle display logic
-        if (historyDiv.style.display === "block") {
-             historyDiv.style.display = "none";
-             historyButton.innerText = "Show My History";
-             return;
-        }
-
-        historyDiv.style.display = "block";
-        historyDiv.innerHTML = "<p>📦 Loading your thumbnail history...</p>";
-        historyButton.innerText = "Hide History";
-        historyButton.disabled = true; // Disable while loading
-
+         if (!currentSession) { historyDiv.innerHTML = `<p style="color:orange;">Log in to view history.</p>`; historyDiv.style.display = "block"; return; }
+        if (historyDiv.style.display === "block") { historyDiv.style.display = "none"; historyButton.innerText = "Show My History"; return; }
+        historyDiv.style.display = "block"; historyDiv.innerHTML = "<p>📦 Loading history...</p>"; historyButton.innerText = "Hide History"; historyButton.disabled = true;
         try {
             const token = currentSession.access_token;
-            const res = await fetch(`${BACKEND_URL}/history`, {
-                method: "GET",
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-
-            if (res.status === 401) {
-                throw new Error("Authentication error fetching history. Please log in again.");
-            }
-            if (!res.ok) {
-                const errorData = await res.json().catch(() => ({ error: `Server error fetching history: ${res.status}` }));
-                throw new Error(errorData.error || `Server error fetching history: ${res.status}`);
-            }
+            const res = await fetch(`${BACKEND_URL}/history`, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
+            if (res.status === 401) throw new Error("Authentication error.");
+            if (!res.ok) { const errorData = await res.json().catch(() => ({ error: `Server error: ${res.status}` })); throw new Error(errorData.error || `Server error: ${res.status}`); }
             const data = await res.json();
-
-            if (data.length === 0) {
-                historyDiv.innerHTML = "<h2>Your Past Thumbnails</h2><p>🕸️ No thumbnails found yet.</p>";
-            } else {
-                 const items = data.map(item => `
-                     <div class="card" style="margin-bottom: 1.5rem;">
-                     <img src="${item.image_url}" alt="Generated thumbnail for ${item.title || 'untitled'}" style="max-width:100%; border-radius: 10px; display: block; margin-bottom: 1rem;" loading="lazy"/>
-                     <button onclick="downloadImage('${item.image_url}', '${item.title || 'thumbnail'}')" class="secondary-button" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-bottom: 1rem;">⬇ Download</button>
-                     <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                     <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
-                     <p style="font-size: 0.85em; color: #bbb;"><strong>Prompt:</strong> ${item.prompt}</p>
-                     <p style="font-size: 0.75em; color: #888;">Generated: ${new Date(item.created_at).toLocaleString()}</p>
-                     </div>
-                 `).join("");
+            if (data.length === 0) { historyDiv.innerHTML = "<h2>Your Past Thumbnails</h2><p>🕸️ No thumbnails found yet.</p>"; }
+            else {
+                 const items = data.map(item => `<div class="card" style="margin-bottom: 1.5rem;"><img src="${item.image_url}" alt="Generated thumbnail for ${item.title || 'untitled'}" style="max-width:100%; border-radius: 10px; display: block; margin-bottom: 1rem;" loading="lazy"/><button onclick="downloadImage('${item.image_url}', '${item.title || 'thumbnail'}')" class="secondary-button" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-bottom: 1rem;">⬇ Download</button><p><strong>Title:</strong> ${item.title || 'N/A'}</p><p><strong>Niche:</strong> ${item.niche || 'N/A'}</p><p style="font-size: 0.85em; color: #bbb;"><strong>Prompt:</strong> ${item.prompt}</p><p style="font-size: 0.75em; color: #888;">Generated: ${new Date(item.created_at).toLocaleString()}</p></div>`).join("");
                  historyDiv.innerHTML = `<h2>Your Past Thumbnails</h2>${items}`;
             }
-
         } catch (err) {
-            console.error("History fetch error:", err);
-            historyDiv.innerHTML = `<p style="color:red;">❌ Error fetching history: ${err.message}</p>`;
-            historyButton.innerText = "Show My History"; // Reset button text on error
-            if (err.message.includes("Authentication")) {
-                 await logout(); // Force logout if auth error
-            }
-        } finally {
-             historyButton.disabled = false; // Re-enable button
-        }
+            historyDiv.innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`; historyButton.innerText = "Show My History";
+            if (err.message.includes("Authentication")) await logout();
+        } finally { historyButton.disabled = false; }
     }
 
     // --- Download Image Utility ---
     function downloadImage(url, baseFilename = 'thumbnail') {
         const safeFilename = baseFilename.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'thumbnail';
-        const filename = `${safeFilename}_${Date.now()}.jpg`; // Assuming jpg, adjust if needed
-
+        const filename = `${safeFilename}_${Date.now()}.jpg`;
         fetch(url)
-         .then(response => {
-             if (!response.ok) throw new Error(`HTTP error fetching image! status: ${response.status}`);
-             return response.blob();
-         })
+         .then(response => { if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); return response.blob(); })
          .then(blob => {
-             // Check blob type? Optional.
-             // console.log("Blob type:", blob.type);
-             const blobUrl = URL.createObjectURL(blob);
-             const link = document.createElement("a");
-             link.href = blobUrl;
-             link.download = filename;
-             document.body.appendChild(link);
-             link.click();
-             document.body.removeChild(link);
-             URL.revokeObjectURL(blobUrl);
+             const blobUrl = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = blobUrl; link.download = filename;
+             document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(blobUrl);
          })
          .catch(err => {
-             console.error("Download failed:", err);
-             // Try to provide user feedback directly near the image/button
-             let feedbackTarget = resultDiv; // Default target
-             // Try finding the specific card if in history
-             const historyCards = historyDiv.querySelectorAll('.card');
-             historyCards.forEach(card => {
-                 if (card.querySelector(`img[src="${url}"]`)) {
-                     feedbackTarget = card.querySelector('img').parentNode; // Get parent div of image
-                 }
-             });
-             // Avoid adding multiple error messages
+             console.error("Download failed:", err); let feedbackTarget = resultDiv;
+             const historyCards = historyDiv.querySelectorAll('.card'); historyCards.forEach(card => { if (card.querySelector(`img[src="${url}"]`)) feedbackTarget = card.querySelector('img').parentNode; });
              if (!feedbackTarget.querySelector('.download-error-message')) {
-                 const errorP = document.createElement('p');
-                 errorP.className = 'download-error-message'; // Add class to prevent duplicates
-                 errorP.style.color = 'orange';
-                 errorP.style.fontSize = '0.9em';
-                 errorP.innerText = `Could not download automatically. Please right-click the image and select 'Save Image As...'. Error: ${err.message}`;
-                 // Insert after the download button if possible
-                 const downloadButton = feedbackTarget.querySelector('button');
-                 if (downloadButton) {
-                     downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
-                 } else {
-                     feedbackTarget.appendChild(errorP);
-                 }
+                 const errorP = document.createElement('p'); errorP.className = 'download-error-message'; errorP.style.color = 'orange'; errorP.style.fontSize = '0.9em';
+                 errorP.innerText = `Download failed. Right-click image > 'Save Image As...'. Error: ${err.message}`;
+                 const downloadButton = feedbackTarget.querySelector('button'); if (downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling); else feedbackTarget.appendChild(errorP);
              }
          });
     }
 
-    // --- Scroll to Auth Utility ---
-    function scrollToAuth() {
-        const authElement = document.getElementById('auth');
-        if (authElement) {
-            authElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Optional: Briefly highlight the section
-            authElement.style.transition = 'background-color 0.5s ease-in-out';
-            authElement.style.backgroundColor = 'rgba(167, 139, 250, 0.1)'; // Subtle accent highlight
-            setTimeout(() => {
-                authElement.style.backgroundColor = 'transparent';
-            }, 1500); // Remove highlight after 1.5 seconds
+    // --- Scroll Utility ---
+    function scrollToElement(elementId) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Optional highlight effect
+            if (elementId === 'auth' || elementId === 'purchase-section') {
+                element.style.transition = 'background-color 0.5s ease-in-out';
+                element.style.backgroundColor = 'rgba(167, 139, 250, 0.1)';
+                setTimeout(() => { element.style.backgroundColor = 'transparent'; }, 1500);
+            }
         }
     }
 
 
     // --- Initialization and Auth State Change Listener ---
     document.addEventListener('DOMContentLoaded', () => {
-    // --- Existing Logic: Setup tab listeners ---
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            handleTabSwitch(button);
-        });
+        // Setup tab listeners
+        const tabButtons = document.querySelectorAll('.tab-button');
+        tabButtons.forEach(button => button.addEventListener('click', () => handleTabSwitch(button)));
+
+        // Check for Stripe Redirect Status
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentStatus = urlParams.get('payment');
+        const statusTargetElement = purchaseStatusP || authStatusP; // Use purchase P if exists
+
+        if (paymentStatus === 'success') {
+            if (statusTargetElement) { statusTargetElement.innerText = "Payment successful! Credits updating..."; statusTargetElement.style.color = 'lightgreen'; }
+            setTimeout(() => { if (currentSession) fetchUserCredits(); }, 1000); // Refresh sooner
+            setTimeout(() => { if (statusTargetElement && statusTargetElement.innerText.includes("Payment successful")) { statusTargetElement.innerText = ''; statusTargetElement.style.color = '#bbb'; } }, 5000); // Reset later
+            if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+        } else if (paymentStatus === 'cancel') {
+            if (statusTargetElement) { statusTargetElement.innerText = "Purchase cancelled."; statusTargetElement.style.color = 'orange'; }
+            setTimeout(() => { if (statusTargetElement && statusTargetElement.innerText.includes("Purchase cancelled")) { statusTargetElement.innerText = ''; statusTargetElement.style.color = '#bbb'; } }, 5000);
+            if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+        }
     });
-    console.log("DOM Loaded. Initializing auth listener.");
-    // Note: Initial check for session is handled by onAuthStateChange firing later
 
-    // --- NEW Logic: Check for Stripe Redirect Status ---
-    console.log("Checking for payment redirect status...");
-    const urlParams = new URLSearchParams(window.location.search);
-    const paymentStatus = urlParams.get('payment');
-    const sessionId = urlParams.get('session_id'); // Optional: You might use this ID later
-
-    // Use purchase status paragraph, fallback to general auth status
-    // Ensure 'purchaseStatusP' and 'authStatusP' are defined globally before this listener runs
-    const statusTargetElement = typeof purchaseStatusP !== 'undefined' ? purchaseStatusP : authStatusP;
-
-    if (paymentStatus === 'success') {
-        console.log("Payment successful redirect detected. Session:", sessionId);
-        if (statusTargetElement) {
-            statusTargetElement.innerText = "Payment successful! Credits should update shortly.";
-            statusTargetElement.style.color = 'lightgreen'; // Indicate success visually
-        }
-
-        // Attempt to fetch credits again sooner.
-        // Use a small delay to increase chance session is ready / webhook has run
-        setTimeout(() => {
-            // Important: Only fetch if logged in, session might not be ready yet
-             if (currentSession) {
-                 console.log("Attempting early credit refresh after payment success.");
-                 fetchUserCredits();
-             }
-             // Reset message after a longer delay
-             setTimeout(() => {
-                 // Check if the element still exists and has the success message before clearing
-                 if (statusTargetElement && statusTargetElement.innerText.includes("Payment successful")) {
-                     statusTargetElement.innerText = '';
-                     statusTargetElement.style.color = '#bbb'; // Reset color
-                 }
-             }, 5000); // Reset after 5 seconds
-        }, 1000); // Refresh attempt after 1 second
-
-
-        // Clean the URL parameters so they don't show on refresh
-        if (window.history.replaceState) {
-             window.history.replaceState(null, '', window.location.pathname);
-        }
-
-    } else if (paymentStatus === 'cancel') {
-        console.log("Payment cancelled redirect detected.");
-        if (statusTargetElement) {
-             statusTargetElement.innerText = "Purchase cancelled.";
-             statusTargetElement.style.color = 'orange'; // Indicate cancellation
-        }
-        // Clean the URL parameters
-         if (window.history.replaceState) {
-             window.history.replaceState(null, '', window.location.pathname);
-         }
-         // Reset message after a delay
-         setTimeout(() => {
-            if (statusTargetElement && statusTargetElement.innerText.includes("Purchase cancelled")) {
-                statusTargetElement.innerText = '';
-                statusTargetElement.style.color = '#bbb'; // Reset color
-            }
-         }, 5000); // Reset after 5 seconds
-    }
-    // --- End of NEW Logic ---
-
-}); // End of DOMContentLoaded listener
-
-    // Listen for auth state changes (login, logout, token refresh, initial load)
+    // Listen for auth state changes
     supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth State Change Event:', event, session);
-
         const sessionJustChanged = currentSession?.access_token !== session?.access_token;
-        currentSession = session; // Update global session *first*
+        currentSession = session;
 
-        // Update UI whenever the session changes OR on initial load
-        if (sessionJustChanged || event === 'INITIAL_SESSION') {
-             updateContentView(); // Update visibility of elements based on login state
-             // If logged in (newly or initially), fetch credits
+        if (sessionJustChanged || event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+             updateContentView(); // Update visibility
              if (session) {
-                 fetchUserCredits();
+                 fetchUserCredits(); // Fetch credits if logged in
              } else {
-                 updateCreditState(null); // Clear credits when logged out
+                 updateCreditState(null); // Clear credits if logged out
              }
         } else if (event === "TOKEN_REFRESHED") {
-            // Token refreshed automatically, refetch credits to ensure sync
-             console.log("Token refreshed, refetching credits.");
-             if (session) fetchUserCredits();
-        } else if (event === "SIGNED_OUT") {
-             // Explicitly handle signed out state for UI updates
-             updateCreditState(null);
-             updateContentView(); // Ensure view is updated after logout confirmation
+             if (session) fetchUserCredits(); // Re-fetch credits on refresh
         }
     });
 
