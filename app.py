@@ -35,7 +35,7 @@ PRICE_ID_TO_CREDITS = {
 
 
 app = Flask(__name__)
-CORS(app) # Consider restricting origins in production: CORS(app, origins=["YOUR_VERCEL_DOMAIN"])
+CORS(app, origins=["https://ai-thumbnail-copilot.vercel.app"]) # Consider restricting origins in production: CORS(app, origins=["YOUR_VERCEL_DOMAIN"])
 
 # Flux image generation function (Keep as is)
 def generate_flux_image(prompt):
