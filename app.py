@@ -444,7 +444,7 @@ def generate():
             prompt=image_prompt_with_bars,
             n=NUM_IMAGES_TO_GENERATE, # Request the desired number
             size="1536x1024",
-            quality="high" # Use high quality
+            quality="low" # Use high quality
             # REMOVED response_format="b64_json" - library handles this
         )
 
