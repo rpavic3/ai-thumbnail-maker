@@ -232,6 +232,12 @@ def crop_image_data_uri(data_uri: str) -> str | None:
     except Exception as e:
         logging.error(f"❌ Unexpected error during image cropping: {e}", exc_info=True)
         return None # Return None if cropping fails
+    
+
+@app.route("/", methods=["GET", "HEAD"])
+def health_root():
+    return "ok", 200
+
 
 
 # --- API Route: Generate Prompt ---
