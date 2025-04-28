@@ -315,13 +315,18 @@
      .user-info-container {
          display: flex;
          flex-wrap: wrap; /* Allow wrapping on small screens */
-         justify-content: space-between; /* Space out items */
+         justify-content: center; /* Space out items */
          align-items: center; /* Vertically center items */
          gap: 1rem; /* Space between items */
          padding: 0.75rem 0; /* Adjusted padding */
          border-bottom: 1px solid var(--border-color);
          margin-bottom: 1.5rem;
      }
+
+     .credits-display,                 /*   2️⃣  shove the edges back out   */
+.purchase-controls{ margin-right:auto; }
+
+#logout-button{ margin-left:auto; }
      /* --- END MODIFICATION --- */
 
      .credits-display, .user-info-display {
