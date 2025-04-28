@@ -109,23 +109,23 @@
 
      /* Style for disabled/coming soon tabs */
      .tab-button.secondary-tab {
-           position: relative;
-           color: #666; /* Darker grey */
-           cursor: not-allowed;
-           background: #222; /* Darker background */
+          position: relative;
+          color: #666; /* Darker grey */
+          cursor: not-allowed;
+          background: #222; /* Darker background */
      }
      .tab-button.secondary-tab::after {
-           content: "Coming Soon";
-           position: absolute;
-           bottom: 5px;
-           left: 50%;
-           transform: translateX(-50%);
-           font-size: 0.7rem;
-           color: #555;
+          content: "Coming Soon";
+          position: absolute;
+          bottom: 5px;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 0.7rem;
+          color: #555;
      }
      .tab-button.secondary-tab:hover {
-           background: #222; /* No hover effect */
-           color: #666;
+          background: #222; /* No hover effect */
+          color: #666;
      }
 
 
@@ -246,12 +246,12 @@
           background: transparent;
           color: var(--accent);
           border-color: var(--accent);
-       }
+      }
      .secondary-button:disabled:hover {
           background: transparent;
           color: var(--accent);
           border-color: var(--accent);
-       }
+      }
 
      /* Buy Credits Button Style (Base) */
      .buy-credits-button {
@@ -367,7 +367,8 @@
 
      .thumbnail-results-grid {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+          /* 👇 INSTRUCTION 1 Applied Here */
+          grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
           gap: 1.5rem;
           margin-top: 1rem;
           width: 100%;
@@ -392,6 +393,7 @@
           border-radius: calc(var(--radius) / 2);
           margin-bottom: 1rem;
           background-color: #333; /* Placeholder bg */
+          cursor: pointer; /* Indicate clickable for modal */
      }
 
      .thumbnail-item button {
@@ -467,7 +469,7 @@
            text-align: center;
            padding: 2rem 0;
            font-style: italic;
-      }
+       }
       /* End of History Message */
       .no-more-history {
            text-align:center;
@@ -475,7 +477,7 @@
            margin-top:1rem;
            font-style: italic;
            font-size: 0.9em;
-      }
+       }
 
 
      /* --- Other Sections (How-it-works) --- */
@@ -524,7 +526,7 @@
           text-decoration: underline;
           font-weight: bold;
           margin-left: 0.5em;
-       }
+      }
      #credit-warning a:hover { color: var(--accent-hover); }
 
      .download-error-message {
@@ -555,22 +557,22 @@
               margin-bottom: 0.5rem; /* Add space between stacked items */
          }
          .credits-display, .user-info-display {
-             justify-content: center; /* Center text within display boxes */
+              justify-content: center; /* Center text within display boxes */
          }
          .purchase-controls {
-             order: 1; /* Move purchase below credits/user */
-             margin-bottom: 0.75rem;
+              order: 1; /* Move purchase below credits/user */
+              margin-bottom: 0.75rem;
          }
          #logout-button {
-             order: 2; /* Move logout to the bottom */
-             margin-top: 0.5rem; /* Add space above logout */
-             margin-bottom: 0; /* Remove bottom margin */
+              order: 2; /* Move logout to the bottom */
+              margin-top: 0.5rem; /* Add space above logout */
+              margin-bottom: 0; /* Remove bottom margin */
          }
          .header-buy-button {
-             width: auto; /* Allow button to size naturally */
-             margin-left: 0; /* Remove left margin */
-             /* Center button if needed */
-             /* display: block; margin: 0 auto; */
+              width: auto; /* Allow button to size naturally */
+              margin-left: 0; /* Remove left margin */
+              /* Center button if needed */
+              /* display: block; margin: 0 auto; */
          }
          /* --- END MODIFICATION --- */
 
@@ -582,6 +584,11 @@
          .step-card h3 { font-size: 1.1rem; }
          .step-card p { font-size: 0.95rem; }
      }
+
+    /* --- simple image modal (added) --- */
+    #img-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
+          align-items:center;justify-content:center;z-index:9999}
+    #img-modal img{max-width:90vw;max-height:90vh;border-radius:12px}
 
     </style>
 </head>
@@ -598,7 +605,7 @@
      <div id="auth">
          <h2>Login or Sign up</h2>
          <p id="signup-encouragement" style="color: var(--accent); text-align: center; margin-bottom: 1.5rem; font-size: 1.05rem;">
-             ✨ New here? Sign up to get <strong>10 free credits</strong> and start creating amazing thumbnails! ✨
+              ✨ New here? Sign up to get <strong>10 free credits</strong> and start creating amazing thumbnails! ✨
          </p>
          <label for="auth-email">Email</label>
          <input type="email" id="auth-email" placeholder="you@example.com" required />
@@ -785,8 +792,8 @@
              if (button && stripe) { // Check if it's the buy button and stripe initialized
                  event.preventDefault();
                  if (!currentSession) {
-                     showStatus(purchaseStatusP, "Please log in to purchase credits.", 'warning', 3000);
-                     return;
+                      showStatus(purchaseStatusP, "Please log in to purchase credits.", 'warning', 3000);
+                      return;
                  }
                  const priceId = button.dataset.priceId;
                  if (!priceId || priceId === "YOUR_STRIPE_PRICE_ID_HERE") { // Check placeholder
@@ -801,34 +808,34 @@
                  button.innerText = "Redirecting...";
 
                  try {
-                     const token = currentSession.access_token;
-                     const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
-                         method: "POST",
-                         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                         body: JSON.stringify({ priceId: priceId })
-                     });
+                      const token = currentSession.access_token;
+                      const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                          body: JSON.stringify({ priceId: priceId })
+                      });
 
-                     const responseBody = await res.text();
-                     let data;
-                     try { data = JSON.parse(responseBody); }
-                     catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
+                      const responseBody = await res.text();
+                      let data;
+                      try { data = JSON.parse(responseBody); }
+                      catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
 
-                     if (!res.ok) { throw new Error(data.error || `Failed to start purchase (Status: ${res.status})`); }
+                      if (!res.ok) { throw new Error(data.error || `Failed to start purchase (Status: ${res.status})`); }
 
-                     if (data.url) {
-                         window.location.href = data.url; // Redirect to Stripe
-                     } else {
-                         throw new Error("Could not get checkout URL from server.");
-                     }
+                      if (data.url) {
+                          window.location.href = data.url; // Redirect to Stripe
+                      } else {
+                          throw new Error("Could not get checkout URL from server.");
+                      }
                  } catch (err) {
-                     console.error("Purchase initiation failed:", err);
-                     showStatus(purchaseStatusP, `Error: ${err.message}`, 'error', 5000);
-                     button.disabled = false;
-                     button.innerText = originalButtonText;
-                     if (err.message.includes("Authent")) { // Logout on auth error
-                          showStatus(authStatusP, "Authentication error. Please log in again.", 'error');
-                          await logout();
-                     }
+                      console.error("Purchase initiation failed:", err);
+                      showStatus(purchaseStatusP, `Error: ${err.message}`, 'error', 5000);
+                      button.disabled = false;
+                      button.innerText = originalButtonText;
+                      if (err.message.includes("Authent")) { // Logout on auth error
+                           showStatus(authStatusP, "Authentication error. Please log in again.", 'error');
+                           await logout();
+                      }
                  }
              } // else if button is logout etc. - handled by direct onclick
          });
@@ -873,10 +880,10 @@
           if (credits === null && !currentSession) {
                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
                confirmPromptButton.disabled = true;
-          } else if (credits === null && currentSession) { // Error state while logged in
+           } else if (credits === null && currentSession) { // Error state while logged in
                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
                confirmPromptButton.disabled = true;
-          }
+           }
      }
 
      // --- Function to Fetch User Credits ---
@@ -902,8 +909,8 @@
 
              if (!res.ok) {
                  if (res.status === 401) {
-                     console.warn("fetchUserCredits received 401, letting auth listener handle logout.");
-                     return;
+                      console.warn("fetchUserCredits received 401, letting auth listener handle logout.");
+                      return;
                  }
                  throw new Error(data.error || `Failed to fetch credits (Status: ${res.status})`);
              }
@@ -1134,6 +1141,14 @@
          }
      });
 
+     // --- Image Preview Modal Helper (Added) ---
+     function showModal(src){
+         const modal=document.getElementById('img-modal');
+         modal.querySelector('img').src=src;
+         modal.style.display='flex';
+     }
+
+
      // Generate Thumbnails (Step 2 - Scroll target already fixed)
      async function confirmPrompt() {
          const prompt = document.getElementById("custom-prompt").value;
@@ -1149,8 +1164,8 @@
          }
          // --- MODIFICATION: Update scroll target for insufficient credits ---
          if (currentUserCredits === null || currentUserCredits < TOTAL_GENERATION_COST) {
-             scrollToElement('credits-container'); // Scroll to top bar
-             return;
+              scrollToElement('credits-container'); // Scroll to top bar
+              return;
          }
          // --- END MODIFICATION ---
 
@@ -1183,20 +1198,21 @@
                  let displayedImages = 0;
                  data.image_urls.forEach((imageUrl, index) => {
                       if (imageUrl && imageUrl.startsWith('data:image')) {
-                          displayedImages++;
-                          const itemDiv = document.createElement('div');
-                          itemDiv.className = 'thumbnail-item';
-                          const img = document.createElement('img');
-                          img.src = imageUrl;
-                          img.alt = `Generated Thumbnail Option ${index + 1}`;
-                          img.onerror = () => { img.alt = 'Error loading image'; }
-                          const button = document.createElement('button');
-                          const downloadFilename = `${title || 'thumbnail'}_${index + 1}`;
-                          button.innerText = `⬇ Download Option ${index + 1}`;
-                          button.onclick = () => downloadImage(imageUrl, downloadFilename);
-                          itemDiv.appendChild(img);
-                          itemDiv.appendChild(button);
-                          gridDiv.appendChild(itemDiv);
+                           displayedImages++;
+                           const itemDiv = document.createElement('div');
+                           itemDiv.className = 'thumbnail-item';
+                           const img = document.createElement('img');
+                           img.src = imageUrl;
+                           img.alt = `Generated Thumbnail Option ${index + 1}`;
+                           img.onclick = () => showModal(imageUrl);  // <-- Added click handler
+                           img.onerror = () => { img.alt = 'Error loading image'; }
+                           const button = document.createElement('button');
+                           const downloadFilename = `${title || 'thumbnail'}_${index + 1}`;
+                           button.innerText = `⬇ Download Option ${index + 1}`;
+                           button.onclick = () => downloadImage(imageUrl, downloadFilename);
+                           itemDiv.appendChild(img);
+                           itemDiv.appendChild(button);
+                           gridDiv.appendChild(itemDiv);
                       } else {
                            console.warn(`Received invalid image URL at index ${index}:`, imageUrl);
                            const itemDiv = document.createElement('div');
@@ -1209,9 +1225,9 @@
                  resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
                  scrollToElement('result'); // Scroll to results
                  if (data.new_credits !== undefined) {
-                     updateCreditState(data.new_credits);
+                      updateCreditState(data.new_credits);
                  } else {
-                     fetchUserCredits();
+                      fetchUserCredits();
                  }
                  promptPreviewDiv.style.display = "block";
                  if (displayedImages < NUM_IMAGES_EXPECTED) {
@@ -1299,32 +1315,32 @@
                  const generatedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
                  const maxPromptLength = 100;
                  const displayPrompt = (item.prompt && item.prompt.length > maxPromptLength)
-                     ? item.prompt.substring(0, maxPromptLength) + '...'
-                     : (item.prompt || 'N/A');
+                      ? item.prompt.substring(0, maxPromptLength) + '...'
+                      : (item.prompt || 'N/A');
                  return `
                  <div class="card">
-                     ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
-                     ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
-                     <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                     <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
-                     <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
-                     <p>Generated: ${generatedDate}</p>
+                      ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
+                      ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
+                      <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
+                      <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
+                      <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
+                      <p>Generated: ${generatedDate}</p>
                  </div>`;
              }).join("");
              historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
              const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
              if (loadMoreContainer) {
                  if (items.length > 0 && currentlyLoadedCount < totalHistoryItems) {
-                     loadMoreContainer.style.display = 'block';
-                     if (loadMoreButton) { loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History"; }
-                     currentHistoryPage++;
+                      loadMoreContainer.style.display = 'block';
+                      if (loadMoreButton) { loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History"; }
+                      currentHistoryPage++;
                  } else {
-                     loadMoreContainer.style.display = 'none';
-                     if (currentlyLoadedCount > 0 && currentHistoryPage > 1) {
-                          if (!historyDiv.querySelector('.no-more-history')) {
-                               historyDiv.insertAdjacentHTML('beforeend', '<p class="no-more-history">-- End of History --</p>');
-                          }
-                     }
+                      loadMoreContainer.style.display = 'none';
+                      if (currentlyLoadedCount > 0 && currentHistoryPage > 1) {
+                           if (!historyDiv.querySelector('.no-more-history')) {
+                                historyDiv.insertAdjacentHTML('beforeend', '<p class="no-more-history">-- End of History --</p>');
+                           }
+                      }
                  }
              }
          } catch (err) {
@@ -1349,7 +1365,7 @@
              historyButton.innerText = historyDiv.style.display === "block" ? "Hide History" : "Show My History";
               if (loadMoreButton && loadMoreContainer && loadMoreContainer.style.display === 'block') {
                    loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
-              }
+               }
          }
      }
 
@@ -1434,13 +1450,13 @@
 
          if (statusTargetElement) {
               if (paymentStatus === 'success') {
-                  showStatus(statusTargetElement, "✅ Payment successful! Credits updating...", 'success');
-                  setTimeout(() => { if (currentSession) fetchUserCredits(); }, 3000);
-                  setTimeout(() => { if (statusTargetElement.innerText.includes("Payment successful")) showStatus(statusTargetElement, ''); }, 8000);
-                  if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+                   showStatus(statusTargetElement, "✅ Payment successful! Credits updating...", 'success');
+                   setTimeout(() => { if (currentSession) fetchUserCredits(); }, 3000);
+                   setTimeout(() => { if (statusTargetElement.innerText.includes("Payment successful")) showStatus(statusTargetElement, ''); }, 8000);
+                   if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
               } else if (paymentStatus === 'cancel') {
-                  showStatus(statusTargetElement, "⚠️ Purchase cancelled.", 'warning', 5000);
-                  if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+                   showStatus(statusTargetElement, "⚠️ Purchase cancelled.", 'warning', 5000);
+                   if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
               }
          }
          updateContentView(); // Initial UI setup
@@ -1473,5 +1489,10 @@
      });
 
  </script>
+
+ <div id="img-modal" onclick="this.style.display='none'">
+     <img src="" alt="preview"/>
+ </div>
+
 </body>
 </html>
