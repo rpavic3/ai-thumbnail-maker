@@ -315,18 +315,13 @@
      .user-info-container {
          display: flex;
          flex-wrap: wrap; /* Allow wrapping on small screens */
-         justify-content: center; /* Space out items */
+         justify-content: space-between; /* Space out items */
          align-items: center; /* Vertically center items */
          gap: 1rem; /* Space between items */
          padding: 0.75rem 0; /* Adjusted padding */
          border-bottom: 1px solid var(--border-color);
          margin-bottom: 1.5rem;
      }
-
-     .credits-display,                 /*   2️⃣  shove the edges back out   */
-.purchase-controls{ margin-right:auto; }
-
-#logout-button{ margin-left:auto; }
      /* --- END MODIFICATION --- */
 
      .credits-display, .user-info-display {
@@ -559,20 +554,6 @@
      }
      /* --- End Added Styles --- */
 
-    .left-cluster{ margin-right:auto; }     /* all space to the right  */
-    #logout-button{ margin-left:auto; }
-
-     /* --- Added for Generation Note --- */
-     .generation-note {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: 1rem; /* Space below the form/button */
-            margin-bottom: 1.5rem; /* Space above the divider/prompt preview */
-            padding: 0 1rem; /* Optional padding */
-        }
-        /* --- End Added Styles --- */
-
 
      /* --- Responsive Adjustments --- */
      @media (max-width: 600px) {
@@ -687,7 +668,7 @@
      <div id="main-app-content" style="display: none; width: 100%;">
 
          <div class="user-info-container">
-             <div class="left-cluster" style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;"> <div id="credits-container" class="credits-display" style="display: none;">
+             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;"> <div id="credits-container" class="credits-display" style="display: none;">
                      Credits: <strong id="credits-display">--</strong>
                  </div>
                  <div class="purchase-controls" style="display: none;">
@@ -709,9 +690,7 @@
                  <div style="margin-top: 1rem; text-align: center;">
                       <button type="submit" id="generate-prompt-button">Suggest Prompt Idea</button>
                  </div>
-
-            </form> <p class="generation-note">Note: AI generations sometimes need a few tries for perfect framing.</p>
-                </div>
+             </form>
 
              <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                  <label for="custom-prompt">Edit AI Prompt Suggestion (or enter your own)</label>
