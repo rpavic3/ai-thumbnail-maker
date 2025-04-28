@@ -402,7 +402,7 @@ def generate():
         "Create a highly clickable, viral-quality YouTube thumbnail. "
         "The image should be bold, colorful, and extremely eye-catching even at small sizes. "
         "Focus on clear, dramatic compositions with strong emotions, simple backgrounds, "
-        "and exaggerated action or expressions. Leave space for large, readable text if needed. "
+        "and exaggerated action or expressions. "
         "Prioritize visual storytelling that instantly grabs attention and makes viewers want to click. "
         "Scene details: "
     )
