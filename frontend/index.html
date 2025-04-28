@@ -1460,6 +1460,7 @@
               }
          }
          updateContentView(); // Initial UI setup
+         fetchUserCredits();         // <-- warm-up call (will 401 if not logged in)
      });
 
      // Auth state change listener (No changes needed here)

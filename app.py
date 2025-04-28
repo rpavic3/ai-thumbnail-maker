@@ -232,7 +232,7 @@ def crop_image_data_uri(data_uri: str) -> str | None:
     except Exception as e:
         logging.error(f"❌ Unexpected error during image cropping: {e}", exc_info=True)
         return None # Return None if cropping fails
-    
+
 
 @app.route("/", methods=["GET", "HEAD"])
 def health_root():
@@ -324,10 +324,10 @@ def get_user_id_from_token(auth_header):
         # Convert error to string for checking content
         error_str = str(e).lower()
         if "invalid token" in error_str or "jwt" in error_str or "token is invalid" in error_str:
-             raise Exception("Invalid token.") from e
+              raise Exception("Invalid token.") from e
         else:
-             # Generalize for other potential issues (network, Supabase internal)
-             raise Exception("Token verification failed.") from e
+              # Generalize for other potential issues (network, Supabase internal)
+              raise Exception("Token verification failed.") from e
 
 
 # --- API Route: Get User Profile/Credits ---
@@ -366,13 +366,13 @@ def get_profile():
         status_code = 500
         # Determine status code based on error type
         if "Unauthorized" in error_message or "Invalid token" in error_message or "Token verification failed" in error_message:
-             status_code = 401
-             error_message = "Authentication failed. Please log in again."
+              status_code = 401
+              error_message = "Authentication failed. Please log in again."
         elif "Database error" in error_message:
-             status_code = 503 # Service Unavailable (DB issue)
-             error_message = "Failed to retrieve profile data due to a database issue."
+              status_code = 503 # Service Unavailable (DB issue)
+              error_message = "Failed to retrieve profile data due to a database issue."
         else:
-             error_message = "An unexpected error occurred while fetching your profile."
+              error_message = "An unexpected error occurred while fetching your profile."
         return jsonify({"error": error_message}), status_code
 
 
@@ -409,13 +409,13 @@ def generate():
         logging.error(f"❌ Auth/Profile fetch error in /generate{user_id_str}: {e}", exc_info=True)
         error_message = str(e); status_code = 500
         if "Unauthorized" in error_message or "Invalid token" in error_message or "Token verification failed" in error_message:
-             status_code = 401; error_message = "Authentication failed. Please log in again."
+              status_code = 401; error_message = "Authentication failed. Please log in again."
         elif "DB error" in error_message:
-             status_code = 503; error_message = "Failed to check credits due to a database issue."
+              status_code = 503; error_message = "Failed to check credits due to a database issue."
         elif "Insufficient credits" in error_message: # Should be caught above, but as fallback
-             status_code = 403; error_message = error_message # Pass specific message
+              status_code = 403; error_message = error_message # Pass specific message
         else:
-             error_message = "An error occurred before generation could start."
+              error_message = "An error occurred before generation could start."
         return jsonify({"error": error_message}), status_code
 
     # 2. --- Get Request Data ---
@@ -495,17 +495,14 @@ def generate():
 
     for index, original_uri in enumerate(generated_data_uris):
         logging.info(f"⚙️ Processing image {index + 1}/{NUM_IMAGES_TO_GENERATE} for user {user_id}...")
-        preview_uri = None
+        preview_uri = None # Initialize here
         cropped_uri = None
         # Start with the original URI as the fallback
         final_uri_for_db_and_response = original_uri
 
         if original_uri and original_uri.startswith("data:image/"):
             try:
-                # Attempt to generate preview
-                preview_uri = generate_preview_data_uri(original_uri)
-                if preview_uri: logging.info(f"✅ Preview generated for image {index + 1}.")
-                else: logging.warning(f"⚠️ Failed to generate preview for image {index + 1}.")
+                # --- DELETED OLD PREVIEW GENERATION CALL ---
 
                 # Attempt to crop image
                 cropped_uri = crop_image_data_uri(original_uri)
@@ -515,6 +512,19 @@ def generate():
                 else:
                     logging.warning(f"⚠️ Failed to crop image {index + 1}. Using original (with bars).")
                     # final_uri_for_db_and_response remains original_uri
+
+                # --- ADDED NEW PREVIEW GENERATION BLOCK (Instruction 3) ---
+                # 🔄 generate preview from the final version (ensures no black bars)
+                preview_uri = None # Re-initialize before attempting
+                if final_uri_for_db_and_response: # Check if we have a valid source
+                    preview_uri = generate_preview_data_uri(final_uri_for_db_and_response)
+                    if preview_uri:
+                         logging.info(f"✅ Preview generated from FINAL URI for image {index + 1}.")
+                    else:
+                         logging.warning(f"⚠️ Failed to generate preview from FINAL URI for image {index + 1}.")
+                else:
+                     logging.warning(f"⚠️ Cannot generate preview for image {index + 1} as final URI is missing.")
+                # --- END NEW PREVIEW GENERATION BLOCK ---
 
             except Exception as processing_err:
                 # Log error but continue processing other images if possible
@@ -541,7 +551,7 @@ def generate():
                 "niche": niche,
                 "prompt": image_prompt, # Store the original user prompt for context
                 "image_url": final_uri_for_db_and_response, # Cropped or original URI
-                "preview_image_url": preview_uri # Preview URI or None
+                "preview_image_url": preview_uri # Preview URI (from final) or None
             })
         else:
              logging.error(f"❌ Image {index+1} resulted in no usable URL, skipping DB save for this item.")
@@ -726,7 +736,7 @@ def create_checkout_session():
         logging.error(f"❌ Error creating checkout session{user_id_str}: {e}", exc_info=True)
         error_message = str(e); status_code = 500
         if "Unauthorized" in error_message or "Invalid token" in error_message or "Token verification failed" in error_message:
-             status_code = 401; error_message = "Authentication failed. Please log in again."
+              status_code = 401; error_message = "Authentication failed. Please log in again."
         else: error_message = "Failed to create checkout session due to an unexpected error."
         return jsonify({"error": error_message}), status_code
 
@@ -801,9 +811,9 @@ def stripe_webhook():
                      # Log error but proceed assuming 0 credits if fetch fails, otherwise payment might not grant credits
                      logging.error(f"❌ DB Error fetching profile for credit update (user {user_id}, session {session_id}): {profile_res.error}")
                 elif profile_res and profile_res.data:
-                    current_credits = profile_res.data.get("credits", 0)
-                    profile_exists = True
-                    logging.info(f"   Profile exists for {user_id}. Current credits: {current_credits}")
+                     current_credits = profile_res.data.get("credits", 0)
+                     profile_exists = True
+                     logging.info(f"   Profile exists for {user_id}. Current credits: {current_credits}")
                 else:
                      logging.warning(f"⚠️ Profile not found for {user_id} during webhook credit update (Session: {session_id}). Will create/update starting from 0 credits.")
 
