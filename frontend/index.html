@@ -278,8 +278,6 @@
          color: var(--bg); /* Dark text on red */
          padding: 0.5rem 0.8rem;
          font-size: 0.85rem;
-         /* ⭐ Added flex-shrink */
-         flex-shrink: 0;
      }
      #logout-button:hover {
          background: var(--logout-hover);
@@ -326,8 +324,6 @@
      }
      /* --- END MODIFICATION --- */
 
-    /* --- ⭐ MODIFIED/ADDED User Info Centering Rules --- */
-     /* Shared styles */
      .credits-display, .user-info-display {
          font-size: 0.9rem;
          color: var(--text-muted);
@@ -335,25 +331,13 @@
          padding: 0.3rem 0.7rem;
          border-radius: calc(var(--radius) / 3);
          white-space: nowrap; /* Prevent wrapping */
-         display: inline-flex;
+         /* --- MODIFICATION: Ensure vertical alignment with button --- */
+         display: inline-flex; /* Use flex to align text */
          align-items: center;
-         /* Removed flex-grow/justify-content from shared rule if previously added */
+         /* --- END MODIFICATION --- */
      }
      .credits-display strong { color: var(--accent); font-weight: 700; }
      .user-info-display span { color: var(--text); font-weight: 600; }
-
-     /* Specific centering for user info on wider screens */
-     .user-info-display {
-         flex-grow: 1; /* Allow expansion */
-         justify-content: center; /* Center "User:" and the email span inside */
-     }
-
-     /* Prevent Credits/Purchase wrapper from growing/shrinking */
-     .user-info-container > div:has(#credits-container) {
-        flex-grow: 0;
-        flex-shrink: 0;
-     }
-     /* --- End User Info Centering Rules --- */
 
      /* --- MODIFICATION: Wrapper for purchase controls in header --- */
      .purchase-controls {
@@ -572,14 +556,14 @@
 
      /* --- Added for Generation Note --- */
      .generation-note {
-          font-size: 0.85rem;
-          color: var(--text-muted);
-          text-align: center;
-          margin-top: 1rem; /* Space below the form/button */
-          margin-bottom: 1.5rem; /* Space above the divider/prompt preview */
-          padding: 0 1rem; /* Optional padding */
-      }
-      /* --- End Added Styles --- */
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 1rem; /* Space below the form/button */
+            margin-bottom: 1.5rem; /* Space above the divider/prompt preview */
+            padding: 0 1rem; /* Optional padding */
+        }
+        /* --- End Added Styles --- */
 
 
      /* --- Responsive Adjustments --- */
@@ -637,8 +621,6 @@
           }
           .user-info-display {
              order: 0; /* Ensure user info comes before wrapper */
-             /* Reset flex-grow for mobile column layout */
-             flex-grow: 0; /* ⭐ ADDED */
           }
 
           /* --- END MODIFICATION --- */
@@ -698,12 +680,12 @@
 
          <div class="user-info-container">
              <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;"> <div id="credits-container" class="credits-display" style="display: none;">
-                  Credits: <strong id="credits-display">--</strong>
-              </div>
-              <div class="purchase-controls" style="display: none;">
-                  <button class="buy-credits-button header-buy-button" data-price-id="price_1RIU95Fj9LYfI1R0dUfHTgzW"> Buy 50 Credits (€15.00) </button>
-                  <p id="purchase-status" class="header-purchase-status"></p>
-              </div>
+                     Credits: <strong id="credits-display">--</strong>
+                 </div>
+                 <div class="purchase-controls" style="display: none;">
+                     <button class="buy-credits-button header-buy-button" data-price-id="price_1RIU95Fj9LYfI1R0dUfHTgzW"> Buy 50 Credits (€15.00) </button>
+                     <p id="purchase-status" class="header-purchase-status"></p>
+                 </div>
              </div> <div id="user-info-display" class="user-info-display" style="display: none;">
                  User: <span id="user-email-display"></span>
              </div>
@@ -720,7 +702,9 @@
                       <button type="submit" id="generate-prompt-button">Suggest Prompt Idea</button>
                  </div>
 
-             </form> <p class="generation-note">Note: AI generations sometimes need a few tries for perfect framing.</p>
+            </form> <p class="generation-note">Note: AI generations sometimes need a few tries for perfect framing.</p>
+                </div>
+
              <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                  <label for="custom-prompt">Edit AI Prompt Suggestion (or enter your own)</label>
                  <textarea id="custom-prompt" rows="4" placeholder="Describe the thumbnail you want the AI to create..."></textarea>
@@ -950,11 +934,8 @@
 
           // Update Generate Button State & Credit Warning
           const generateButtonEnabled = (credits !== null && typeof credits === 'number' && credits >= TOTAL_GENERATION_COST);
-          if (confirmPromptButton) { // Check if button exists before disabling
-              confirmPromptButton.disabled = !generateButtonEnabled;
-              confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Cost: ${TOTAL_GENERATION_COST} Credits)`; // Always show cost
-          }
-
+          confirmPromptButton.disabled = !generateButtonEnabled;
+          confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Cost: ${TOTAL_GENERATION_COST} Credits)`; // Always show cost
 
           if (credits !== null && typeof credits === 'number' && credits < TOTAL_GENERATION_COST) {
               // --- MODIFICATION: Update scroll target for credit warning link ---
@@ -968,14 +949,12 @@
           }
 
            // Handle logged out or error state specifically for button text
-           if (confirmPromptButton) { // Check if button exists
-               if (credits === null && !currentSession) {
-                    confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
-                    confirmPromptButton.disabled = true;
-               } else if (credits === null && currentSession) { // Error state while logged in
-                    confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
-                    confirmPromptButton.disabled = true;
-               }
+           if (credits === null && !currentSession) {
+                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
+                confirmPromptButton.disabled = true;
+           } else if (credits === null && currentSession) { // Error state while logged in
+                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
+                confirmPromptButton.disabled = true;
            }
      }
 
@@ -1223,7 +1202,7 @@
                return;
           }
           resultDiv.innerHTML = "<p style='text-align:center;'>🧠 Generating prompt idea...</p>";
-          promptPreviewDiv.style.display = "none"; // Hide preview while generating new prompt
+          promptPreviewDiv.style.display = "none";
           generatePromptButton.disabled = true;
           generatePromptButton.innerText = "Generating...";
           const title = document.getElementById('title').value;
@@ -1241,35 +1220,21 @@
               if (!res.ok) { throw new Error(data.error || `Server error: ${res.status}`); }
               if (data.prompt) {
                   resultDiv.innerHTML = `<p style="color: var(--success-color); text-align: center;">✅ Prompt suggestion generated!</p>`;
-                  // Ensure promptPreviewDiv exists before manipulating children
-                   if (promptPreviewDiv) {
-                        const customPromptTextarea = document.getElementById("custom-prompt");
-                        if (customPromptTextarea) {
-                             customPromptTextarea.value = data.prompt;
-                        } else {
-                             console.error("Textarea #custom-prompt not found!");
-                         }
-                         promptPreviewDiv.style.display = "block"; // Show the preview div
-                         updateCreditState(currentUserCredits); // Update button state inside preview div
-                         scrollToElement('prompt-preview'); // Scroll to the preview div
-                    } else {
-                        console.error("Div #prompt-preview not found!");
-                        resultDiv.innerHTML += `<p style="color: var(--error-color); text-align: center;">❌ Error: UI element missing.</p>`;
-                    }
+                  document.getElementById("custom-prompt").value = data.prompt;
+                  promptPreviewDiv.style.display = "block";
+                  updateCreditState(currentUserCredits);
+                  scrollToElement('prompt-preview');
               } else {
                   throw new Error(data.error || 'AI did not return a prompt.');
               }
           } catch (err) {
               console.error("Prompt Generation Error:", err);
               resultDiv.innerHTML = `<p style="color: var(--error-color); text-align: center;">❌ Error Generating Prompt: ${err.message}</p>`;
-              // Don't try to show promptPreviewDiv on error
-              promptPreviewDiv.style.display = "none";
           } finally {
               generatePromptButton.disabled = false;
               generatePromptButton.innerText = "Suggest Prompt Idea";
           }
      });
-
 
      // --- Image Preview Modal Helper (Added) ---
      function showModal(src){
@@ -1301,7 +1266,7 @@
           // --- END MODIFICATION ---
 
           resultDiv.innerHTML = `<p style="text-align: center;">🎨 Generating ${NUM_IMAGES_EXPECTED} thumbnails... (Cost: ${TOTAL_GENERATION_COST} credits). Please wait.</p>`;
-          promptPreviewDiv.style.display = "none"; // Hide prompt area while generating images
+          promptPreviewDiv.style.display = "none";
           confirmPromptButton.disabled = true;
           confirmPromptButton.innerText = "Generating...";
           const title = document.getElementById("title").value;
@@ -1343,7 +1308,7 @@
                            img.onclick = () => showModal(imageUrl);  // <-- Added click handler
                            img.onerror = () => { img.alt = 'Error loading image'; }
                            const button = document.createElement('button');
-                           const downloadFilename = `<span class="math-inline">\{title \|\| 'thumbnail'\}\_</span>{index + 1}`;
+                           const downloadFilename = `${title || 'thumbnail'}_${index + 1}`;
                            button.innerText = `⬇ Download Option ${index + 1}`;
                            button.onclick = () => downloadImage(imageUrl, downloadFilename);
                            itemDiv.appendChild(img);
@@ -1367,7 +1332,7 @@
                   }
                   promptPreviewDiv.style.display = "block"; // Keep prompt editable
                   if (displayedImages < NUM_IMAGES_EXPECTED) {
-                       showStatus(resultDiv, `Generated <span class="math-inline">\{displayedImages\}/</span>{NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000);
+                       showStatus(resultDiv, `Generated ${displayedImages}/${NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000);
                   }
               } else {
                    throw new Error('Received invalid image data from server.');
@@ -1390,11 +1355,9 @@
               }
           } finally {
                // Re-enable button regardless of success/failure
-               if (confirmPromptButton) { // Check button exists
-                    confirmPromptButton.disabled = false;
-                    // Make sure button text reflects current credit status
-                    updateCreditState(currentUserCredits);
-               }
+               confirmPromptButton.disabled = false;
+               // Make sure button text reflects current credit status
+               updateCreditState(currentUserCredits);
            }
      }
 
@@ -1432,7 +1395,7 @@
           historyButton.disabled = true;
           try {
               const token = currentSession.access_token;
-              const fetchUrl = `<span class="math-inline">\{BACKEND\_URL\}/history?page\=</span>{currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
+              const fetchUrl = `${BACKEND_URL}/history?page=${currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
               const res = await fetch(fetchUrl, {
                    method: "GET",
                    headers: { "Authorization": `Bearer ${token}` }
@@ -1467,8 +1430,8 @@
                        ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy" onclick="showModal('${fullImageUrl || displayImageUrl}')"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
                        ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
                        <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                       <p><strong>Niche:</strong> <span class="math-inline">\{item\.niche \|\| 'N/A'\}</p\>
-<p title\="</span>{item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
+                       <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
+                       <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
                        <p>Generated: ${generatedDate}</p>
                   </div>`;
               }).join("");
@@ -1545,7 +1508,7 @@
           const safeFilename = baseFilename.replace(/[^a-z0-9_]/gi, '_').toLowerCase() || 'thumbnail';
           const formatMatch = url.match(/^data:image\/([a-zA-Z+]+);base64,/);
           const extension = formatMatch ? formatMatch[1].replace('+', '') : 'png';
-          const filename = `<span class="math-inline">\{safeFilename\}\_</span>{Date.now()}.${extension}`;
+          const filename = `${safeFilename}_${Date.now()}.${extension}`;
           try {
                const link = document.createElement("a");
                link.href = url;
@@ -1577,18 +1540,15 @@
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
             // Highlight applicable elements (using ID check or add a class)
-            const elementIdentifier = element.id || ''; // Use ID for check
-            const parentWrapper = element.closest('.user-info-container > div'); // Check if it's the credits/purchase wrapper
-
-            if (['auth', 'credit-warning', 'custom-prompt', 'result', 'credits-container'].includes(elementIdentifier) || parentWrapper) {
-                 const targetElement = parentWrapper || element; // Highlight wrapper or element
-                 targetElement.style.transition = 'background-color 0.5s ease-in-out, box-shadow 0.5s ease-in-out';
-                 const highlightColor = (elementIdentifier === 'result') ? 'rgba(167, 139, 250, 0.05)' : 'rgba(167, 139, 250, 0.1)';
-                 targetElement.style.backgroundColor = highlightColor;
-                 targetElement.style.boxShadow = '0 0 15px rgba(167, 139, 250, 0.3)';
+            const elementIdentifier = element.id || element.className; // Use ID or class for check
+            if (['auth', 'credit-warning', 'custom-prompt', 'result', 'credits-container'].includes(elementIdentifier) || element.closest('.user-info-container > div')) {
+                 element.style.transition = 'background-color 0.5s ease-in-out, box-shadow 0.5s ease-in-out';
+                 const highlightColor = (element.id === 'result') ? 'rgba(167, 139, 250, 0.05)' : 'rgba(167, 139, 250, 0.1)';
+                 element.style.backgroundColor = highlightColor;
+                 element.style.boxShadow = '0 0 15px rgba(167, 139, 250, 0.3)';
                  setTimeout(() => {
-                     targetElement.style.backgroundColor = '';
-                     targetElement.style.boxShadow = '';
+                     element.style.backgroundColor = '';
+                     element.style.boxShadow = '';
                  }, 1500);
              }
          } else {
