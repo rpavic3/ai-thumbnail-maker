@@ -554,6 +554,17 @@
      }
      /* --- End Added Styles --- */
 
+     /* --- Added for Generation Note --- */
+     .generation-note {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 1rem; /* Space below the form/button */
+            margin-bottom: 1.5rem; /* Space above the divider/prompt preview */
+            padding: 0 1rem; /* Optional padding */
+        }
+        /* --- End Added Styles --- */
+
 
      /* --- Responsive Adjustments --- */
      @media (max-width: 600px) {
@@ -611,64 +622,6 @@
           .user-info-display {
              order: 0; /* Ensure user info comes before wrapper */
           }
-
-
-          /* --- Tooltip Styles --- */
-    .tooltip-trigger {
-        position: relative; /* Needed for absolute positioning of the tooltip text */
-        display: inline-block;
-        cursor: help; /* Change cursor to indicate help is available */
-        background-color: var(--input-bg); /* Match input background */
-        color: var(--text-muted);
-        border-radius: 50%; /* Make it circular */
-        width: 20px; /* Size of the circle */
-        height: 20px; /* Size of the circle */
-        text-align: center;
-        line-height: 20px; /* Center the '?' vertically */
-        font-weight: bold;
-        font-size: 0.9rem;
-        border: 1px solid var(--border-color);
-    }
-
-    .tooltip-text {
-        visibility: hidden; /* Hidden by default */
-        opacity: 0;
-        width: 250px; /* Adjust width as needed */
-        background-color: #333; /* Darker background for tooltip */
-        color: var(--text);
-        text-align: center;
-        border-radius: 6px;
-        padding: 8px 10px;
-        position: absolute;
-        z-index: 10;
-        bottom: 130%; /* Position above the trigger */
-        left: 50%;
-        margin-left: -125px; /* Use negative half of width to center */
-        transition: opacity 0.3s ease-in-out;
-        font-size: 0.85rem; /* Slightly smaller font for tooltip */
-        line-height: 1.4;
-        font-weight: normal; /* Normal weight for tooltip text */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    }
-
-    /* Arrow for the tooltip */
-    .tooltip-text::after {
-        content: "";
-        position: absolute;
-        top: 100%; /* At the bottom of the tooltip */
-        left: 50%;
-        margin-left: -5px;
-        border-width: 5px;
-        border-style: solid;
-        border-color: #333 transparent transparent transparent; /* Arrow color */
-    }
-
-    /* Show the tooltip text when hovering over the trigger */
-    .tooltip-trigger:hover .tooltip-text {
-        visibility: visible;
-        opacity: 1;
-    }
-    /* --- End Tooltip Styles --- */
 
           /* --- END MODIFICATION --- */
 
@@ -750,17 +703,14 @@
                  </div>
              </form>
 
+            </form> <p class="generation-note">Note: AI generations sometimes need a few tries for perfect framing.</p>
+            <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                </div>
+
              <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                  <label for="custom-prompt">Edit AI Prompt Suggestion (or enter your own)</label>
                  <textarea id="custom-prompt" rows="4" placeholder="Describe the thumbnail you want the AI to create..."></textarea>
-                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; width: 100%;">
-                    <button onclick="confirmPrompt()" id="confirm-prompt-button" style="flex-grow: 1;">Generate 2 Thumbnails (Cost: 2 Credits)</button>
-                    <span class="tooltip-trigger">?
-                        <span class="tooltip-text">
-                            AI Aspect Ratio Note: The requested 16:9 format (with black bars) might sometimes vary slightly in placement or size. Regenerating often yields a perfect result!
-                        </span>
-                    </span>
-                </div>
+                 <button onclick="confirmPrompt()" id="confirm-prompt-button" style="margin-top: 0.5rem; width: 100%;">Generate 2 Thumbnails (Cost: 2 Credits)</button>
                  <p id="credit-warning" style="display: none;"></p>
              </div>
 
