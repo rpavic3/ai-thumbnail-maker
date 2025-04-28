@@ -58,7 +58,7 @@ price_id_env_var_name = "STRIPE_PRICE_ID_50_CREDITS"
 credits_env_var_name = "CREDITS_FOR_50_PACK"
 default_credits = "50" # Default credits if env var for credits is missing
 
-price_id_pack1 = os.environ.get(price_id_env_var_name)
+price_id_pack1 = os.environ.get("STRIPE_PRICE_ID_50_CREDITS")
 credits_pack1_str = os.environ.get(credits_env_var_name, default_credits)
 
 if price_id_pack1:
