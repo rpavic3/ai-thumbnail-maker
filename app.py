@@ -241,7 +241,7 @@ Video Title: {title}
 Channel Niche: {niche}
 Selected Options/Requests: {options_string}
 
-Incorporate the selected options naturally into the visual description. For example, if 'no text' is selected, ensure the scene description does not imply or require text overlays. If 'cartoon style' is selected, describe the scene with that aesthetic.
+Incorporate the selected options naturally into the visual description.
 
 Return ONLY the visual prompt itself, without any extra text, formatting, or explanations."""
         # --- End of modified user message ---
