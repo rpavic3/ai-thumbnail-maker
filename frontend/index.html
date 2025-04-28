@@ -397,10 +397,10 @@
      }
 
      .thumbnail-item button {
-           width: 100%; /* Make button full width */
-           margin-top: auto; /* Push button to bottom if needed */
-           padding: 0.6rem 1rem; /* Smaller padding */
-           font-size: 0.9rem;
+          width: 100%; /* Make button full width */
+          margin-top: auto; /* Push button to bottom if needed */
+          padding: 0.6rem 1rem; /* Smaller padding */
+          font-size: 0.9rem;
      }
 
      /* Prompt text display */
@@ -535,60 +535,107 @@
           margin-top: 0.5rem;
      }
 
+     /* --- Added for OpenAI Badge & How-it-works Intro --- */
+     .openai-badge {
+         font-size: 0.8rem;
+         color: var(--text-muted);
+         text-align: center;
+         margin-top: 0.5rem; /* Adjust as needed */
+         margin-bottom: 2rem; /* Space before How it Works */
+     }
+     .how-it-works-intro {
+         font-size: 0.95rem;
+         color: var(--text-muted);
+         margin-bottom: 1.5rem; /* Space before the steps */
+         text-align: center;
+         max-width: 600px; /* Optional: constrain width */
+         margin-left: auto; /* Center if max-width is set */
+         margin-right: auto; /* Center if max-width is set */
+     }
+     /* --- End Added Styles --- */
+
 
      /* --- Responsive Adjustments --- */
      @media (max-width: 600px) {
-         body { padding: 0.5rem; }
-         .container { padding: 1.5rem 1rem; }
-         h1 { padding-top: 1rem; }
-         .tab-button { font-size: 0.9rem; padding: 0.8rem 0.5rem; }
-         .tab-button.secondary-tab::after { font-size: 0.6rem; }
+          body { padding: 0.5rem; }
+          .container { padding: 1.5rem 1rem; }
+          h1 { padding-top: 1rem; }
+          .tab-button { font-size: 0.9rem; padding: 0.8rem 0.5rem; }
+          .tab-button.secondary-tab::after { font-size: 0.6rem; }
 
-         /* --- MODIFICATION: Responsive header bar --- */
-         .user-info-container {
-              flex-direction: column; /* Stack items vertically */
-              align-items: stretch; /* Stretch items full width */
-              /* Keep border */
-              padding-bottom: 1rem; /* Add padding below */
-         }
-         .credits-display, .user-info-display, .purchase-controls, #logout-button {
+          /* --- MODIFICATION: Responsive header bar --- */
+          .user-info-container {
+               flex-direction: column; /* Stack items vertically */
+               align-items: stretch; /* Stretch items full width */
+               /* Keep border */
+               padding-bottom: 1rem; /* Add padding below */
+          }
+          /* Apply width/margin etc. to the new wrapper IF NEEDED, and other direct children */
+          .user-info-container > div, /* Target direct div children (includes wrapper and user-info) */
+          .user-info-container > button#logout-button { /* Target logout button */
               text-align: center;
               width: 100%; /* Make items full width */
               margin-bottom: 0.5rem; /* Add space between stacked items */
-         }
-         .credits-display, .user-info-display {
+          }
+          /* Refine styles for specific items if needed */
+          .credits-display, .user-info-display {
               justify-content: center; /* Center text within display boxes */
-         }
-         .purchase-controls {
-              order: 1; /* Move purchase below credits/user */
-              margin-bottom: 0.75rem;
-         }
-         #logout-button {
+              /* Adjust width if the 100% on the wrapper is too much */
+          }
+          .purchase-controls {
+              /* Order might need reconsideration based on wrapper */
+              /* order: 1; /* This won't work directly now */
+              /* Remove width/margin applied above if handled by wrapper */
+              width: auto;
+              margin-bottom: 0;
+              text-align: center; /* Keep center alignment */
+          }
+          #logout-button {
               order: 2; /* Move logout to the bottom */
               margin-top: 0.5rem; /* Add space above logout */
               margin-bottom: 0; /* Remove bottom margin */
-         }
-         .header-buy-button {
+              width: 100%; /* Ensure full width */
+          }
+          .header-buy-button {
               width: auto; /* Allow button to size naturally */
               margin-left: 0; /* Remove left margin */
               /* Center button if needed */
               /* display: block; margin: 0 auto; */
-         }
-         /* --- END MODIFICATION --- */
+          }
+          /* Target the new wrapper specifically for order */
+          /* The wrapper contains credits(0) and purchase(1). We want user info(0) first, then the wrapper(1), then logout(2) */
+          .user-info-container > div:has(#credits-container) { /* Target the wrapper */
+             order: 1;
+             align-items: center; /* Center content inside wrapper */
+          }
+          .user-info-display {
+             order: 0; /* Ensure user info comes before wrapper */
+          }
 
-         button { padding: 0.8rem 1rem; font-size: 0.95rem; }
-         /* Removed specific .buy-credits-button size override */
+          /* --- END MODIFICATION --- */
 
-         #how-it-works-section { padding: 1.5rem 1rem; margin-top: 1rem; }
-         #how-it-works-section h2 { font-size: 1.4rem; margin-bottom: 1.5rem;}
-         .step-card h3 { font-size: 1.1rem; }
-         .step-card p { font-size: 0.95rem; }
+          button { padding: 0.8rem 1rem; font-size: 0.95rem; }
+          /* Removed specific .buy-credits-button size override */
+
+          #how-it-works-section { padding: 1.5rem 1rem; margin-top: 1rem; }
+          #how-it-works-section h2 { font-size: 1.4rem; margin-bottom: 1.5rem;}
+          .step-card h3 { font-size: 1.1rem; }
+          .step-card p { font-size: 0.95rem; }
+
+          /* --- Added for OpenAI Badge & How-it-works Intro (Responsive) --- */
+          .openai-badge {
+              margin-bottom: 1.5rem; /* Adjust spacing */
+          }
+          .how-it-works-intro {
+              margin-bottom: 1rem; /* Adjust spacing */
+          }
+          /* --- End Added Styles --- */
      }
 
-    /* --- simple image modal (added) --- */
-    #img-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
+     /* --- simple image modal (added) --- */
+     #img-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
           align-items:center;justify-content:center;z-index:9999}
-    #img-modal img{max-width:90vw;max-height:90vh;border-radius:12px}
+     #img-modal img{max-width:90vw;max-height:90vh;border-radius:12px}
 
     </style>
 </head>
@@ -621,19 +668,20 @@
      <div id="main-app-content" style="display: none; width: 100%;">
 
          <div class="user-info-container">
-              <div id="credits-container" class="credits-display" style="display: none;">
-                  Credits: <strong id="credits-display">--</strong>
-              </div>
-              <div class="purchase-controls" style="display: none;">
-                  <button class="buy-credits-button header-buy-button" data-price-id="price_1RIU95Fj9LYfI1R0dUfHTgzW"> Buy 50 Credits (€15.00) </button>
-                   <p id="purchase-status" class="header-purchase-status"></p>
-              </div>
-              <div id="user-info-display" class="user-info-display" style="display: none;">
-                  User: <span id="user-email-display"></span>
-              </div>
-              <button id="logout-button" onclick="logout()">Log Out</button>
-          </div>
-          <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
+             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;"> <div id="credits-container" class="credits-display" style="display: none;">
+                     Credits: <strong id="credits-display">--</strong>
+                 </div>
+                 <div class="purchase-controls" style="display: none;">
+                     <button class="buy-credits-button header-buy-button" data-price-id="price_1RIU95Fj9LYfI1R0dUfHTgzW"> Buy 50 Credits (€15.00) </button>
+                     <p id="purchase-status" class="header-purchase-status"></p>
+                 </div>
+             </div> <div id="user-info-display" class="user-info-display" style="display: none;">
+                 User: <span id="user-email-display"></span>
+             </div>
+             <button id="logout-button" onclick="logout()">Log Out</button>
+         </div>
+
+         <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
              <form id="thumbnailForm">
                  <label for="title">Video Title</label>
                  <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
@@ -671,32 +719,36 @@
              <p style="color: var(--text-muted);">This section is coming soon!</p>
          </div>
 
-         </div> <div id="how-it-works-section">
-         <h2>Create Thumbnails in 3 Easy Steps</h2>
-         <div class="steps-container">
-             <div class="step-card">
-                 <span class="step-number">1.</span>
-                 <h3>Enter Video Details</h3>
-                 <img src="images/step1-input.png" alt="Screenshot of entering video title and niche" onerror="this.style.display='none'">
-                 <p>Provide your video title and niche/topic to give the AI context for generating relevant prompt ideas.</p>
+         </div> <p class="openai-badge">🚀 Powered by OpenAI’s advanced GPT-4o model</p>
+         <div id="how-it-works-section">
+             <h2>Create Thumbnails in 3 Easy Steps</h2>
+             <p class="how-it-works-intro">
+                 Our AI utilizes OpenAI’s state-of-the-art GPT-4o model, renowned for delivering stunningly creative and high-quality visual results.
+             </p>
+             <div class="steps-container">
+                 <div class="step-card">
+                     <span class="step-number">1.</span>
+                     <h3>Enter Video Details</h3>
+                     <img src="images/step1-input.png" alt="Screenshot of entering video title and niche" onerror="this.style.display='none'">
+                     <p>Provide your video title and niche/topic to give the AI context for generating relevant prompt ideas.</p>
+                 </div>
+                 <div class="step-card">
+                     <span class="step-number">2.</span>
+                     <h3>Get Prompt Ideas</h3>
+                      <img src="images/step2-prompt.png" alt="Screenshot showing AI generated prompt" onerror="this.style.display='none'">
+                     <p>Click "Suggest Prompt Idea". Our AI suggests a visual prompt. You can edit it or write your own from scratch.</p>
+                 </div>
+                 <div class="step-card">
+                     <span class="step-number">3.</span>
+                     <h3>Generate Thumbnails</h3>
+                      <img src="images/step3-thumbnail.png" alt="Screenshot of a generated thumbnail" onerror="this.style.display='none'">
+                     <p>Click "Generate Thumbnails". The AI creates two unique, eye-catching options based on your final prompt!</p>
+                 </div>
              </div>
-             <div class="step-card">
-                 <span class="step-number">2.</span>
-                 <h3>Get Prompt Ideas</h3>
-                  <img src="images/step2-prompt.png" alt="Screenshot showing AI generated prompt" onerror="this.style.display='none'">
-                 <p>Click "Suggest Prompt Idea". Our AI suggests a visual prompt. You can edit it or write your own from scratch.</p>
-             </div>
-             <div class="step-card">
-                 <span class="step-number">3.</span>
-                 <h3>Generate Thumbnails</h3>
-                  <img src="images/step3-thumbnail.png" alt="Screenshot of a generated thumbnail" onerror="this.style.display='none'">
-                 <p>Click "Generate Thumbnails". The AI creates two unique, eye-catching options based on your final prompt!</p>
-             </div>
+             <button onclick="scrollToElement('auth')">
+                  Sign Up Now & Get 10 Free Credits!
+             </button>
          </div>
-         <button onclick="scrollToElement('auth')">
-             Sign Up Now & Get 10 Free Credits!
-         </button>
-     </div>
 
  </div> <script>
      // --- Configuration ---
@@ -714,19 +766,19 @@
      // --- Initialization ---
      let stripe = null;
      try {
-         if (!STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "YOUR_STRIPE_PUBLISHABLE_KEY") {
-             throw new Error("Stripe Publishable Key is not configured.");
-         }
-         stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+          if (!STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "YOUR_STRIPE_PUBLISHABLE_KEY") {
+              throw new Error("Stripe Publishable Key is not configured.");
+          }
+          stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
      } catch (e) {
-         console.error("Stripe initialization failed:", e);
-         const purchaseStatusElement = document.getElementById('purchase-status');
-         if (purchaseStatusElement) {
-              purchaseStatusElement.innerText = "Payment system error.";
-              purchaseStatusElement.className = 'error header-purchase-status'; // Add header class
-         }
-         const buyButtons = document.querySelectorAll('.buy-credits-button');
-         buyButtons.forEach(btn => btn.disabled = true);
+          console.error("Stripe initialization failed:", e);
+          const purchaseStatusElement = document.getElementById('purchase-status');
+          if (purchaseStatusElement) {
+               purchaseStatusElement.innerText = "Payment system error.";
+               purchaseStatusElement.className = 'error header-purchase-status'; // Add header class
+          }
+          const buyButtons = document.querySelectorAll('.buy-credits-button');
+          buyButtons.forEach(btn => btn.disabled = true);
      }
      const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -768,46 +820,46 @@
 
      // --- Helper: Display Status Messages ---
      function showStatus(element, message, type = 'info', duration = 0) {
-         if (!element) return;
-         // --- MODIFICATION: Add header class if it's the purchase status ---
-         const isPurchaseStatus = element.id === 'purchase-status';
-         element.innerText = message;
-         element.className = type + (isPurchaseStatus ? ' header-purchase-status' : ''); // Add header class conditionally
-         // --- END MODIFICATION ---
-         if (duration > 0) {
-             setTimeout(() => {
-                 if (element.innerText === message) {
+          if (!element) return;
+          // --- MODIFICATION: Add header class if it's the purchase status ---
+          const isPurchaseStatus = element.id === 'purchase-status';
+          element.innerText = message;
+          element.className = type + (isPurchaseStatus ? ' header-purchase-status' : ''); // Add header class conditionally
+          // --- END MODIFICATION ---
+          if (duration > 0) {
+              setTimeout(() => {
+                  if (element.innerText === message) {
                       element.innerText = '';
                       element.className = (isPurchaseStatus ? 'header-purchase-status' : ''); // Keep header class if needed
-                 }
-             }, duration);
-         }
+                  }
+              }, duration);
+          }
      }
 
      // --- MODIFICATION: Purchase Button Event Listener attached to container ---
      const userInfoContainer = document.querySelector('.user-info-container'); // Get the container
      if (userInfoContainer) { // Check if container exists
-         userInfoContainer.addEventListener('click', async (event) => { // Listen on the container
-             const button = event.target.closest('.buy-credits-button.header-buy-button'); // Find the specific header buy button
-             if (button && stripe) { // Check if it's the buy button and stripe initialized
-                 event.preventDefault();
-                 if (!currentSession) {
+          userInfoContainer.addEventListener('click', async (event) => { // Listen on the container
+              const button = event.target.closest('.buy-credits-button.header-buy-button'); // Find the specific header buy button
+              if (button && stripe) { // Check if it's the buy button and stripe initialized
+                  event.preventDefault();
+                  if (!currentSession) {
                       showStatus(purchaseStatusP, "Please log in to purchase credits.", 'warning', 3000);
                       return;
-                 }
-                 const priceId = button.dataset.priceId;
-                 if (!priceId || priceId === "YOUR_STRIPE_PRICE_ID_HERE") { // Check placeholder
-                      console.error("Buy button missing or has placeholder data-price-id attribute.");
-                      showStatus(purchaseStatusP, "Error: Purchase option not configured.", 'error', 5000);
-                      return;
-                 }
+                  }
+                  const priceId = button.dataset.priceId;
+                  if (!priceId || priceId === "YOUR_STRIPE_PRICE_ID_HERE") { // Check placeholder
+                       console.error("Buy button missing or has placeholder data-price-id attribute.");
+                       showStatus(purchaseStatusP, "Error: Purchase option not configured.", 'error', 5000);
+                       return;
+                  }
 
-                 const originalButtonText = button.innerText;
-                 showStatus(purchaseStatusP, "Processing...", 'info');
-                 button.disabled = true;
-                 button.innerText = "Redirecting...";
+                  const originalButtonText = button.innerText;
+                  showStatus(purchaseStatusP, "Processing...", 'info');
+                  button.disabled = true;
+                  button.innerText = "Redirecting...";
 
-                 try {
+                  try {
                       const token = currentSession.access_token;
                       const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
                           method: "POST",
@@ -827,7 +879,7 @@
                       } else {
                           throw new Error("Could not get checkout URL from server.");
                       }
-                 } catch (err) {
+                  } catch (err) {
                       console.error("Purchase initiation failed:", err);
                       showStatus(purchaseStatusP, `Error: ${err.message}`, 'error', 5000);
                       button.disabled = false;
@@ -836,9 +888,9 @@
                            showStatus(authStatusP, "Authentication error. Please log in again.", 'error');
                            await logout();
                       }
-                 }
-             } // else if button is logout etc. - handled by direct onclick
-         });
+                  }
+              } // else if button is logout etc. - handled by direct onclick
+          });
      } else {
           console.warn("User info container not found in DOM for purchase listener.");
      }
@@ -847,356 +899,392 @@
 
      // --- Utility to update Credit UI and Button States ---
      function updateCreditState(credits) {
-         currentUserCredits = credits; // Update global variable
+          currentUserCredits = credits; // Update global variable
 
-         // Update Credits Display
-         if (credits === 'loading') {
-             creditsDisplaySpan.innerText = '...';
-             creditsContainer.style.display = 'block';
-         } else if (credits !== null && typeof credits === 'number' && credits >= 0) {
-             creditsDisplaySpan.innerText = credits;
-             creditsContainer.style.display = 'block';
-         } else {
-             creditsContainer.style.display = 'none'; // Hide if null or error
-             creditsDisplaySpan.innerText = '--';
-         }
+          // Update Credits Display
+          const creditsWrapper = creditsContainer ? creditsContainer.parentElement : null; // Get wrapper
 
-         // Update Generate Button State & Credit Warning
-         const generateButtonEnabled = (credits !== null && typeof credits === 'number' && credits >= TOTAL_GENERATION_COST);
-         confirmPromptButton.disabled = !generateButtonEnabled;
-         confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Cost: ${TOTAL_GENERATION_COST} Credits)`; // Always show cost
+          if (credits === 'loading') {
+                creditsDisplaySpan.innerText = '...';
+                if (creditsContainer) creditsContainer.style.display = 'inline-flex'; // Show the inner element
+                if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'flex'; // Show wrapper if it exists
+            } else if (credits !== null && typeof credits === 'number' && credits >= 0) {
+                creditsDisplaySpan.innerText = credits;
+                if (creditsContainer) creditsContainer.style.display = 'inline-flex'; // Show the inner element
+                if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'flex'; // Show wrapper if it exists
+            } else {
+                if (creditsContainer) creditsContainer.style.display = 'none'; // Hide the inner element
+                 if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'none'; // Hide wrapper if it exists
+                creditsDisplaySpan.innerText = '--';
+            }
 
-         if (credits !== null && typeof credits === 'number' && credits < TOTAL_GENERATION_COST) {
-             // --- MODIFICATION: Update scroll target for credit warning link ---
-             creditWarningP.innerHTML = `You need ${TOTAL_GENERATION_COST} credits (have ${credits}). <a href="#" onclick="event.preventDefault(); scrollToElement('credits-container');">Buy More Credits?</a>`;
-             // --- END MODIFICATION ---
-             creditWarningP.style.display = 'block';
-         } else {
-             creditWarningP.style.display = 'none'; // Hide warning if enough credits or logged out/error
-             creditWarningP.innerHTML = '';
-         }
 
-          // Handle logged out or error state specifically for button text
-          if (credits === null && !currentSession) {
-               confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
-               confirmPromptButton.disabled = true;
+          // Update Generate Button State & Credit Warning
+          const generateButtonEnabled = (credits !== null && typeof credits === 'number' && credits >= TOTAL_GENERATION_COST);
+          confirmPromptButton.disabled = !generateButtonEnabled;
+          confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Cost: ${TOTAL_GENERATION_COST} Credits)`; // Always show cost
+
+          if (credits !== null && typeof credits === 'number' && credits < TOTAL_GENERATION_COST) {
+              // --- MODIFICATION: Update scroll target for credit warning link ---
+              const creditsTargetElement = creditsContainer.closest('.user-info-container > div') || creditsContainer; // Target wrapper or container itself
+              creditWarningP.innerHTML = `You need ${TOTAL_GENERATION_COST} credits (have ${credits}). <a href="#" onclick="event.preventDefault(); scrollToElement(creditsTargetElement.id || 'credits-container');">Buy More Credits?</a>`;
+              // --- END MODIFICATION ---
+              creditWarningP.style.display = 'block';
+          } else {
+              creditWarningP.style.display = 'none'; // Hide warning if enough credits or logged out/error
+              creditWarningP.innerHTML = '';
+          }
+
+           // Handle logged out or error state specifically for button text
+           if (credits === null && !currentSession) {
+                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
+                confirmPromptButton.disabled = true;
            } else if (credits === null && currentSession) { // Error state while logged in
-               confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
-               confirmPromptButton.disabled = true;
+                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
+                confirmPromptButton.disabled = true;
            }
      }
 
      // --- Function to Fetch User Credits ---
      async function fetchUserCredits() {
-         if (!currentSession) {
-             updateCreditState(null); // Ensure UI reflects logged-out state
-             return;
-         }
-         console.log("Fetching user credits...");
-         updateCreditState('loading'); // Set UI to loading state
+          if (!currentSession) {
+              updateCreditState(null); // Ensure UI reflects logged-out state
+              return;
+          }
+          console.log("Fetching user credits...");
+          updateCreditState('loading'); // Set UI to loading state
 
-         try {
-             const token = currentSession.access_token;
-             const res = await fetch(`${BACKEND_URL}/get_profile`, {
-                 method: "GET",
-                 headers: { "Authorization": `Bearer ${token}` }
-             });
+          try {
+              const token = currentSession.access_token;
+              const res = await fetch(`${BACKEND_URL}/get_profile`, {
+                  method: "GET",
+                  headers: { "Authorization": `Bearer ${token}` }
+              });
 
-             const responseBody = await res.text();
-             let data;
-             try { data = JSON.parse(responseBody); }
-             catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
+              const responseBody = await res.text();
+              let data;
+              try { data = JSON.parse(responseBody); }
+              catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
 
-             if (!res.ok) {
-                 if (res.status === 401) {
+              if (!res.ok) {
+                  if (res.status === 401) {
                       console.warn("fetchUserCredits received 401, letting auth listener handle logout.");
                       return;
-                 }
-                 throw new Error(data.error || `Failed to fetch credits (Status: ${res.status})`);
-             }
-             updateCreditState(data.credits); // Update UI with actual credits
-         } catch (err) {
-             console.error("Error fetching credits:", err);
-             if(currentSession) {
-                  showStatus(authStatusP, `Error loading credits: ${err.message}`, 'error');
-             }
-             updateCreditState(null); // Reset credits UI on error
-         }
+                  }
+                  throw new Error(data.error || `Failed to fetch credits (Status: ${res.status})`);
+              }
+              updateCreditState(data.credits); // Update UI with actual credits
+          } catch (err) {
+              console.error("Error fetching credits:", err);
+              if(currentSession) {
+                   showStatus(authStatusP, `Error loading credits: ${err.message}`, 'error');
+              }
+              updateCreditState(null); // Reset credits UI on error
+          }
      }
 
 
      // --- Auth Functions (Login, Signup, Logout - No changes needed here) ---
      async function login() {
-         showStatus(authStatusP, "Logging in...", 'info');
-         const email = document.getElementById("auth-email").value;
-         const password = document.getElementById("auth-password").value;
-         try {
-             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-             if (error) {
-                 showStatus(authStatusP, `Login failed: ${error.message}`, 'error');
-                 updateCreditState(null);
-             } else {
-                 showStatus(authStatusP, "");
-             }
-         } catch (e) {
-              showStatus(authStatusP, `Login error: ${e.message}`, 'error');
-              updateCreditState(null);
-         }
+          showStatus(authStatusP, "Logging in...", 'info');
+          const email = document.getElementById("auth-email").value;
+          const password = document.getElementById("auth-password").value;
+          try {
+              const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+              if (error) {
+                  showStatus(authStatusP, `Login failed: ${error.message}`, 'error');
+                  updateCreditState(null);
+              } else {
+                  showStatus(authStatusP, "");
+              }
+          } catch (e) {
+               showStatus(authStatusP, `Login error: ${e.message}`, 'error');
+               updateCreditState(null);
+          }
      }
      async function signup() {
-         showStatus(authStatusP, "Signing up...", 'info');
-         const email = document.getElementById("auth-email").value;
-         const password = document.getElementById("auth-password").value;
-          try {
-             const { data, error } = await supabaseClient.auth.signUp({ email, password });
-             if (error) {
-                 console.error("Signup Error Object:", error);
-                 if (error.message && error.message.toLowerCase().includes("user already registered")) {
-                      showStatus(authStatusP, "This email is already registered. Please log in.", 'warning');
-                 } else {
-                      showStatus(authStatusP, `Signup failed: ${error.message}`, 'error');
-                 }
-             } else if (data && data.user) {
-                  console.log("Signup Data Object:", data);
-                  if (data.user.identities && data.user.identities.length === 0) {
-                      showStatus(authStatusP, "Signup attempt processed. If this is your first time, check your email for verification. If you already have an account, please log in.", 'warning', 15000);
+          showStatus(authStatusP, "Signing up...", 'info');
+          const email = document.getElementById("auth-email").value;
+          const password = document.getElementById("auth-password").value;
+           try {
+              const { data, error } = await supabaseClient.auth.signUp({ email, password });
+              if (error) {
+                  console.error("Signup Error Object:", error);
+                  if (error.message && error.message.toLowerCase().includes("user already registered")) {
+                       showStatus(authStatusP, "This email is already registered. Please log in.", 'warning');
+                  } else {
+                       showStatus(authStatusP, `Signup failed: ${error.message}`, 'error');
                   }
-                  else if (!data.session) {
-                      showStatus(authStatusP, "Signup successful! Please check your email for a verification link.", 'success', 10000);
-                  }
-                  else if (data.session) {
-                      showStatus(authStatusP, "Signup successful! You can now log in.", 'success', 5000);
-                  }
-                  else {
-                      showStatus(authStatusP, "Signup processed.", 'info', 5000);
-                  }
-             } else {
-                  console.warn("Signup returned no error and no user data:", data);
-                  showStatus(authStatusP, "Signup status unclear. Please try logging in.", 'warning');
-             }
-         } catch (e) {
-             showStatus(authStatusP, `Signup error: ${e.message}`, 'error');
-         }
+              } else if (data && data.user) {
+                   console.log("Signup Data Object:", data);
+                   if (data.user.identities && data.user.identities.length === 0) {
+                       showStatus(authStatusP, "Signup attempt processed. If this is your first time, check your email for verification. If you already have an account, please log in.", 'warning', 15000);
+                   }
+                   else if (!data.session) {
+                       showStatus(authStatusP, "Signup successful! Please check your email for a verification link.", 'success', 10000);
+                   }
+                   else if (data.session) {
+                       showStatus(authStatusP, "Signup successful! You can now log in.", 'success', 5000);
+                   }
+                   else {
+                       showStatus(authStatusP, "Signup processed.", 'info', 5000);
+                   }
+              } else {
+                   console.warn("Signup returned no error and no user data:", data);
+                   showStatus(authStatusP, "Signup status unclear. Please try logging in.", 'warning');
+              }
+          } catch (e) {
+              showStatus(authStatusP, `Signup error: ${e.message}`, 'error');
+          }
      }
      async function logout() {
-         console.log("--- Logout function called ---");
-         showStatus(authStatusP, "Logging out...", 'info');
-         try {
-             const { error } = await supabaseClient.auth.signOut();
-             if (error) {
-                 console.error("--- Supabase signOut error:", error.message);
-                  currentSession = null;
-                  updateContentView();
-                  updateCreditState(null);
-                  showStatus(authStatusP, "Logout may have failed, please refresh if needed.", 'warning');
-             } else {
-                 console.log("--- Supabase signOut successful (callback pending) ---");
-                  if (currentSession !== null) {
-                      console.warn("--- Forcing UI update after successful signOut call ---")
-                      currentSession = null;
-                      updateContentView();
-                      updateCreditState(null);
-                  }
-                  showStatus(authStatusP, "Logged out successfully.", 'success', 2000);
-             }
-         } catch (e) {
-              console.error("--- Error during logout function execution:", e);
-              currentSession = null;
-              updateContentView();
-              updateCreditState(null);
-              showStatus(authStatusP, "Error during logout, please refresh.", 'error');
-         }
+          console.log("--- Logout function called ---");
+          showStatus(authStatusP, "Logging out...", 'info');
+          try {
+              const { error } = await supabaseClient.auth.signOut();
+              if (error) {
+                  console.error("--- Supabase signOut error:", error.message);
+                   currentSession = null;
+                   updateContentView();
+                   updateCreditState(null);
+                   showStatus(authStatusP, "Logout may have failed, please refresh if needed.", 'warning');
+              } else {
+                  console.log("--- Supabase signOut successful (callback pending) ---");
+                   if (currentSession !== null) {
+                       console.warn("--- Forcing UI update after successful signOut call ---")
+                       currentSession = null;
+                       updateContentView();
+                       updateCreditState(null);
+                   }
+                   showStatus(authStatusP, "Logged out successfully.", 'success', 2000);
+              }
+          } catch (e) {
+               console.error("--- Error during logout function execution:", e);
+               currentSession = null;
+               updateContentView();
+               updateCreditState(null);
+               showStatus(authStatusP, "Error during logout, please refresh.", 'error');
+          }
      }
 
      // --- Core View Update Logic ---
      function updateContentView() {
-         const isLoggedIn = !!currentSession;
-         const activeTabButton = document.querySelector('.tab-button.active');
-         const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
+          const isLoggedIn = !!currentSession;
+          const activeTabButton = document.querySelector('.tab-button.active');
+          const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
 
-         console.log(`Updating view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
+          console.log(`Updating view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
 
-         authDiv.style.display = isLoggedIn ? 'none' : 'block';
-         mainAppContentDiv.style.display = isLoggedIn ? 'block' : 'none';
-         if(howItWorksSection) howItWorksSection.style.display = 'none'; // Hide how-it-works initially
+          authDiv.style.display = isLoggedIn ? 'none' : 'block';
+          mainAppContentDiv.style.display = isLoggedIn ? 'block' : 'none';
 
-         showStatus(authStatusP, '');
-         showStatus(purchaseStatusP, ''); // Clear purchase status too
+           // Toggle How It Works section visibility
+           const showHowItWorks = !isLoggedIn && activeTabId === 'tab-prompt-gen';
+           if(howItWorksSection) howItWorksSection.style.display = showHowItWorks ? 'block' : 'none';
+           // Toggle Badge visibility - Show always or only when logged out? Let's show always.
+           const badge = document.querySelector('.openai-badge');
+           if (badge) badge.style.display = 'block'; // Show badge regardless of login
 
-         if (isLoggedIn) {
-             // --- Logged In View ---
-             authDiv.style.display = 'none';
-             if(howItWorksSection) howItWorksSection.style.display = 'none';
 
-             promptGenContentDiv.style.display = activeTabId === 'tab-prompt-gen' ? 'block' : 'none';
-             pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
-             // --- MODIFICATION: Show purchase controls in header ---
-             if (purchaseControlsDiv) purchaseControlsDiv.style.display = 'flex'; // Use flex as defined in CSS
-             // --- END MODIFICATION ---
+          showStatus(authStatusP, '');
+          showStatus(purchaseStatusP, ''); // Clear purchase status too
 
-             if (currentSession.user?.email) {
-                 userEmailDisplaySpan.innerText = currentSession.user.email;
-                 userInfoDisplayDiv.style.display = 'block';
-             } else {
-                 userInfoDisplayDiv.style.display = 'none';
-             }
-             updateCreditState(currentUserCredits === null ? 'loading' : currentUserCredits);
+          if (isLoggedIn) {
+              // --- Logged In View ---
+              authDiv.style.display = 'none';
+              // if(howItWorksSection) howItWorksSection.style.display = 'none'; // Already handled above
 
-             if (activeTabId === 'tab-prompt-gen' && historyDiv.style.display === "block") {
-                  historyButton.innerText = "Hide History";
-                  const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
-                  if (loadMoreContainer && currentlyLoadedCount > 0 && currentlyLoadedCount < totalHistoryItems) {
-                       loadMoreContainer.style.display = 'block';
+              promptGenContentDiv.style.display = activeTabId === 'tab-prompt-gen' ? 'block' : 'none';
+              pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
+
+              // --- MODIFICATION: Show purchase controls (now potentially inside wrapper) ---
+              if (purchaseControlsDiv) {
+                  // Show the controls div itself
+                   purchaseControlsDiv.style.display = 'flex'; // Use flex as defined in CSS
+
+                  // Also ensure its wrapper parent is visible if applicable
+                  const wrapper = purchaseControlsDiv.parentElement;
+                  if(wrapper && wrapper !== userInfoContainer){ // check if it has a wrapper parent
+                      wrapper.style.display = 'flex'; // Use wrapper's intended display
                   }
-             } else {
-                  historyButton.innerText = "Show My History";
-                  if (historyDiv.style.display === "block") {
-                       historyDiv.style.display = "none";
-                       if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+              }
+              // --- END MODIFICATION ---
+
+              if (currentSession.user?.email) {
+                  userEmailDisplaySpan.innerText = currentSession.user.email;
+                  userInfoDisplayDiv.style.display = 'inline-flex'; // Changed to inline-flex for consistency
+              } else {
+                  userInfoDisplayDiv.style.display = 'none';
+              }
+              updateCreditState(currentUserCredits === null ? 'loading' : currentUserCredits);
+
+              if (activeTabId === 'tab-prompt-gen' && historyDiv.style.display === "block") {
+                   historyButton.innerText = "Hide History";
+                   const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
+                   if (loadMoreContainer && currentlyLoadedCount > 0 && currentlyLoadedCount < totalHistoryItems) {
+                        loadMoreContainer.style.display = 'block';
+                   }
+              } else {
+                   historyButton.innerText = "Show My History";
+                   if (historyDiv.style.display === "block") {
+                        historyDiv.style.display = "none";
+                        if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+                   }
+              }
+
+          } else {
+              // --- Logged Out View ---
+              currentUserCredits = null;
+              updateCreditState(null);
+              userInfoDisplayDiv.style.display = 'none';
+              // --- MODIFICATION: Hide purchase controls wrapper ---
+              if (purchaseControlsDiv) {
+                   purchaseControlsDiv.style.display = 'none';
+                   const wrapper = purchaseControlsDiv.parentElement;
+                   if(wrapper && wrapper !== userInfoContainer){ // hide wrapper too
+                      wrapper.style.display = 'none';
                   }
-             }
+              }
+              // --- END MODIFICATION ---
 
-         } else {
-             // --- Logged Out View ---
-             currentUserCredits = null;
-             updateCreditState(null);
-             userInfoDisplayDiv.style.display = 'none';
-             // --- MODIFICATION: Hide purchase controls in header ---
-             if (purchaseControlsDiv) purchaseControlsDiv.style.display = 'none';
-             // --- END MODIFICATION ---
-
-             if (activeTabId === 'tab-prompt-gen') {
-                 authDiv.style.display = 'block';
-                 if(howItWorksSection) howItWorksSection.style.display = 'block';
-                 document.getElementById("signup-encouragement").style.display = "block";
-                  pngDumpContentDiv.style.display = 'none';
-             } else {
+              if (activeTabId === 'tab-prompt-gen') {
                   authDiv.style.display = 'block';
-                  if(howItWorksSection) howItWorksSection.style.display = 'none';
-                  pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
-             }
+                 // if(howItWorksSection) howItWorksSection.style.display = 'block'; // Already handled above
+                  document.getElementById("signup-encouragement").style.display = "block";
+                   pngDumpContentDiv.style.display = 'none';
+              } else {
+                   authDiv.style.display = 'block';
+                  // if(howItWorksSection) howItWorksSection.style.display = 'none'; // Already handled above
+                   pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
+              }
 
-             historyDiv.style.display = "none";
-             historyButton.innerText = "Show My History";
-             currentHistoryPage = 1;
-             totalHistoryItems = 0;
-             historyDiv.innerHTML = "";
-             isLoadingHistory = false;
-             if(loadMoreContainer) loadMoreContainer.style.display = 'none';
-             resultDiv.innerHTML = "";
-             promptPreviewDiv.style.display = "none";
-         }
+              historyDiv.style.display = "none";
+              historyButton.innerText = "Show My History";
+              currentHistoryPage = 1;
+              totalHistoryItems = 0;
+              historyDiv.innerHTML = "";
+              isLoadingHistory = false;
+              if(loadMoreContainer) loadMoreContainer.style.display = 'none';
+              resultDiv.innerHTML = "";
+              promptPreviewDiv.style.display = "none";
+          }
      }
 
      // --- Tab Switching ---
      function handleTabSwitch(button) {
-          if (button.classList.contains('secondary-tab')) return;
-          const tabButtons = document.querySelectorAll('.tab-button');
-          tabButtons.forEach(btn => btn.classList.remove('active'));
-          button.classList.add('active');
-          updateContentView();
+           if (button.classList.contains('secondary-tab')) return;
+           const tabButtons = document.querySelectorAll('.tab-button');
+           tabButtons.forEach(btn => btn.classList.remove('active'));
+           button.classList.add('active');
+           updateContentView();
      }
 
 
      // --- API Call Logic ---
      // Generate Prompt Suggestion (Step 1 - No changes needed)
      form.addEventListener('submit', async (e) => {
-         e.preventDefault();
-         if (!currentSession) {
-              showStatus(authStatusP, "Please log in to get prompt suggestions.", 'warning', 3000);
-              return;
-         }
-         resultDiv.innerHTML = "<p style='text-align:center;'>🧠 Generating prompt idea...</p>";
-         promptPreviewDiv.style.display = "none";
-         generatePromptButton.disabled = true;
-         generatePromptButton.innerText = "Generating...";
-         const title = document.getElementById('title').value;
-         const niche = document.getElementById('niche').value;
-         try {
-             const res = await fetch(`${BACKEND_URL}/generate_prompt`, {
-                 method: "POST",
-                 headers: { "Content-Type": "application/json" },
-                 body: JSON.stringify({ title, niche })
+          e.preventDefault();
+          if (!currentSession) {
+               showStatus(authStatusP, "Please log in to get prompt suggestions.", 'warning', 3000);
+               return;
+          }
+          resultDiv.innerHTML = "<p style='text-align:center;'>🧠 Generating prompt idea...</p>";
+          promptPreviewDiv.style.display = "none";
+          generatePromptButton.disabled = true;
+          generatePromptButton.innerText = "Generating...";
+          const title = document.getElementById('title').value;
+          const niche = document.getElementById('niche').value;
+          try {
+              const res = await fetch(`${BACKEND_URL}/generate_prompt`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ title, niche })
               });
-             const responseBody = await res.text();
-             let data;
-             try { data = JSON.parse(responseBody); }
-             catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
-             if (!res.ok) { throw new Error(data.error || `Server error: ${res.status}`); }
-             if (data.prompt) {
-                 resultDiv.innerHTML = `<p style="color: var(--success-color); text-align: center;">✅ Prompt suggestion generated!</p>`;
-                 document.getElementById("custom-prompt").value = data.prompt;
-                 promptPreviewDiv.style.display = "block";
-                 updateCreditState(currentUserCredits);
-                 scrollToElement('prompt-preview');
-             } else {
-                 throw new Error(data.error || 'AI did not return a prompt.');
-             }
-         } catch (err) {
-             console.error("Prompt Generation Error:", err);
-             resultDiv.innerHTML = `<p style="color: var(--error-color); text-align: center;">❌ Error Generating Prompt: ${err.message}</p>`;
-         } finally {
-             generatePromptButton.disabled = false;
-             generatePromptButton.innerText = "Suggest Prompt Idea";
-         }
+              const responseBody = await res.text();
+              let data;
+              try { data = JSON.parse(responseBody); }
+              catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
+              if (!res.ok) { throw new Error(data.error || `Server error: ${res.status}`); }
+              if (data.prompt) {
+                  resultDiv.innerHTML = `<p style="color: var(--success-color); text-align: center;">✅ Prompt suggestion generated!</p>`;
+                  document.getElementById("custom-prompt").value = data.prompt;
+                  promptPreviewDiv.style.display = "block";
+                  updateCreditState(currentUserCredits);
+                  scrollToElement('prompt-preview');
+              } else {
+                  throw new Error(data.error || 'AI did not return a prompt.');
+              }
+          } catch (err) {
+              console.error("Prompt Generation Error:", err);
+              resultDiv.innerHTML = `<p style="color: var(--error-color); text-align: center;">❌ Error Generating Prompt: ${err.message}</p>`;
+          } finally {
+              generatePromptButton.disabled = false;
+              generatePromptButton.innerText = "Suggest Prompt Idea";
+          }
      });
 
      // --- Image Preview Modal Helper (Added) ---
      function showModal(src){
-         const modal=document.getElementById('img-modal');
-         modal.querySelector('img').src=src;
-         modal.style.display='flex';
+          const modal=document.getElementById('img-modal');
+          modal.querySelector('img').src=src;
+          modal.style.display='flex';
      }
 
 
      // Generate Thumbnails (Step 2 - Scroll target already fixed)
      async function confirmPrompt() {
-         const prompt = document.getElementById("custom-prompt").value;
-         if (!prompt.trim()) {
-              showStatus(creditWarningP, "Please enter a prompt describing the thumbnail.", 'warning', 3000);
-              scrollToElement('custom-prompt');
-              return;
-         }
-         if (!currentSession) {
-              showStatus(authStatusP, "Please log in to generate thumbnails.", 'warning', 3000);
-              scrollToElement('auth');
-              return;
-         }
-         // --- MODIFICATION: Update scroll target for insufficient credits ---
-         if (currentUserCredits === null || currentUserCredits < TOTAL_GENERATION_COST) {
-              scrollToElement('credits-container'); // Scroll to top bar
-              return;
-         }
-         // --- END MODIFICATION ---
+          const prompt = document.getElementById("custom-prompt").value;
+          if (!prompt.trim()) {
+               showStatus(creditWarningP, "Please enter a prompt describing the thumbnail.", 'warning', 3000);
+               scrollToElement('custom-prompt');
+               return;
+          }
+          if (!currentSession) {
+               showStatus(authStatusP, "Please log in to generate thumbnails.", 'warning', 3000);
+               scrollToElement('auth');
+               return;
+          }
+          // --- MODIFICATION: Update scroll target for insufficient credits ---
+           const creditsTargetElement = creditsContainer.closest('.user-info-container > div') || creditsContainer; // Target wrapper or container itself
+           if (currentUserCredits === null || currentUserCredits < TOTAL_GENERATION_COST) {
+                scrollToElement(creditsTargetElement.id || 'credits-container'); // Scroll to top bar wrapper/element
+                return;
+            }
+          // --- END MODIFICATION ---
 
-         resultDiv.innerHTML = `<p style="text-align: center;">🎨 Generating ${NUM_IMAGES_EXPECTED} thumbnails... (Cost: ${TOTAL_GENERATION_COST} credits). Please wait.</p>`;
-         promptPreviewDiv.style.display = "none";
-         confirmPromptButton.disabled = true;
-         confirmPromptButton.innerText = "Generating...";
-         const title = document.getElementById("title").value;
-         const niche = document.getElementById("niche").value;
-         try {
-             const token = currentSession.access_token;
-             const res = await fetch(`${BACKEND_URL}/generate`, {
-                 method: "POST",
-                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                 body: JSON.stringify({ title, niche, prompt })
-             });
-             const responseBody = await res.text();
-             let data;
-             try { data = JSON.parse(responseBody); }
-             catch (e) { throw new Error(`Server returned non-JSON response (Status: ${res.status})`); }
-             if (!res.ok) {
-                 if (res.status === 401) throw new Error("Authentication error.");
-                 if (res.status === 403 && data.error?.includes("Insufficient credits")) throw new Error(data.error);
-                 throw new Error(data.error || `Server error: ${res.status}`);
-             }
-             if (data.image_urls && Array.isArray(data.image_urls) && data.image_urls.length > 0) {
-                 resultDiv.innerHTML = `<h2>Generated Thumbnails:</h2>`;
-                 const gridDiv = document.createElement('div');
-                 gridDiv.className = 'thumbnail-results-grid';
-                 let displayedImages = 0;
-                 data.image_urls.forEach((imageUrl, index) => {
+          resultDiv.innerHTML = `<p style="text-align: center;">🎨 Generating ${NUM_IMAGES_EXPECTED} thumbnails... (Cost: ${TOTAL_GENERATION_COST} credits). Please wait.</p>`;
+          promptPreviewDiv.style.display = "none";
+          confirmPromptButton.disabled = true;
+          confirmPromptButton.innerText = "Generating...";
+          const title = document.getElementById("title").value;
+          const niche = document.getElementById("niche").value;
+          try {
+              const token = currentSession.access_token;
+              const res = await fetch(`${BACKEND_URL}/generate`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                  body: JSON.stringify({ title, niche, prompt })
+              });
+              const responseBody = await res.text();
+              let data;
+              try { data = JSON.parse(responseBody); }
+              catch (e) { throw new Error(`Server returned non-JSON response (Status: ${res.status})`); }
+              if (!res.ok) {
+                  if (res.status === 401) throw new Error("Authentication error.");
+                  if (res.status === 403 && data.error?.includes("Insufficient credits")) throw new Error(data.error);
+                  // --- MODIFICATION: Handle NetworkError specifically on client-side ---
+                  if (res.status === 0) { // Network errors often have status 0
+                      throw new Error("NetworkError when attempting to fetch resource.");
+                  }
+                  // --- END MODIFICATION ---
+                  throw new Error(data.error || `Server error: ${res.status}`);
+              }
+              if (data.image_urls && Array.isArray(data.image_urls) && data.image_urls.length > 0) {
+                  resultDiv.innerHTML = `<h2>Generated Thumbnails:</h2>`;
+                  const gridDiv = document.createElement('div');
+                  gridDiv.className = 'thumbnail-results-grid';
+                  let displayedImages = 0;
+                  data.image_urls.forEach((imageUrl, index) => {
                       if (imageUrl && imageUrl.startsWith('data:image')) {
                            displayedImages++;
                            const itemDiv = document.createElement('div');
@@ -1220,273 +1308,291 @@
                            itemDiv.innerHTML = `<p style="color:var(--warning-color); text-align: center; padding: 2rem 0;">⚠️ Image ${index + 1} failed.</p>`;
                            gridDiv.appendChild(itemDiv);
                       }
-                 });
-                 resultDiv.appendChild(gridDiv);
-                 resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
-                 scrollToElement('result'); // Scroll to results
-                 if (data.new_credits !== undefined) {
+                  });
+                  resultDiv.appendChild(gridDiv);
+                  resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
+                  scrollToElement('result'); // Scroll to results
+                  if (data.new_credits !== undefined) {
                       updateCreditState(data.new_credits);
-                 } else {
+                  } else {
                       fetchUserCredits();
-                 }
-                 promptPreviewDiv.style.display = "block";
-                 if (displayedImages < NUM_IMAGES_EXPECTED) {
-                      showStatus(resultDiv, `Generated ${displayedImages}/${NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000);
-                 }
-             } else {
-                  throw new Error('Received invalid image data from server.');
-             }
-         } catch (err) {
-             console.error("Image Generation Error:", err);
-             resultDiv.innerHTML = `<p style="color:var(--error-color); text-align: center;">❌ Generation Failed: ${err.message}</p>`;
-             promptPreviewDiv.style.display = "block";
-             if (err.message.includes("Insufficient credits")) {
-                 await fetchUserCredits();
-                 // --- MODIFICATION: Update scroll target ---
-                 scrollToElement('credits-container');
-                 // --- END MODIFICATION ---
-             } else if (err.message.includes("Authent")) {
-                 await logout();
-             } else {
-                 updateCreditState(currentUserCredits);
-             }
-         }
+                  }
+                  promptPreviewDiv.style.display = "block"; // Keep prompt editable
+                  if (displayedImages < NUM_IMAGES_EXPECTED) {
+                       showStatus(resultDiv, `Generated ${displayedImages}/${NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000);
+                  }
+              } else {
+                   throw new Error('Received invalid image data from server.');
+              }
+          } catch (err) { // Catches fetch errors (like NetworkError) and errors thrown above
+              console.error("Image Generation Error:", err);
+              resultDiv.innerHTML = `<p style="color:var(--error-color); text-align: center;">❌ Generation Failed: ${err.message}</p>`;
+              promptPreviewDiv.style.display = "block"; // Show prompt area again
+              if (err.message.includes("Insufficient credits")) {
+                  await fetchUserCredits();
+                  // --- MODIFICATION: Update scroll target ---
+                  const creditsTargetElement = creditsContainer.closest('.user-info-container > div') || creditsContainer;
+                  scrollToElement(creditsTargetElement.id || 'credits-container');
+                  // --- END MODIFICATION ---
+              } else if (err.message.includes("Authent")) {
+                  await logout();
+              } else {
+                  // Don't necessarily fetch credits on other errors, might obscure the problem
+                  updateCreditState(currentUserCredits); // Keep current credit state displayed
+              }
+          } finally {
+               // Re-enable button regardless of success/failure
+               confirmPromptButton.disabled = false;
+               // Make sure button text reflects current credit status
+               updateCreditState(currentUserCredits);
+           }
      }
 
 
      // --- History Fetch (Uses preview image - No changes needed here) ---
      async function fetchHistory(loadMore = false) {
-         if (isLoadingHistory && loadMore) return;
-         if (!currentSession) {
-             showStatus(authStatusP, "Log in to view history.", 'warning', 3000);
-             historyDiv.style.display = "none";
-             if (loadMoreContainer) loadMoreContainer.style.display = 'none';
-             return;
-         }
-         if (!loadMore) {
-             if (historyDiv.style.display === "block") {
-                 historyDiv.style.display = "none";
-                 historyButton.innerText = "Show My History";
-                 if (loadMoreContainer) loadMoreContainer.style.display = 'none';
-                 return;
-             } else {
-                 currentHistoryPage = 1;
-                 totalHistoryItems = 0;
-                 historyDiv.innerHTML = "<p>📦 Loading history...</p>";
-                 historyDiv.style.display = "block";
-                 historyButton.innerText = "Fetching...";
-                 if (loadMoreContainer) loadMoreContainer.style.display = 'none';
-             }
-         } else {
-             if (loadMoreButton) {
-                  loadMoreButton.disabled = true;
-                  loadMoreButton.innerText = "Loading...";
-             }
-         }
-         isLoadingHistory = true;
-         historyButton.disabled = true;
-         try {
-             const token = currentSession.access_token;
-             const fetchUrl = `${BACKEND_URL}/history?page=${currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
-             const res = await fetch(fetchUrl, {
-                  method: "GET",
-                  headers: { "Authorization": `Bearer ${token}` }
-             });
-             const responseBody = await res.text();
-             let data;
-             try { data = JSON.parse(responseBody); }
-             catch(e) { throw new Error(`Server returned invalid history response (Status: ${res.status})`); }
-             if (res.status === 401) throw new Error("Authentication error.");
-             if (!res.ok) { throw new Error(data.error || `Server error fetching history: ${res.status}`); }
-             const items = data.items || [];
-             totalHistoryItems = data.total || 0;
-             if (currentHistoryPage === 1) {
-                 historyDiv.innerHTML = "";
-                 if (items.length === 0 && totalHistoryItems === 0) {
+          if (isLoadingHistory && loadMore) return;
+          if (!currentSession) {
+              showStatus(authStatusP, "Log in to view history.", 'warning', 3000);
+              historyDiv.style.display = "none";
+              if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+              return;
+          }
+          if (!loadMore) {
+              if (historyDiv.style.display === "block") {
+                  historyDiv.style.display = "none";
+                  historyButton.innerText = "Show My History";
+                  if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+                  return;
+              } else {
+                  currentHistoryPage = 1;
+                  totalHistoryItems = 0;
+                  historyDiv.innerHTML = "<p>📦 Loading history...</p>";
+                  historyDiv.style.display = "block";
+                  historyButton.innerText = "Fetching...";
+                  if (loadMoreContainer) loadMoreContainer.style.display = 'none';
+              }
+          } else {
+              if (loadMoreButton) {
+                   loadMoreButton.disabled = true;
+                   loadMoreButton.innerText = "Loading...";
+              }
+          }
+          isLoadingHistory = true;
+          historyButton.disabled = true;
+          try {
+              const token = currentSession.access_token;
+              const fetchUrl = `${BACKEND_URL}/history?page=${currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
+              const res = await fetch(fetchUrl, {
+                   method: "GET",
+                   headers: { "Authorization": `Bearer ${token}` }
+              });
+              const responseBody = await res.text();
+              let data;
+              try { data = JSON.parse(responseBody); }
+              catch(e) { throw new Error(`Server returned invalid history response (Status: ${res.status})`); }
+              if (res.status === 401) throw new Error("Authentication error.");
+              if (!res.ok) { throw new Error(data.error || `Server error fetching history: ${res.status}`); }
+              const items = data.items || [];
+              totalHistoryItems = data.total || 0;
+              if (currentHistoryPage === 1) {
+                  historyDiv.innerHTML = ""; // Clear loading message
+                  if (items.length === 0 && totalHistoryItems === 0) {
                       historyDiv.innerHTML = "<h2>History</h2><p>🕸️ No thumbnails generated yet.</p>";
-                 } else if (items.length > 0) {
+                  } else if (items.length > 0 || totalHistoryItems > 0) { // Show heading even if first page is empty but total > 0
                       historyDiv.innerHTML = `<h2>History (${totalHistoryItems} total)</h2>`;
-                 }
-             }
-             const itemsHtml = items.map(item => {
-                 const displayImageUrl = item.preview_image_url || item.image_url || '';
-                 const fullImageUrl = item.image_url;
-                 const showDownload = fullImageUrl && fullImageUrl.startsWith('data:image');
-                 const generatedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
-                 const maxPromptLength = 100;
-                 const displayPrompt = (item.prompt && item.prompt.length > maxPromptLength)
-                      ? item.prompt.substring(0, maxPromptLength) + '...'
-                      : (item.prompt || 'N/A');
-                 return `
-                 <div class="card">
-                      ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
-                      ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
-                      <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                      <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
-                      <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
-                      <p>Generated: ${generatedDate}</p>
-                 </div>`;
-             }).join("");
-             historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
-             const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
-             if (loadMoreContainer) {
-                 if (items.length > 0 && currentlyLoadedCount < totalHistoryItems) {
+                  }
+              }
+              const itemsHtml = items.map(item => {
+                  const displayImageUrl = item.preview_image_url || item.image_url || '';
+                  const fullImageUrl = item.image_url;
+                  const showDownload = fullImageUrl && fullImageUrl.startsWith('data:image');
+                  const generatedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
+                  const maxPromptLength = 100;
+                  const displayPrompt = (item.prompt && item.prompt.length > maxPromptLength)
+                       ? item.prompt.substring(0, maxPromptLength) + '...'
+                       : (item.prompt || 'N/A');
+                  return `
+                  <div class="card">
+                       ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy" onclick="showModal('${fullImageUrl || displayImageUrl}')"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
+                       ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
+                       <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
+                       <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
+                       <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
+                       <p>Generated: ${generatedDate}</p>
+                  </div>`;
+              }).join("");
+              historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
+              const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
+              if (loadMoreContainer) {
+                  if (items.length > 0 && currentlyLoadedCount < totalHistoryItems) {
                       loadMoreContainer.style.display = 'block';
                       if (loadMoreButton) { loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History"; }
                       currentHistoryPage++;
-                 } else {
+                  } else {
                       loadMoreContainer.style.display = 'none';
-                      if (currentlyLoadedCount > 0 && currentHistoryPage > 1) {
+                      if (currentlyLoadedCount > 0 && currentHistoryPage > 1 && currentlyLoadedCount >= totalHistoryItems) { // Ensure message only shows when truly at the end
                            if (!historyDiv.querySelector('.no-more-history')) {
                                 historyDiv.insertAdjacentHTML('beforeend', '<p class="no-more-history">-- End of History --</p>');
                            }
                       }
-                 }
-             }
-         } catch (err) {
-             console.error("Error fetching history:", err);
-             if (currentHistoryPage === 1) {
-                  historyDiv.innerHTML = `<p style="color:var(--error-color);">❌ Error fetching history: ${err.message}</p>`;
-                  historyDiv.style.display = "block";
-             } else {
-                  if (loadMoreButton) {
-                      loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
-                      const errorP = loadMoreContainer.querySelector('.load-more-error') || document.createElement('p');
-                      errorP.className = 'load-more-error error';
-                      errorP.textContent = `Failed to load more: ${err.message}`;
-                      if (!errorP.parentNode) loadMoreContainer.appendChild(errorP);
-                      setTimeout(() => { if (errorP.parentNode) errorP.remove(); }, 4000);
                   }
-             }
-             if (err.message.includes("Authent")) await logout();
-         } finally {
-             isLoadingHistory = false;
-             historyButton.disabled = false;
-             historyButton.innerText = historyDiv.style.display === "block" ? "Hide History" : "Show My History";
-              if (loadMoreButton && loadMoreContainer && loadMoreContainer.style.display === 'block') {
-                   loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
+              }
+          } catch (err) {
+              console.error("Error fetching history:", err);
+              if (currentHistoryPage === 1) { // Only show error in main div on first load
+                   historyDiv.innerHTML = `<p style="color:var(--error-color);">❌ Error fetching history: ${err.message}</p>`;
+                   historyDiv.style.display = "block"; // Ensure div is visible to show error
+              } else { // Show subsequent load errors near the button
+                   if (loadMoreButton) {
+                       loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
+                       const errorP = loadMoreContainer.querySelector('.load-more-error') || document.createElement('p');
+                       errorP.className = 'load-more-error error'; // Use CSS class for styling
+                       errorP.style.color = 'var(--error-color)'; // Inline style for visibility
+                       errorP.textContent = `Failed to load more: ${err.message}`;
+                       if (!errorP.parentNode) loadMoreContainer.appendChild(errorP);
+                       setTimeout(() => { if (errorP.parentNode) errorP.remove(); }, 4000);
+                   }
+              }
+              if (err.message.includes("Authent")) await logout();
+          } finally {
+              isLoadingHistory = false;
+              historyButton.disabled = false;
+              historyButton.innerText = historyDiv.style.display === "block" ? "Hide History" : "Show My History";
+               if (loadMoreButton && loadMoreContainer && loadMoreContainer.style.display === 'block') {
+                    loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
                }
-         }
+          }
      }
 
      // --- Event Listener for Load More Button ---
      if (loadMoreButton) {
-         loadMoreButton.addEventListener('click', () => fetchHistory(true));
+          loadMoreButton.addEventListener('click', () => fetchHistory(true));
      }
 
 
      // --- Download Image Utility (No changes needed) ---
      function downloadImage(url, baseFilename = 'thumbnail') {
-         const buttons = document.querySelectorAll('button');
-         let downloadButton = null;
-         buttons.forEach(btn => {
-             if (btn.onclick && btn.onclick.toString().includes(url.substring(0, 50))) {
-                 downloadButton = btn;
-             }
-         });
-         const parentElement = downloadButton ? downloadButton.closest('.thumbnail-item, .card') : resultDiv;
-         let errorTarget = parentElement || resultDiv;
-          const existingError = errorTarget.querySelector('.download-error-message');
-          if (existingError) existingError.remove();
-          if (!url || !url.startsWith('data:image')) {
-              console.error("Download failed: Invalid or missing Data URI.", url);
-              const errorP = document.createElement('p'); errorP.className = 'download-error-message';
-              errorP.innerText = `Download failed: Image data missing or invalid.`;
-              if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
-              else errorTarget.appendChild(errorP);
-              return;
-         }
-         const safeFilename = baseFilename.replace(/[^a-z0-9_]/gi, '_').toLowerCase() || 'thumbnail';
-         const formatMatch = url.match(/^data:image\/([a-zA-Z+]+);base64,/);
-         const extension = formatMatch ? formatMatch[1].replace('+', '') : 'png';
-         const filename = `${safeFilename}_${Date.now()}.${extension}`;
-         try {
-              const link = document.createElement("a");
-              link.href = url;
-              link.download = filename;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              console.log(`Download initiated for: ${filename}`);
-         } catch (err) {
-             console.error("Download failed via link click:", err);
-             const errorP = document.createElement('p'); errorP.className = 'download-error-message';
-             errorP.innerText = `Download failed (${err.message}). Try right-clicking the image > 'Save Image As...'.`;
-              if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
-              else errorTarget.appendChild(errorP);
-         }
+          const buttons = document.querySelectorAll('button');
+          let downloadButton = null;
+          buttons.forEach(btn => {
+              if (btn.onclick && btn.onclick.toString().includes(url.substring(0, 50))) {
+                  downloadButton = btn;
+              }
+          });
+          const parentElement = downloadButton ? downloadButton.closest('.thumbnail-item, .card') : resultDiv;
+          let errorTarget = parentElement || resultDiv;
+           const existingError = errorTarget.querySelector('.download-error-message');
+           if (existingError) existingError.remove();
+           if (!url || !url.startsWith('data:image')) {
+                console.error("Download failed: Invalid or missing Data URI.", url);
+                const errorP = document.createElement('p'); errorP.className = 'download-error-message';
+                errorP.innerText = `Download failed: Image data missing or invalid.`;
+                if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
+                else errorTarget.appendChild(errorP);
+                return;
+           }
+          const safeFilename = baseFilename.replace(/[^a-z0-9_]/gi, '_').toLowerCase() || 'thumbnail';
+          const formatMatch = url.match(/^data:image\/([a-zA-Z+]+);base64,/);
+          const extension = formatMatch ? formatMatch[1].replace('+', '') : 'png';
+          const filename = `${safeFilename}_${Date.now()}.${extension}`;
+          try {
+               const link = document.createElement("a");
+               link.href = url;
+               link.download = filename;
+               document.body.appendChild(link);
+               link.click();
+               document.body.removeChild(link);
+               console.log(`Download initiated for: ${filename}`);
+          } catch (err) {
+               console.error("Download failed via link click:", err);
+               const errorP = document.createElement('p'); errorP.className = 'download-error-message';
+               errorP.innerText = `Download failed (${err.message}). Try right-clicking the image > 'Save Image As...'.`;
+                if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
+                else errorTarget.appendChild(errorP);
+          }
      }
 
 
      // --- Scroll Utility (No changes needed) ---
-     function scrollToElement(elementId) {
-         const element = document.getElementById(elementId);
-         if (element) {
-             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-             if (['auth', 'credit-warning', 'custom-prompt', 'result', 'credits-container'].includes(elementId)) { // Added 'credits-container'
+      function scrollToElement(elementId) {
+        let element;
+        if (typeof elementId === 'string') {
+            element = document.getElementById(elementId);
+        } else if (elementId instanceof Element) {
+            element = elementId; // Allow passing the element directly
+        }
+
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Highlight applicable elements (using ID check or add a class)
+            const elementIdentifier = element.id || element.className; // Use ID or class for check
+            if (['auth', 'credit-warning', 'custom-prompt', 'result', 'credits-container'].includes(elementIdentifier) || element.closest('.user-info-container > div')) {
                  element.style.transition = 'background-color 0.5s ease-in-out, box-shadow 0.5s ease-in-out';
-                 const highlightColor = (elementId === 'result') ? 'rgba(167, 139, 250, 0.05)' : 'rgba(167, 139, 250, 0.1)';
+                 const highlightColor = (element.id === 'result') ? 'rgba(167, 139, 250, 0.05)' : 'rgba(167, 139, 250, 0.1)';
                  element.style.backgroundColor = highlightColor;
                  element.style.boxShadow = '0 0 15px rgba(167, 139, 250, 0.3)';
                  setTimeout(() => {
-                      element.style.backgroundColor = '';
-                      element.style.boxShadow = '';
+                     element.style.backgroundColor = '';
+                     element.style.boxShadow = '';
                  }, 1500);
-              }
+             }
          } else {
-              console.warn(`scrollToElement: Element with ID '${elementId}' not found.`);
+              console.warn(`scrollToElement: Element not found for identifier:`, elementId);
          }
      }
 
 
      // --- Initialization and Auth State Change Listener ---
      document.addEventListener('DOMContentLoaded', () => {
-         const tabButtons = document.querySelectorAll('.tab-button');
-         tabButtons.forEach(button => button.addEventListener('click', () => handleTabSwitch(button)));
+          const tabButtons = document.querySelectorAll('.tab-button');
+          tabButtons.forEach(button => button.addEventListener('click', () => handleTabSwitch(button)));
 
-         const urlParams = new URLSearchParams(window.location.search);
-         const paymentStatus = urlParams.get('payment');
-         const statusTargetElement = purchaseStatusP; // Target the status P in the header
+          const urlParams = new URLSearchParams(window.location.search);
+          const paymentStatus = urlParams.get('payment');
+          const statusTargetElement = purchaseStatusP; // Target the status P in the header
 
-         if (statusTargetElement) {
-              if (paymentStatus === 'success') {
-                   showStatus(statusTargetElement, "✅ Payment successful! Credits updating...", 'success');
-                   setTimeout(() => { if (currentSession) fetchUserCredits(); }, 3000);
-                   setTimeout(() => { if (statusTargetElement.innerText.includes("Payment successful")) showStatus(statusTargetElement, ''); }, 8000);
-                   if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
-              } else if (paymentStatus === 'cancel') {
-                   showStatus(statusTargetElement, "⚠️ Purchase cancelled.", 'warning', 5000);
-                   if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
-              }
-         }
-         updateContentView(); // Initial UI setup
-         fetchUserCredits();         // <-- warm-up call (will 401 if not logged in)
+          if (statusTargetElement) {
+               if (paymentStatus === 'success') {
+                    showStatus(statusTargetElement, "✅ Payment successful! Credits updating...", 'success');
+                    setTimeout(() => { if (currentSession) fetchUserCredits(); }, 3000);
+                    setTimeout(() => { if (statusTargetElement.innerText.includes("Payment successful")) showStatus(statusTargetElement, ''); }, 8000);
+                    if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+               } else if (paymentStatus === 'cancel') {
+                    showStatus(statusTargetElement, "⚠️ Purchase cancelled.", 'warning', 5000);
+                    if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
+               }
+          }
+          updateContentView(); // Initial UI setup
+          // --- Removed Warm-up Call ---
+          // fetchUserCredits(); // Removed: Let onAuthStateChange handle initial fetch
      });
 
      // Auth state change listener (No changes needed here)
      supabaseClient.auth.onAuthStateChange((event, session) => {
-         console.log('--- Supabase Auth Event ---:', event, session ? `User: ${session.user?.id}` : "No session");
-         currentSession = session;
-         const shouldUpdateUI = event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT';
-         if (shouldUpdateUI) {
-             console.log(` ---> Triggering full UI update (updateContentView) for event: ${event}`);
-              updateContentView();
-              if (session) {
-                  console.log(` ---> Session exists, triggering fetchUserCredits`);
-                  fetchUserCredits();
-              } else {
-                  console.log(` ---> Session is null, triggering updateCreditState(null)`);
-                  updateCreditState(null);
-              }
-         } else if (session && (event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
-              console.log(` ---> Event ${event} received while logged in, triggering fetchUserCredits`);
-              fetchUserCredits();
-         } else {
-              console.log(` ---> Event ${event} did not trigger specific action.`);
-              if (event === "PASSWORD_RECOVERY") {
-                  showStatus(authStatusP, "Password recovery email sent.", 'info', 5000);
-              }
-         }
+          console.log('--- Supabase Auth Event ---:', event, session ? `User: ${session.user?.id}` : "No session");
+          currentSession = session;
+          const shouldUpdateUI = event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT';
+          if (shouldUpdateUI) {
+              console.log(` ---> Triggering full UI update (updateContentView) for event: ${event}`);
+               updateContentView();
+               if (session) {
+                    console.log(` ---> Session exists, triggering fetchUserCredits`);
+                    fetchUserCredits();
+               } else {
+                    console.log(` ---> Session is null, triggering updateCreditState(null)`);
+                    updateCreditState(null);
+               }
+          } else if (session && (event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
+               console.log(` ---> Event ${event} received while logged in, triggering fetchUserCredits`);
+               fetchUserCredits();
+          } else {
+               console.log(` ---> Event ${event} did not trigger specific action.`);
+               if (event === "PASSWORD_RECOVERY") {
+                    showStatus(authStatusP, "Password recovery email sent.", 'info', 5000);
+               }
+          }
      });
 
  </script>
