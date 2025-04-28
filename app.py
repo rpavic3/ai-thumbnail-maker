@@ -2,16 +2,16 @@
 from supabase import create_client, Client
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
-from openai import OpenAI, APIError # v1.x+ library
+from openai import OpenAI, APIError # v1.x+ library (Still needed for prompt generation)
 import json
-import requests
+import requests # Needed for Flux and fetching image URL
 import os
 from dotenv import load_dotenv
 import stripe
 import logging
-import base64 # Needed for decoding/encoding
+import base64 # Needed for decoding/encoding Flux image
 import io     # Needed for handling image bytes
-from PIL import Image, UnidentifiedImageError # <<< ENSURE Pillow IS IMPORTED & UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError # Pillow for image processing (preview)
 
 # --- Load Environment Variables FIRST ---
 load_dotenv() # Loads variables from .env file into environment
@@ -30,7 +30,7 @@ if not SUPABASE_SERVICE_ROLE_KEY: logging.error("❌ Missing Supabase Service Ro
 try: supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY); logging.info("✅ Supabase client initialized.")
 except Exception as e: logging.error(f"❌ Failed Supabase init: {e}", exc_info=True); raise
 
-# --- OpenAI Configuration (v1.x+) ---
+# --- OpenAI Configuration (v1.x+) - Still needed for prompt generation ---
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 if not OPENAI_API_KEY: logging.warning("⚠️ OpenAI API Key environment variable missing or empty.")
 try:
@@ -38,6 +38,10 @@ try:
     logging.info("✅ OpenAI client initialized (v1.x+).")
 except APIError as e: logging.error(f"❌ OpenAI API Error client init: {e}"); raise ValueError("OpenAI client failed init.") from e
 except Exception as e: logging.error(f"❌ Failed OpenAI client init: {e}"); raise ValueError("OpenAI client failed init.") from e
+
+# --- Flux (FAL) Configuration ---
+FAL_API_KEY = os.getenv("FAL_API_KEY") # ⬅️ Added FAL API Key loading
+if not FAL_API_KEY: logging.warning("⚠️ FAL_API_KEY environment variable missing or empty.")
 
 # --- Stripe Configuration ---
 stripe.api_key = os.environ.get("STRIPE_SECRET_KEY")
@@ -57,9 +61,6 @@ default_credits = "50" # Default credits if env var for credits is missing
 price_id_pack1 = os.environ.get(price_id_env_var_name)
 credits_pack1_str = os.environ.get(credits_env_var_name, default_credits)
 
-# --- ADD DEBUG LINE 1 ---
-# --- END DEBUG LINE 1 ---
-
 if price_id_pack1:
     try:
         credits_pack1 = int(credits_pack1_str)
@@ -73,9 +74,6 @@ else:
 # Add more blocks here if you have multiple price packages defined in .env
 
 if not PRICE_ID_TO_CREDITS: logging.warning("⚠️ PRICE_ID_TO_CREDITS mapping is empty. Stripe purchases might fail.")
-
-# --- ADD DEBUG LINE 2 ---
-# --- END DEBUG LINE 2 ---
 
 
 # --- Flask App Initialization ---
@@ -91,13 +89,54 @@ logging.info(f"✅ CORS configured for origins: {cors_origins}")
 
 # --- Constants for Image Processing ---
 PREVIEW_WIDTH = 320 # Target width for previews in pixels
-TOP_BOTTOM_CROP_PIXELS = 62 # Pixels to crop from top and bottom
-EXPECTED_WIDTH = 1536 # Expected width from OpenAI
-EXPECTED_HEIGHT = 1024 # Expected height from OpenAI
+# TOP_BOTTOM_CROP_PIXELS = 62 # Pixels to crop from top and bottom (No longer used with Flux)
+# EXPECTED_WIDTH = 1536 # Expected width from OpenAI (No longer used with Flux)
+# EXPECTED_HEIGHT = 1024 # Expected height from OpenAI (No longer used with Flux)
 CREDIT_COST_PER_IMAGE = 1 # Cost for EACH image generated
 
+# --- Helper Function: Generate Flux Image (Added) ---
+def generate_flux_image(prompt: str) -> str:
+    """Calls FAL/Flux-Pro and returns the public image URL"""
+    if not FAL_API_KEY:
+        logging.error("❌ Cannot generate Flux image: FAL_API_KEY is not set.")
+        raise ValueError("Flux API Key is missing.") # Raise error if key is missing
 
-# --- Helper Function: Generate Preview Image Data URI ---
+    logging.info(f"🌀 Sending prompt to Flux: '{prompt[:50]}...'") # Log truncated prompt
+    api_url = "https://fal.run/fal-ai/flux-pro/v1.1-ultra"
+    headers = {
+        "Authorization": f"Key {FAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    # Flux payload expects 1280x720
+    payload = {
+        "prompt": prompt,
+        "num_inference_steps": 30,
+        "guidance_scale": 7,
+        "width": 1280,
+        "height": 720
+    }
+    try:
+        r = requests.post(api_url, headers=headers, json=payload, timeout=120) # Add timeout
+        r.raise_for_status() # Raises HTTPError for bad responses (4xx or 5xx)
+        response_data = r.json()
+        if not response_data or "images" not in response_data or not response_data["images"] or "url" not in response_data["images"][0]:
+             logging.error(f"❌ Flux returned unexpected response structure: {response_data}")
+             raise ValueError("Flux response missing expected image URL.")
+        image_url = response_data["images"][0]["url"]
+        logging.info(f"✅ Flux responded successfully. Image URL: {image_url}")
+        return image_url
+    except requests.exceptions.RequestException as req_err:
+         logging.error(f"❌ Network error calling Flux API: {req_err}", exc_info=True)
+         raise ConnectionError(f"Network error connecting to Flux: {req_err}") from req_err
+    except Exception as e: # Catch other errors like JSONDecodeError or raise_for_status() errors
+         logging.error(f"❌ Failed Flux API call: {e}", exc_info=True)
+         # Try to include response text if available
+         error_detail = getattr(e, 'response', None)
+         error_text = getattr(error_detail, 'text', str(e))
+         raise Exception(f"Flux generation failed: {error_text}") from e
+
+
+# --- Helper Function: Generate Preview Image Data URI (Unchanged) ---
 def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WIDTH) -> str | None:
     """
     Decodes a base64 Data URI, resizes the image to a target width
@@ -113,7 +152,7 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
 
         header, encoded_data = full_data_uri.split(',', 1)
 
-        image_format = header.split('/')[1].split(';')[0]
+        # image_format = header.split('/')[1].split(';')[0] # Format not strictly needed here
         image_data = base64.b64decode(encoded_data)
         image = Image.open(io.BytesIO(image_data))
 
@@ -138,9 +177,8 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
         logging.info(f"✅ Resized preview to {target_width}x{target_height}.")
 
         buffer = io.BytesIO()
-        # --- MODIFICATION: Lower JPEG quality for smaller preview file size ---
-        preview_image.save(buffer, format='JPEG', quality=60) # Lowered quality from 80 to 75
-        # --- END MODIFICATION ---
+        # Lower JPEG quality for smaller preview file size
+        preview_image.save(buffer, format='JPEG', quality=60)
         buffer.seek(0)
 
         preview_encoded_data = base64.b64encode(buffer.read()).decode('utf-8')
@@ -158,89 +196,89 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
         logging.error(f"❌ Unexpected error generating preview image: {e}", exc_info=True)
         return None
 
-# --- Helper Function: Crop Image Data URI ---
-def crop_image_data_uri(data_uri: str) -> str | None:
-    """
-    Decodes a base64 Data URI, crops TOP_BOTTOM_CROP_PIXELS from top and bottom,
-    and re-encodes it as a base64 Data URI. Preserves original format if possible.
-    Returns None if cropping fails.
-    """
-    logging.info("✂️ Attempting to crop image...")
-    try:
-        # Basic check for Data URI format
-        if not data_uri or not data_uri.startswith("data:image/") or ";base64," not in data_uri:
-            logging.warning(f"⚠️ Invalid or missing Data URI for cropping. Cannot crop.")
-            return None
+# --- Helper Function: Crop Image Data URI (No longer used by default, kept for potential future use) ---
+# def crop_image_data_uri(data_uri: str) -> str | None:
+#     """
+#     Decodes a base64 Data URI, crops TOP_BOTTOM_CROP_PIXELS from top and bottom,
+#     and re-encodes it as a base64 Data URI. Preserves original format if possible.
+#     Returns None if cropping fails.
+#     """
+#     logging.info("✂️ Attempting to crop image...")
+#     try:
+#         # Basic check for Data URI format
+#         if not data_uri or not data_uri.startswith("data:image/") or ";base64," not in data_uri:
+#             logging.warning(f"⚠️ Invalid or missing Data URI for cropping. Cannot crop.")
+#             return None
 
-        header, encoded_data = data_uri.split(',', 1)
-        image_format_from_header = header.split('/')[1].split(';')[0].lower() # Get format from header
+#         header, encoded_data = data_uri.split(',', 1)
+#         image_format_from_header = header.split('/')[1].split(';')[0].lower() # Get format from header
 
-        image_data = base64.b64decode(encoded_data)
-        image = Image.open(io.BytesIO(image_data))
+#         image_data = base64.b64decode(encoded_data)
+#         image = Image.open(io.BytesIO(image_data))
 
-        # Determine the format to save in (prefer original detected format)
-        original_image_format = image.format if image.format else image_format_from_header.upper()
-        if not original_image_format:
-             logging.warning("⚠️ Could not determine original image format for saving cropped image. Defaulting to PNG.")
-             original_image_format = "PNG" # Safe default
+#         # Determine the format to save in (prefer original detected format)
+#         original_image_format = image.format if image.format else image_format_from_header.upper()
+#         if not original_image_format:
+#              logging.warning("⚠️ Could not determine original image format for saving cropped image. Defaulting to PNG.")
+#              original_image_format = "PNG" # Safe default
 
-        width, height = image.size
-        if width != EXPECTED_WIDTH or height != EXPECTED_HEIGHT:
-            logging.warning(f"⚠️ Image dimensions ({width}x{height}) differ from expected ({EXPECTED_WIDTH}x{EXPECTED_HEIGHT}) for cropping. Cropping may be inaccurate or fail.")
-            # Decide if you want to return None or proceed anyway. Proceeding for now.
+#         width, height = image.size
+#         # If using this with Flux (1280x720), the EXPECTED checks would need adjustment
+#         # if width != EXPECTED_WIDTH or height != EXPECTED_HEIGHT:
+#         #     logging.warning(f"⚠️ Image dimensions ({width}x{height}) differ from expected ({EXPECTED_WIDTH}x{EXPECTED_HEIGHT}) for cropping. Cropping may be inaccurate or fail.")
 
-        # Calculate crop box
-        left = 0
-        upper = TOP_BOTTOM_CROP_PIXELS
-        right = width
-        lower = height - TOP_BOTTOM_CROP_PIXELS
+#         # Calculate crop box (THIS LOGIC IS FOR THE OLD 1536x1024 with black bars)
+#         left = 0
+#         upper = TOP_BOTTOM_CROP_PIXELS
+#         right = width
+#         lower = height - TOP_BOTTOM_CROP_PIXELS
 
-        # Validate crop box dimensions before cropping
-        if upper < 0 or lower > height or left < 0 or right > width or upper >= lower or left >= right:
-            logging.error(f"❌ Invalid crop dimensions calculated: ({left}, {upper}, {right}, {lower}) from image size ({width}x{height}). Cannot crop.")
-            return None # Return None if crop box is invalid
+#         # Validate crop box dimensions before cropping
+#         if upper < 0 or lower > height or left < 0 or right > width or upper >= lower or left >= right:
+#             logging.error(f"❌ Invalid crop dimensions calculated: ({left}, {upper}, {right}, {lower}) from image size ({width}x{height}). Cannot crop.")
+#             return None # Return None if crop box is invalid
 
-        crop_box = (left, upper, right, lower)
-        logging.info(f"Calculated crop box: {crop_box}")
+#         crop_box = (left, upper, right, lower)
+#         logging.info(f"Calculated crop box: {crop_box}")
 
-        cropped_image = image.crop(crop_box)
-        logging.info(f"✅ Image cropped successfully to {cropped_image.size[0]}x{cropped_image.size[1]}.")
+#         cropped_image = image.crop(crop_box)
+#         logging.info(f"✅ Image cropped successfully to {cropped_image.size[0]}x{cropped_image.size[1]}.")
 
-        # Save the cropped image back to a buffer
-        buffer = io.BytesIO()
-        save_params = {'format': original_image_format}
-        # Add quality param only if it's relevant (like JPEG), otherwise Pillow handles defaults
-        if original_image_format.upper() == 'JPEG':
-            save_params['quality'] = 95 # Keep high quality for main image if JPEG
+#         # Save the cropped image back to a buffer
+#         buffer = io.BytesIO()
+#         save_params = {'format': original_image_format}
+#         # Add quality param only if it's relevant (like JPEG), otherwise Pillow handles defaults
+#         if original_image_format.upper() == 'JPEG':
+#             save_params['quality'] = 95 # Keep high quality for main image if JPEG
 
-        cropped_image.save(buffer, **save_params)
-        buffer.seek(0)
+#         cropped_image.save(buffer, **save_params)
+#         buffer.seek(0)
 
-        # Re-encode the cropped image
-        cropped_encoded_data = base64.b64encode(buffer.read()).decode('utf-8')
-        # Use the determined original format in the new Data URI header
-        cropped_data_uri = f"data:image/{original_image_format.lower()};base64,{cropped_encoded_data}"
-        logging.info(f"✅ Cropped image re-encoded to Data URI (Format: {original_image_format}).")
-        return cropped_data_uri
+#         # Re-encode the cropped image
+#         cropped_encoded_data = base64.b64encode(buffer.read()).decode('utf-8')
+#         # Use the determined original format in the new Data URI header
+#         cropped_data_uri = f"data:image/{original_image_format.lower()};base64,{cropped_encoded_data}"
+#         logging.info(f"✅ Cropped image re-encoded to Data URI (Format: {original_image_format}).")
+#         return cropped_data_uri
 
-    except base64.binascii.Error as b64_err:
-         logging.error(f"❌ Base64 decoding error during cropping: {b64_err}", exc_info=True)
-         return None
-    except UnidentifiedImageError: # Catch Pillow specific error for bad image data
-         logging.error("❌ Pillow UnidentifiedImageError: Could not open image data for cropping.", exc_info=True)
-         return None
-    except Exception as e:
-        logging.error(f"❌ Unexpected error during image cropping: {e}", exc_info=True)
-        return None # Return None if cropping fails
+#     except base64.binascii.Error as b64_err:
+#          logging.error(f"❌ Base64 decoding error during cropping: {b64_err}", exc_info=True)
+#          return None
+#     except UnidentifiedImageError: # Catch Pillow specific error for bad image data
+#          logging.error("❌ Pillow UnidentifiedImageError: Could not open image data for cropping.", exc_info=True)
+#          return None
+#     except Exception as e:
+#         logging.error(f"❌ Unexpected error during image cropping: {e}", exc_info=True)
+#         return None # Return None if cropping fails
 
 
 @app.route("/", methods=["GET", "HEAD"])
 def health_root():
+    """Basic health check endpoint."""
     return "ok", 200
 
 
-
-# --- API Route: Generate Prompt ---
+# --- API Route: Generate Prompt (Unchanged - Still uses OpenAI) ---
 @app.route("/generate_prompt", methods=["POST"])
 def generate_prompt():
     """Generates a DALL-E style prompt suggestion based on title and niche."""
@@ -260,18 +298,18 @@ def generate_prompt():
         return jsonify({"error": "AI Service is not configured."}), 503 # Service Unavailable
 
     try:
-        # Using gpt-4o for prompt generation
+        # Using gpt-4o-mini for prompt generation (as before)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.7, # Balance creativity and coherence
             messages=[
                  {"role": "system", "content": "You are a viral YouTube thumbnail designer who generates visual ideas and images."},
-                 {"role": "user", "content": f"""Generate ONE compelling, eyecatching visual prompt idea for a YouTube thumbnail based on this video information. The prompt should be suitable for an AI image generator like 4o image generation. Focus on creating a visually engaging scene.
+                 {"role": "user", "content": f"""Generate ONE compelling, eyecatching visual prompt idea for a YouTube thumbnail based on this video information. The prompt should be suitable for an AI image generator like Flux or DALL-E. Focus on creating a visually engaging scene.
 
 Video Title: {title}
 Channel Niche: {niche}
 
-Return ONLY the 4o image generation style visual prompt itself, without any extra text, formatting, or explanations."""}
+Return ONLY the visual prompt itself, without any extra text, formatting, or explanations."""} # Updated system prompt slightly
              ]
         )
 
@@ -295,7 +333,7 @@ Return ONLY the 4o image generation style visual prompt itself, without any extr
         return jsonify({"error": f"An unexpected error occurred during prompt generation: {e}"}), 500
 
 
-# --- Helper: Verify Supabase Token ---
+# --- Helper: Verify Supabase Token (Unchanged) ---
 def get_user_id_from_token(auth_header):
     """Validates Supabase JWT and returns user ID or raises Exception."""
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -305,11 +343,9 @@ def get_user_id_from_token(auth_header):
     token = auth_header.split(" ")[1]
     try:
         # Use the Supabase client's built-in method (requires supabase-py >= 2.0)
-        # Note: This uses the SERVICE_ROLE_KEY implicitly if the client was initialized with it.
         user_response = supabase.auth.get_user(token)
         user = user_response.user
         if not user or not user.id:
-             # Log the actual response if available and doesn't contain sensitive info
              logging.warning(f"⛔ Token validation failed or user ID missing. Response status: {getattr(user_response, 'status_code', 'N/A')}")
              raise Exception("Invalid token or user not found.")
 
@@ -318,19 +354,15 @@ def get_user_id_from_token(auth_header):
         return user_id
 
     except Exception as e:
-        # Catch potential API errors from supabase.auth.get_user or other issues
         logging.error(f"❌ Error during token validation: {e.__class__.__name__}: {e}", exc_info=True)
-        # Check for specific error types if supabase-py provides them, otherwise generalize
-        # Convert error to string for checking content
         error_str = str(e).lower()
         if "invalid token" in error_str or "jwt" in error_str or "token is invalid" in error_str:
               raise Exception("Invalid token.") from e
         else:
-              # Generalize for other potential issues (network, Supabase internal)
               raise Exception("Token verification failed.") from e
 
 
-# --- API Route: Get User Profile/Credits ---
+# --- API Route: Get User Profile/Credits (Unchanged) ---
 @app.route("/get_profile", methods=["GET"])
 def get_profile():
     """Fetches the user's current credit balance."""
@@ -344,48 +376,40 @@ def get_profile():
         # Fetch credits from the 'profiles' table
         profile_response = supabase.table("profiles").select("credits").eq("id", user_id).maybe_single().execute()
 
-        # Handle potential Supabase errors
         if hasattr(profile_response, 'error') and profile_response.error:
             logging.error(f"❌ Supabase DB error fetching profile for {user_id}: {profile_response.error}")
             raise Exception(f"Database error fetching profile: {profile_response.error.message}")
 
-        # Check if profile exists and return credits or 0
         if profile_response and profile_response.data:
             credits = profile_response.data.get("credits", 0)
             logging.info(f"✅ Fetched credits for {user_id}: {credits}")
             return jsonify({"credits": credits})
         else:
-            # Profile might not exist yet (e.g., new signup) - return 0 credits
             logging.warning(f"⚠️ Profile not found for {user_id}. Returning 0 credits.")
             return jsonify({"credits": 0})
 
     except Exception as e:
         user_id_str = f" for user {user_id}" if user_id else ""
         logging.error(f"❌ Error in /get_profile{user_id_str}: {e}", exc_info=True)
-        error_message = str(e)
-        status_code = 500
-        # Determine status code based on error type
+        error_message = str(e); status_code = 500
         if "Unauthorized" in error_message or "Invalid token" in error_message or "Token verification failed" in error_message:
-              status_code = 401
-              error_message = "Authentication failed. Please log in again."
+              status_code = 401; error_message = "Authentication failed. Please log in again."
         elif "Database error" in error_message:
-              status_code = 503 # Service Unavailable (DB issue)
-              error_message = "Failed to retrieve profile data due to a database issue."
-        else:
-              error_message = "An unexpected error occurred while fetching your profile."
+              status_code = 503; error_message = "Failed to retrieve profile data due to a database issue."
+        else: error_message = "An unexpected error occurred while fetching your profile."
         return jsonify({"error": error_message}), status_code
 
 
-# --- API Route: Generate Image (MODIFIED for 2 Images) ---
+# --- API Route: Generate Image (MODIFIED for Flux) ---
 @app.route("/generate", methods=["POST"])
 def generate():
-    """Generates 2 thumbnail images based on the prompt, crops, saves, returns results."""
-    logging.info("📥 /generate called (requesting 2 images)")
+    """Generates 2 thumbnail images using Flux, processes (preview), saves, returns results."""
+    logging.info("📥 /generate called (using Flux, requesting 2 images)")
     auth_header = request.headers.get("Authorization"); user_id = None; current_credits = 0
-    NUM_IMAGES_TO_GENERATE = 2 # Define how many images we want
+    NUM_IMAGES_TO_GENERATE = 2 # Still generate 2 images
     TOTAL_CREDIT_COST = CREDIT_COST_PER_IMAGE * NUM_IMAGES_TO_GENERATE # Calculate total cost
 
-    # 1. --- Authentication and Credit Check ---
+    # 1. --- Authentication and Credit Check (Unchanged) ---
     try:
         user_id = get_user_id_from_token(auth_header)
         profile_response = supabase.table("profiles").select("credits").eq("id", user_id).maybe_single().execute()
@@ -399,7 +423,6 @@ def generate():
         current_credits = profile_response.data.get("credits", 0)
         logging.info(f"💰 User {user_id} attempting generation with {current_credits} credits (needs {TOTAL_CREDIT_COST}).")
 
-        # Check if user has enough credits
         if current_credits < TOTAL_CREDIT_COST:
             logging.warning(f"🚫 Insufficient credits for user {user_id} ({current_credits}/{TOTAL_CREDIT_COST}).")
             return jsonify({"error": f"Insufficient credits. This action requires {TOTAL_CREDIT_COST} credits."}), 403 # Forbidden
@@ -412,178 +435,147 @@ def generate():
               status_code = 401; error_message = "Authentication failed. Please log in again."
         elif "DB error" in error_message:
               status_code = 503; error_message = "Failed to check credits due to a database issue."
-        elif "Insufficient credits" in error_message: # Should be caught above, but as fallback
-              status_code = 403; error_message = error_message # Pass specific message
-        else:
-              error_message = "An error occurred before generation could start."
+        elif "Insufficient credits" in error_message:
+              status_code = 403; error_message = error_message
+        else: error_message = "An error occurred before generation could start."
         return jsonify({"error": error_message}), status_code
 
-    # 2. --- Get Request Data ---
+    # 2. --- Get Request Data (Unchanged) ---
     data = request.json
     title = data.get("title", "") # Default to empty string if missing
     niche = data.get("niche", "") # Default to empty string if missing
-    image_prompt = data.get("prompt")
+    image_prompt = data.get("prompt") # Use the prompt directly
 
     if not image_prompt:
         logging.warning(f"⚠️ Missing 'prompt' in request body for user {user_id}.")
         return jsonify({"error": "Image prompt is required."}), 400 # Bad Request
 
-    logging.info(f" Rcvd Gen Request - User:{user_id}, Title:'{title}', Niche:'{niche}', Original Prompt:'{image_prompt}'")
+    logging.info(f" Rcvd Gen Request - User:{user_id}, Title:'{title}', Niche:'{niche}', Prompt:'{image_prompt}'")
 
-    # 3. --- Prepare Prompt for AI (with aspect ratio instructions) ---
-    # --- DO NOT CHANGE THIS PROMPT (User Request) ---
-    image_prompt_with_bars = f"A digital image featuring [{image_prompt}], ensuring there are solid black bars exactly 62 pixels tall added to the very top and very bottom edges of the entire image frame. PLEASE, THIS IS VERY IMPORTANT!! THE BLACK BARS ARE AT THE TOP, AND AT THE BOTTOM, NEVER ON THE SIDE. The main visual content based on the prompt should be clearly visible and composed naturally between these two black bars."
-    logging.info(f"🎨 Using modified prompt for aspect ratio: '{image_prompt_with_bars}'")
+    # --- 3. Generate images with Flux (REPLACED OpenAI Block) ---
+    generated_data_uris = []
+    flux_errors = [] # Keep track of errors during generation loop
 
-    # 4. --- Generate Images from OpenAI ---
-    generated_data_uris = [] # To store raw base64 results from OpenAI
-    try:
-        logging.info(f"⏳ Requesting {NUM_IMAGES_TO_GENERATE} images from OpenAI for user {user_id}...")
-        response = client.images.generate(
-            model="gpt-image-1",
-            prompt=image_prompt_with_bars,
-            n=NUM_IMAGES_TO_GENERATE, # Request the desired number
-            size="1536x1024",
-            quality="high" # Use high quality
-            # REMOVED response_format="b64_json" - library handles this
-        )
+    logging.info(f"⏳ Requesting {NUM_IMAGES_TO_GENERATE} images from Flux for user {user_id}...")
+    for i in range(NUM_IMAGES_TO_GENERATE):
+        logging.info(f"  Generating image {i+1}/{NUM_IMAGES_TO_GENERATE}...")
+        try:
+            # Call the Flux helper function
+            img_url = generate_flux_image(image_prompt)
 
-        # Validate response structure and content
-        if not response or not response.data or len(response.data) < NUM_IMAGES_TO_GENERATE:
-             actual_received = len(response.data) if response and response.data else 0
-             logging.error(f"❌ OpenAI did not return the expected number of images ({actual_received}/{NUM_IMAGES_TO_GENERATE}). Response: {response}")
-             raise Exception(f"AI failed to generate the requested number of images ({NUM_IMAGES_TO_GENERATE}).")
+            # Fetch the image content from the URL
+            logging.info(f"    Fetching image content from URL: {img_url}")
+            img_response = requests.get(img_url, timeout=60) # Add timeout for fetch
+            img_response.raise_for_status() # Check if fetch was successful
+            img_bytes = img_response.content
 
-        # Extract the base64 data for each generated image
-        for i, item in enumerate(response.data):
-             # The library should provide b64_json when n > 1 or size is large
-             if item and item.b64_json:
-                 b64_string = item.b64_json
-                 # Assume PNG format from OpenAI when b64_json is returned
-                 uri = f"data:image/png;base64,{b64_string}"
-                 generated_data_uris.append(uri)
-                 logging.info(f"✅ Received image {i+1}/{NUM_IMAGES_TO_GENERATE} (base64) from OpenAI.")
-             else:
-                 logging.warning(f"⚠️ Missing b64_json for image {i+1} in OpenAI response.")
-                 generated_data_uris.append(None) # Append None to indicate failure for this specific image
+            # Determine MIME type based on URL extension (simple check)
+            mime = "jpeg" if img_url.lower().endswith(('.jpg', '.jpeg')) else "png"
+            logging.info(f"    Determined MIME type: image/{mime}")
 
-        # Check if we got all images successfully
-        successful_count = sum(1 for uri in generated_data_uris if uri is not None)
-        if successful_count < NUM_IMAGES_TO_GENERATE:
-             logging.error(f"❌ Failed to retrieve all ({NUM_IMAGES_TO_GENERATE}) image data URIs from OpenAI. Got {successful_count}.")
-             # Decide on behavior: raise error, or proceed with successful ones?
-             # For now, raise an error if *any* failed, as user expects N images.
-             raise Exception(f"AI generation incomplete. Received {successful_count}/{NUM_IMAGES_TO_GENERATE} images.")
+            # Encode the bytes as base64
+            b64_encoded_data = base64.b64encode(img_bytes).decode('utf-8')
 
-        logging.info(f"✅ Successfully received {len(generated_data_uris)} image URIs from OpenAI.")
+            # Create the Data URI
+            data_uri = f"data:image/{mime};base64,{b64_encoded_data}"
+            generated_data_uris.append(data_uri)
+            logging.info(f"  ✅ Image {i+1} generated and converted to Data URI.")
 
-    except APIError as e: # Handle specific OpenAI API errors
-        logging.error(f"❌ OpenAI API Error during multi-image generation for user {user_id}: {e}", exc_info=True)
-        user_error_message = f"OpenAI image generation failed ({e.status_code}): {e.message or e.code or e.type or 'Unknown OpenAI Error'}"
-        # Add specific error checks if needed (billing, rate limit, content policy etc.)
-        if e.code == 'billing_not_active': user_error_message = "Image generation failed: OpenAI account billing issue."
-        if e.code == 'rate_limit_exceeded': user_error_message = "Image generation failed: Rate limit exceeded. Please try again later."
-        if 'content_policy_violation' in str(e.message or '').lower(): user_error_message = "Image generation failed due to content policy. Please modify your prompt."
-        return jsonify({"error": user_error_message}), 502 # Bad Gateway for upstream errors
-    except Exception as e: # Handle other unexpected errors during generation
-        logging.error(f"❌ Unexpected Error during OpenAI multi-image generation for user {user_id}: {e}", exc_info=True)
-        return jsonify({"error": f"Image generation failed unexpectedly: {e}"}), 500
+        except Exception as e:
+            # Log the error for this specific image generation attempt
+            logging.error(f"❌ Flux or fetch failed on image {i+1}: {e}", exc_info=True)
+            flux_errors.append(f"Image {i+1}: {e}")
+            generated_data_uris.append(None) # Add None to keep list length consistent
 
-    # 5. --- Process Each Generated Image (Preview & Crop) ---
+    # Check if *any* images were generated successfully
+    successful_count = sum(1 for uri in generated_data_uris if uri is not None)
+    if successful_count == 0:
+        logging.error(f"❌ Flux generation failed for all {NUM_IMAGES_TO_GENERATE} images for user {user_id}.")
+        error_summary = "; ".join(flux_errors)
+        # Return a 502 Bad Gateway as the upstream service (Flux) failed
+        return jsonify({"error": f"Image generation failed for all attempts. Errors: {error_summary}"}), 502
+
+    logging.info(f"✅ Successfully generated {successful_count}/{NUM_IMAGES_TO_GENERATE} images from Flux.")
+    # --- End of Replaced Block ---
+
+
+    # 5. --- Process Each Generated Image (Preview & Crop - Crop Disabled) ---
     processed_results_urls = [] # Store final URLs for response
     db_save_tasks = []      # Store data dictionaries for DB insertion
 
     for index, original_uri in enumerate(generated_data_uris):
+        # Skip processing if generation failed for this image
+        if original_uri is None:
+            logging.warning(f"⚠️ Skipping processing for image {index + 1} due to generation failure.")
+            continue # Move to the next image
+
         logging.info(f"⚙️ Processing image {index + 1}/{NUM_IMAGES_TO_GENERATE} for user {user_id}...")
         preview_uri = None # Initialize here
-        cropped_uri = None
-        # Start with the original URI as the fallback
+        # cropped_uri = None # Crop is disabled
+
+        # Start with the original URI as the final URI (since cropping is disabled)
         final_uri_for_db_and_response = original_uri
 
-        if original_uri and original_uri.startswith("data:image/"):
-            try:
-                # --- DELETED OLD PREVIEW GENERATION CALL ---
+        try:
+            # --- CROP DISABLED as per instructions ---
+            # Flux returns the correct size directly (1280x720)
+            # cropped_uri = crop_image_data_uri(original_uri)
+            # if cropped_uri:
+            #     logging.info(f"✅ Image {index + 1} cropped.") # Would log if enabled
+            #     final_uri_for_db_and_response = cropped_uri
+            # else:
+            #     logging.warning(f"⚠️ Failed to crop image {index + 1}. Using original.")
+            #     # final_uri_for_db_and_response remains original_uri
+            logging.info(f"  Skipping crop for image {index + 1} (using Flux direct output).")
 
-                # Attempt to crop image
-                cropped_uri = crop_image_data_uri(original_uri)
-                if cropped_uri:
-                    logging.info(f"✅ Image {index + 1} cropped.")
-                    final_uri_for_db_and_response = cropped_uri # Use cropped version if successful
-                else:
-                    logging.warning(f"⚠️ Failed to crop image {index + 1}. Using original (with bars).")
-                    # final_uri_for_db_and_response remains original_uri
+            # --- Generate preview from the final version (original Flux URI) ---
+            preview_uri = generate_preview_data_uri(final_uri_for_db_and_response)
+            if preview_uri:
+                 logging.info(f"  ✅ Preview generated from FINAL URI for image {index + 1}.")
+            else:
+                 logging.warning(f"  ⚠️ Failed to generate preview from FINAL URI for image {index + 1}.")
 
-                # --- ADDED NEW PREVIEW GENERATION BLOCK (Instruction 3) ---
-                # 🔄 generate preview from the final version (ensures no black bars)
-                preview_uri = None # Re-initialize before attempting
-                if final_uri_for_db_and_response: # Check if we have a valid source
-                    preview_uri = generate_preview_data_uri(final_uri_for_db_and_response)
-                    if preview_uri:
-                         logging.info(f"✅ Preview generated from FINAL URI for image {index + 1}.")
-                    else:
-                         logging.warning(f"⚠️ Failed to generate preview from FINAL URI for image {index + 1}.")
-                else:
-                     logging.warning(f"⚠️ Cannot generate preview for image {index + 1} as final URI is missing.")
-                # --- END NEW PREVIEW GENERATION BLOCK ---
-
-            except Exception as processing_err:
-                # Log error but continue processing other images if possible
-                logging.error(f"❌ Error processing image {index + 1} for user {user_id}: {processing_err}", exc_info=True)
-                # Ensure preview is None and final URL is the original (potentially broken) one
-                preview_uri = None
-                final_uri_for_db_and_response = original_uri
-        else:
-            # This case should ideally not happen if OpenAI call succeeded, but handle defensively
-            logging.warning(f"⚠️ Skipping processing for image {index + 1} due to invalid/missing original URI.")
-            final_uri_for_db_and_response = None # Mark as None if original was invalid
+        except Exception as processing_err:
+            # Log error but continue processing other images if possible
+            logging.error(f"❌ Error processing image {index + 1} for user {user_id}: {processing_err}", exc_info=True)
+            # Ensure preview is None, final URL remains the original URI
             preview_uri = None
+            final_uri_for_db_and_response = original_uri # Keep original even if preview failed
 
-        # Add the final URL (cropped or original) to the list for the response
-        if final_uri_for_db_and_response:
-            processed_results_urls.append(final_uri_for_db_and_response)
+        # Add the final URL (original Flux URI) to the list for the response
+        processed_results_urls.append(final_uri_for_db_and_response)
 
-        # Prepare data for database insertion for this image (even if processing failed, save original)
-        # Only add if we have *some* image url (original or cropped)
-        if final_uri_for_db_and_response:
-            db_save_tasks.append({
-                "user_id": user_id,
-                "title": title,
-                "niche": niche,
-                "prompt": image_prompt, # Store the original user prompt for context
-                "image_url": final_uri_for_db_and_response, # Cropped or original URI
-                "preview_image_url": preview_uri # Preview URI (from final) or None
-            })
-        else:
-             logging.error(f"❌ Image {index+1} resulted in no usable URL, skipping DB save for this item.")
+        # Prepare data for database insertion for this image
+        db_save_tasks.append({
+            "user_id": user_id,
+            "title": title,
+            "niche": niche,
+            "prompt": image_prompt, # Store the original user prompt for context
+            "image_url": final_uri_for_db_and_response, # Original Flux URI
+            "preview_image_url": preview_uri # Preview URI (from final) or None
+        })
 
-
-    # 6. --- Deduct Credits (Only if generation was initially successful) ---
+    # 6. --- Deduct Credits (Unchanged) ---
     # Credits are deducted *after* generation attempt, regardless of processing success,
-    # as the OpenAI call was made and charged.
+    # as the Flux API call was made and likely charged by FAL.
     new_credits = max(0, current_credits - TOTAL_CREDIT_COST)
     try:
         logging.info(f"Attempting to deduct {TOTAL_CREDIT_COST} credits from user {user_id} (new balance: {new_credits}).")
         update_response = supabase.table("profiles").update({"credits": new_credits}).eq("id", user_id).execute()
-        # Check for errors during update
         if hasattr(update_response, 'error') and update_response.error:
-             # Log error but don't fail the request - user got the images (or tried)
              logging.error(f"⚠️ DB WARN: Failed to deduct {TOTAL_CREDIT_COST} credits for {user_id} after generation: {update_response.error}")
         elif not (hasattr(update_response, 'data') and update_response.data):
              logging.warning(f"⚠️ DB WARN: Credit deduction query returned no data for {user_id} (user might be deleted?).")
         else:
              logging.info(f"✅ Deducted {TOTAL_CREDIT_COST} credit(s) from {user_id}. New balance: {new_credits}")
     except Exception as credit_error:
-        # Log critical error if the update query itself fails
         logging.error(f"❌ DB CRITICAL: Exception deducting credit for {user_id}: {credit_error}", exc_info=True)
-        # Continue to return images if they were generated
 
-
-    # 7. --- Save All Processed Images to History ---
+    # 7. --- Save All Processed Images to History (Unchanged) ---
     saved_count = 0
     if db_save_tasks: # Only attempt insert if there are valid tasks
         try:
             logging.info(f"Attempting to save {len(db_save_tasks)} thumbnail records to history for user {user_id}...")
-            # Perform batch insert
             insert_response = supabase.table("thumbnail").insert(db_save_tasks).execute()
 
             if hasattr(insert_response, 'error') and insert_response.error:
@@ -598,12 +590,11 @@ def generate():
 
         except Exception as history_error:
             logging.error(f"❌ DB CRITICAL: Exception saving batch history for {user_id}: {history_error}", exc_info=True)
-            # Images were generated, credits deducted, but history failed. Still return images.
     else:
         logging.warning(f"No valid images to save to history for user {user_id}.")
 
-    # 8. --- Return Success Response ---
-    # Ensure we only return valid URLs
+    # 8. --- Return Success Response (Unchanged) ---
+    # Ensure we only return valid URLs (should be okay if successful_count > 0)
     if not processed_results_urls:
         logging.error(f"❌ No valid image URLs available to return for user {user_id} after processing.")
         # Return error even if credits were deducted and history attempted, as user gets nothing.
@@ -612,12 +603,12 @@ def generate():
     logging.info(f"✅ Returning {len(processed_results_urls)} processed image URLs to user {user_id}.")
     return jsonify({
         "prompt": image_prompt, # Return original prompt for context
-        "image_urls": processed_results_urls, # Return LIST of final (cropped/fallback) URLs
+        "image_urls": processed_results_urls, # Return LIST of final (Flux) URLs
         "new_credits": new_credits # Return updated credit balance
     })
 
 
-# --- API Route: Get History ---
+# --- API Route: Get History (Unchanged) ---
 @app.route("/history", methods=["GET"])
 def get_history():
     """Fetches paginated thumbnail generation history for the user."""
@@ -672,16 +663,13 @@ def get_history():
         return jsonify({"error": error_message}), status_code
 
 
-# --- API Route: Create Stripe Checkout Session ---
+# --- API Route: Create Stripe Checkout Session (Unchanged) ---
 @app.route("/create-checkout-session", methods=["POST"])
 def create_checkout_session():
     """Creates a Stripe Checkout session for purchasing credits."""
     logging.info("📥 /create-checkout-session called")
     auth_header = request.headers.get("Authorization"); data = request.json; user_id = None
     price_id = data.get('priceId')
-
-    # --- ADD DEBUG LINE 3 ---
-    # --- END DEBUG LINE 3 ---
 
     if not price_id:
         logging.warning("❌ Price ID missing in request.")
@@ -697,13 +685,9 @@ def create_checkout_session():
         user_id = get_user_id_from_token(auth_header)
         logging.info(f"✅ User {user_id} initiating checkout for price ID: {price_id}")
 
-        # --- ADD DEBUG LINE 4 ---
-        # --- END DEBUG LINE 4 ---
-
         # Validate the price ID against configured mapping
-        if price_id not in PRICE_ID_TO_CREDITS: # <--- THIS CHECK IS FAILING
+        if price_id not in PRICE_ID_TO_CREDITS:
             logging.error(f"❌ Unrecognized Stripe Price ID requested: {price_id}")
-            # This is the error message being returned:
             return jsonify({"error": "Invalid purchase option selected."}), 400
 
         # Define Stripe success and cancel URLs
@@ -716,16 +700,10 @@ def create_checkout_session():
             mode='payment',
             success_url=success_url,
             cancel_url=cancel_url,
-            # Include user ID and price ID in metadata for webhook processing
-            metadata={
-                'supabase_user_id': user_id,
-                'price_id': price_id
-            }
-            # Consider adding customer_email: user.email if you fetch user email
+            metadata={ 'supabase_user_id': user_id, 'price_id': price_id }
         )
 
         logging.info(f"✅ Stripe session created: {checkout_session.id} for user {user_id}")
-        # Return the Stripe Checkout session URL to the frontend for redirection
         return jsonify({'url': checkout_session.url})
 
     except stripe.error.StripeError as e:
@@ -741,7 +719,7 @@ def create_checkout_session():
         return jsonify({"error": error_message}), status_code
 
 
-# --- API Route: Stripe Webhook Handler ---
+# --- API Route: Stripe Webhook Handler (Unchanged) ---
 @app.route('/stripe-webhook', methods=['POST'])
 def stripe_webhook():
     """Handles incoming Stripe webhook events, specifically checkout.session.completed."""
@@ -754,11 +732,8 @@ def stripe_webhook():
         logging.error("❌ Stripe Webhook Secret is not configured.")
         return jsonify(error="Webhook configuration error on server"), 500
 
-    # Verify webhook signature
     try:
-        event = stripe.Webhook.construct_event(
-            payload, sig_header, STRIPE_WEBHOOK_SECRET
-        )
+        event = stripe.Webhook.construct_event( payload, sig_header, STRIPE_WEBHOOK_SECRET )
     except ValueError as e: # Invalid payload
         logging.error(f"❌ Invalid webhook payload: {e}")
         return jsonify(error="Invalid payload"), 400
@@ -771,69 +746,51 @@ def stripe_webhook():
 
     logging.info(f"✅ Webhook signature verified. Event ID: {event.get('id', 'N/A')}, Type: {event.get('type')}")
 
-    # Handle the checkout.session.completed event
     if event['type'] == 'checkout.session.completed':
         session = event['data']['object']
         session_id = session.get('id')
         logging.info(f"Processing 'checkout.session.completed' event for session: {session_id}")
 
-        # Check if the payment was successful
         if session.get('payment_status') == 'paid':
             metadata = session.get('metadata')
             if not metadata:
                 logging.error(f"❌ Metadata missing in successful payment event: {session_id}")
-                return jsonify(status="Metadata missing"), 200 # Acknowledge receipt, but log error
+                return jsonify(status="Metadata missing"), 200
 
             user_id = metadata.get('supabase_user_id')
             price_id = metadata.get('price_id')
 
             if not user_id or not price_id:
                 logging.error(f"❌ Missing supabase_user_id or price_id in metadata for session: {session_id}")
-                return jsonify(status="Required metadata fields missing"), 200 # Acknowledge receipt
+                return jsonify(status="Required metadata fields missing"), 200
 
-            # Get credits to add based on the price ID from metadata
             credits_to_add = PRICE_ID_TO_CREDITS.get(price_id)
             if credits_to_add is None:
                 logging.error(f"⚠️ Unrecognized price_id '{price_id}' found in webhook metadata for session: {session_id}")
-                return jsonify(status="Unrecognized price ID"), 200 # Acknowledge receipt
+                return jsonify(status="Unrecognized price ID"), 200
 
             logging.info(f"Attempting to grant {credits_to_add} credits to user {user_id} for price {price_id} (Session: {session_id})")
 
-            # --- Update User Credits in Supabase ---
-            # This is a critical section. Using RPC might be safer for atomicity at scale.
             try:
-                # 1. Fetch current credits
                 profile_res = supabase.table("profiles").select("credits").eq("id", user_id).maybe_single().execute()
-                current_credits = 0
-                profile_exists = False
-
+                current_credits = 0; profile_exists = False
                 if hasattr(profile_res, 'error') and profile_res.error:
-                     # Log error but proceed assuming 0 credits if fetch fails, otherwise payment might not grant credits
                      logging.error(f"❌ DB Error fetching profile for credit update (user {user_id}, session {session_id}): {profile_res.error}")
                 elif profile_res and profile_res.data:
-                     current_credits = profile_res.data.get("credits", 0)
-                     profile_exists = True
+                     current_credits = profile_res.data.get("credits", 0); profile_exists = True
                      logging.info(f"   Profile exists for {user_id}. Current credits: {current_credits}")
                 else:
                      logging.warning(f"⚠️ Profile not found for {user_id} during webhook credit update (Session: {session_id}). Will create/update starting from 0 credits.")
 
-                # 2. Calculate new total
                 new_total_credits = current_credits + credits_to_add
                 logging.info(f"   Updating credits for {user_id}: {current_credits} -> {new_total_credits}")
 
-                # 3. Update credits (using upsert might be good if profile might not exist)
-                update_res = supabase.table("profiles").upsert({
-                    "id": user_id, # Ensure the user ID is included for upsert
-                    "credits": new_total_credits
-                }).execute()
+                update_res = supabase.table("profiles").upsert({ "id": user_id, "credits": new_total_credits }).execute()
 
-                # Check update/upsert result
                 if hasattr(update_res, 'error') and update_res.error:
                     logging.error(f"❌ DB Error updating/upserting credits for {user_id} (Session: {session_id}): {update_res.error}")
-                    # Return 500 to signal Stripe to retry the webhook later
                     return jsonify(error="Database update failed during credit grant"), 500
                 elif not (hasattr(update_res, 'data') and update_res.data):
-                     # This might happen if the upsert somehow failed without an error object
                     logging.error(f"❌ DB Error: Upsert credit query returned no data for {user_id} (Session: {session_id}).")
                     return jsonify(error="Database update failed (no data returned)"), 500
                 else:
@@ -841,36 +798,26 @@ def stripe_webhook():
 
             except Exception as db_error:
                 logging.error(f"❌ DB Exception during credit update for {user_id} (Session: {session_id}): {db_error}", exc_info=True)
-                # Return 500 to signal Stripe to retry
                 return jsonify(error="Database exception during credit grant"), 500
         else:
-            # Payment status was not 'paid' (e.g., 'unpaid', 'no_payment_required')
             logging.info(f"Checkout session {session_id} completed but payment status was '{session.get('payment_status')}'. No credits granted.")
     else:
-        # Log unhandled event types
         logging.info(f"🤷‍♀️ Received unhandled Stripe event type: {event.get('type')}")
 
-    # Acknowledge receipt of the event to Stripe
     return jsonify(success=True), 200
 
 
-# --- Main Execution ---
+# --- Main Execution (Unchanged) ---
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001)) # Default port 5001
     host = os.environ.get("FLASK_RUN_HOST", "0.0.0.0") # Default host
-    # Read FLASK_DEBUG environment variable (commonly 'true' or '1' for debug)
     debug_mode_str = os.environ.get("FLASK_DEBUG", "False")
     debug_mode = debug_mode_str.lower() in ["true", "1", "t", "yes"]
 
-    # Configure root logger level based on debug mode BEFORE Flask runs its own setup
     log_level = logging.DEBUG if debug_mode else logging.INFO
-    # Use force=True to override any potential default Flask logging config
     logging.basicConfig(level=log_level, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', force=True)
-
-    # Explicitly set Flask's app logger level
     app.logger.setLevel(log_level)
 
-    # Log effective levels to confirm
     logging.info(f"Effective root logging level set to: {logging.getLevelName(logging.getLogger().getEffectiveLevel())}")
     logging.info(f"Flask app logger level set to: {logging.getLevelName(app.logger.getEffectiveLevel())}")
 
@@ -880,5 +827,4 @@ if __name__ == "__main__":
         logging.info("Flask is running in PRODUCTION mode (Debug=False).")
 
     logging.info(f"🚀 Starting Flask server on http://{host}:{port} (Debug: {debug_mode})")
-    # use_reloader=debug_mode ensures the reloader is only active in debug mode
     app.run(host=host, port=port, debug=debug_mode, use_reloader=debug_mode)
