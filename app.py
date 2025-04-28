@@ -94,14 +94,15 @@ PREVIEW_WIDTH = 320 # Target width for previews in pixels
 # EXPECTED_HEIGHT = 1024 # Expected height from OpenAI (No longer used with Flux)
 CREDIT_COST_PER_IMAGE = 1 # Cost for EACH image generated
 
-# --- Helper Function: Generate Flux Image (Added) ---
+# --- Helper Function: Generate Flux Image (Unchanged from previous version) ---
 def generate_flux_image(prompt: str) -> str:
     """Calls FAL/Flux-Pro and returns the public image URL"""
     if not FAL_API_KEY:
         logging.error("❌ Cannot generate Flux image: FAL_API_KEY is not set.")
         raise ValueError("Flux API Key is missing.") # Raise error if key is missing
 
-    logging.info(f"🌀 Sending prompt to Flux: '{prompt[:50]}...'") # Log truncated prompt
+    # Log the *full* prompt being sent now
+    logging.info(f"🌀 Sending prompt to Flux: '{prompt}'")
     api_url = "https://fal.run/fal-ai/flux-pro/v1.1-ultra"
     headers = {
         "Authorization": f"Key {FAL_API_KEY}",
@@ -109,7 +110,7 @@ def generate_flux_image(prompt: str) -> str:
     }
     # Flux payload expects 1280x720
     payload = {
-        "prompt": prompt,
+        "prompt": prompt, # Send the full combined prompt
         "num_inference_steps": 30,
         "guidance_scale": 7,
         "width": 1280,
@@ -198,78 +199,7 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
 
 # --- Helper Function: Crop Image Data URI (No longer used by default, kept for potential future use) ---
 # def crop_image_data_uri(data_uri: str) -> str | None:
-#     """
-#     Decodes a base64 Data URI, crops TOP_BOTTOM_CROP_PIXELS from top and bottom,
-#     and re-encodes it as a base64 Data URI. Preserves original format if possible.
-#     Returns None if cropping fails.
-#     """
-#     logging.info("✂️ Attempting to crop image...")
-#     try:
-#         # Basic check for Data URI format
-#         if not data_uri or not data_uri.startswith("data:image/") or ";base64," not in data_uri:
-#             logging.warning(f"⚠️ Invalid or missing Data URI for cropping. Cannot crop.")
-#             return None
-
-#         header, encoded_data = data_uri.split(',', 1)
-#         image_format_from_header = header.split('/')[1].split(';')[0].lower() # Get format from header
-
-#         image_data = base64.b64decode(encoded_data)
-#         image = Image.open(io.BytesIO(image_data))
-
-#         # Determine the format to save in (prefer original detected format)
-#         original_image_format = image.format if image.format else image_format_from_header.upper()
-#         if not original_image_format:
-#              logging.warning("⚠️ Could not determine original image format for saving cropped image. Defaulting to PNG.")
-#              original_image_format = "PNG" # Safe default
-
-#         width, height = image.size
-#         # If using this with Flux (1280x720), the EXPECTED checks would need adjustment
-#         # if width != EXPECTED_WIDTH or height != EXPECTED_HEIGHT:
-#         #     logging.warning(f"⚠️ Image dimensions ({width}x{height}) differ from expected ({EXPECTED_WIDTH}x{EXPECTED_HEIGHT}) for cropping. Cropping may be inaccurate or fail.")
-
-#         # Calculate crop box (THIS LOGIC IS FOR THE OLD 1536x1024 with black bars)
-#         left = 0
-#         upper = TOP_BOTTOM_CROP_PIXELS
-#         right = width
-#         lower = height - TOP_BOTTOM_CROP_PIXELS
-
-#         # Validate crop box dimensions before cropping
-#         if upper < 0 or lower > height or left < 0 or right > width or upper >= lower or left >= right:
-#             logging.error(f"❌ Invalid crop dimensions calculated: ({left}, {upper}, {right}, {lower}) from image size ({width}x{height}). Cannot crop.")
-#             return None # Return None if crop box is invalid
-
-#         crop_box = (left, upper, right, lower)
-#         logging.info(f"Calculated crop box: {crop_box}")
-
-#         cropped_image = image.crop(crop_box)
-#         logging.info(f"✅ Image cropped successfully to {cropped_image.size[0]}x{cropped_image.size[1]}.")
-
-#         # Save the cropped image back to a buffer
-#         buffer = io.BytesIO()
-#         save_params = {'format': original_image_format}
-#         # Add quality param only if it's relevant (like JPEG), otherwise Pillow handles defaults
-#         if original_image_format.upper() == 'JPEG':
-#             save_params['quality'] = 95 # Keep high quality for main image if JPEG
-
-#         cropped_image.save(buffer, **save_params)
-#         buffer.seek(0)
-
-#         # Re-encode the cropped image
-#         cropped_encoded_data = base64.b64encode(buffer.read()).decode('utf-8')
-#         # Use the determined original format in the new Data URI header
-#         cropped_data_uri = f"data:image/{original_image_format.lower()};base64,{cropped_encoded_data}"
-#         logging.info(f"✅ Cropped image re-encoded to Data URI (Format: {original_image_format}).")
-#         return cropped_data_uri
-
-#     except base64.binascii.Error as b64_err:
-#          logging.error(f"❌ Base64 decoding error during cropping: {b64_err}", exc_info=True)
-#          return None
-#     except UnidentifiedImageError: # Catch Pillow specific error for bad image data
-#          logging.error("❌ Pillow UnidentifiedImageError: Could not open image data for cropping.", exc_info=True)
-#          return None
-#     except Exception as e:
-#         logging.error(f"❌ Unexpected error during image cropping: {e}", exc_info=True)
-#         return None # Return None if cropping fails
+#     [...] # Code remains commented out
 
 
 @app.route("/", methods=["GET", "HEAD"])
@@ -278,38 +208,53 @@ def health_root():
     return "ok", 200
 
 
-# --- API Route: Generate Prompt (Unchanged - Still uses OpenAI) ---
+# --- API Route: Generate Prompt (MODIFIED to accept options) ---
 @app.route("/generate_prompt", methods=["POST"])
 def generate_prompt():
-    """Generates a DALL-E style prompt suggestion based on title and niche."""
+    """Generates a prompt suggestion based on title, niche, and selected options."""
     logging.info("📥 /generate_prompt called")
     data = request.json
     title = data.get("title")
     niche = data.get("niche")
+    # --- Get the new 'options' parameter from the request ---
+    # Default to an empty list if not provided
+    selected_options = data.get("options", [])
 
     if not title or not niche:
         logging.warning("⚠️ /generate_prompt: Missing title or niche.")
         return jsonify({"error": "Title and Niche are required."}), 400
 
-    logging.info(f"🧠 Prompt generation request - Title: '{title}', Niche: '{niche}'")
+    # Log the received options
+    logging.info(f"🧠 Prompt generation request - Title: '{title}', Niche: '{niche}', Options: {selected_options}")
 
     if not client or not client.api_key:
         logging.error("❌ OpenAI client not configured for /generate_prompt.")
         return jsonify({"error": "AI Service is not configured."}), 503 # Service Unavailable
 
     try:
-        # Using gpt-4o-mini for prompt generation (as before)
+        # --- Construct the user message for GPT-4o-mini, including options ---
+        options_string = ", ".join(selected_options) if selected_options else "None specified"
+
+        user_message_content = f"""Generate ONE compelling, eyecatching visual prompt idea for a YouTube thumbnail based on this video information AND the following style/content options. The prompt should be suitable for an AI image generator like Flux or DALL-E. Focus on creating a visually engaging scene.
+
+Video Title: {title}
+Channel Niche: {niche}
+Selected Options/Requests: {options_string}
+
+Incorporate the selected options naturally into the visual description. For example, if 'no text' is selected, ensure the scene description does not imply or require text overlays. If 'cartoon style' is selected, describe the scene with that aesthetic.
+
+Return ONLY the visual prompt itself, without any extra text, formatting, or explanations."""
+        # --- End of modified user message ---
+
+        logging.debug(f"✉️ Sending user message to GPT-4o-mini:\n{user_message_content}") # Log the full message in debug
+
+        # Using gpt-4o-mini for prompt generation
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             temperature=0.7, # Balance creativity and coherence
             messages=[
-                 {"role": "system", "content": "You are a viral YouTube thumbnail designer who generates visual ideas and images."},
-                 {"role": "user", "content": f"""Generate ONE compelling, eyecatching visual prompt idea for a YouTube thumbnail based on this video information. The prompt should be suitable for an AI image generator like Flux or DALL-E. Focus on creating a visually engaging scene.
-
-Video Title: {title}
-Channel Niche: {niche}
-
-Return ONLY the visual prompt itself, without any extra text, formatting, or explanations."""} # Updated system prompt slightly
+                 {"role": "system", "content": "You are a viral YouTube thumbnail designer who generates visual prompt ideas for AI image generators, carefully considering user requests."}, # Slightly updated system prompt
+                 {"role": "user", "content": user_message_content } # Use the new message with options
              ]
         )
 
@@ -322,7 +267,7 @@ Return ONLY the visual prompt itself, without any extra text, formatting, or exp
             logging.warning("⚠️ GPT returned an empty prompt.")
             raise Exception("AI failed to generate a non-empty prompt.")
 
-        logging.info(f"✅ Prompt generated successfully: '{prompt}'")
+        logging.info(f"✅ Prompt generated successfully (incorporating options): '{prompt}'")
         return jsonify({"prompt": prompt})
 
     except APIError as e:
@@ -400,7 +345,7 @@ def get_profile():
         return jsonify({"error": error_message}), status_code
 
 
-# --- API Route: Generate Image (MODIFIED for Flux) ---
+# --- API Route: Generate Image (Unchanged from previous version with prefix) ---
 @app.route("/generate", methods=["POST"])
 def generate():
     """Generates 2 thumbnail images using Flux, processes (preview), saves, returns results."""
@@ -440,19 +385,34 @@ def generate():
         else: error_message = "An error occurred before generation could start."
         return jsonify({"error": error_message}), status_code
 
-    # 2. --- Get Request Data (Unchanged) ---
+    # 2. --- Get Request Data ---
     data = request.json
     title = data.get("title", "") # Default to empty string if missing
     niche = data.get("niche", "") # Default to empty string if missing
-    image_prompt = data.get("prompt") # Use the prompt directly
+    original_image_prompt = data.get("prompt") # Get the prompt from the frontend
 
-    if not image_prompt:
+    if not original_image_prompt:
         logging.warning(f"⚠️ Missing 'prompt' in request body for user {user_id}.")
         return jsonify({"error": "Image prompt is required."}), 400 # Bad Request
 
-    logging.info(f" Rcvd Gen Request - User:{user_id}, Title:'{title}', Niche:'{niche}', Prompt:'{image_prompt}'")
+    logging.info(f" Rcvd Gen Request - User:{user_id}, Title:'{title}', Niche:'{niche}', Original Prompt:'{original_image_prompt}'")
 
-    # --- 3. Generate images with Flux (REPLACED OpenAI Block) ---
+    # --- Define the Thumbnail Prompt Prefix ---
+    thumbnail_prefix = (
+        "Create a highly clickable, viral-quality YouTube thumbnail. "
+        "The image should be bold, colorful, and extremely eye-catching even at small sizes. "
+        "Focus on clear, dramatic compositions with strong emotions, simple backgrounds, "
+        "and exaggerated action or expressions. Leave space for large, readable text if needed. "
+        "Prioritize visual storytelling that instantly grabs attention and makes viewers want to click. "
+        "Scene details: "
+    )
+
+    # --- Combine the prefix with the original prompt ---
+    combined_prompt = f"{thumbnail_prefix}[{original_image_prompt}]"
+    logging.info(f"🔧 Combined prompt for Flux: '{combined_prompt}'")
+
+
+    # --- 3. Generate images with Flux (Using Combined Prompt) ---
     generated_data_uris = []
     flux_errors = [] # Keep track of errors during generation loop
 
@@ -460,8 +420,8 @@ def generate():
     for i in range(NUM_IMAGES_TO_GENERATE):
         logging.info(f"  Generating image {i+1}/{NUM_IMAGES_TO_GENERATE}...")
         try:
-            # Call the Flux helper function
-            img_url = generate_flux_image(image_prompt)
+            # Call the Flux helper function WITH THE COMBINED PROMPT
+            img_url = generate_flux_image(combined_prompt) # <--- Use combined_prompt here
 
             # Fetch the image content from the URL
             logging.info(f"    Fetching image content from URL: {img_url}")
@@ -496,7 +456,7 @@ def generate():
         return jsonify({"error": f"Image generation failed for all attempts. Errors: {error_summary}"}), 502
 
     logging.info(f"✅ Successfully generated {successful_count}/{NUM_IMAGES_TO_GENERATE} images from Flux.")
-    # --- End of Replaced Block ---
+    # --- End of Image Generation Block ---
 
 
     # 5. --- Process Each Generated Image (Preview & Crop - Crop Disabled) ---
@@ -518,14 +478,6 @@ def generate():
 
         try:
             # --- CROP DISABLED as per instructions ---
-            # Flux returns the correct size directly (1280x720)
-            # cropped_uri = crop_image_data_uri(original_uri)
-            # if cropped_uri:
-            #     logging.info(f"✅ Image {index + 1} cropped.") # Would log if enabled
-            #     final_uri_for_db_and_response = cropped_uri
-            # else:
-            #     logging.warning(f"⚠️ Failed to crop image {index + 1}. Using original.")
-            #     # final_uri_for_db_and_response remains original_uri
             logging.info(f"  Skipping crop for image {index + 1} (using Flux direct output).")
 
             # --- Generate preview from the final version (original Flux URI) ---
@@ -546,18 +498,17 @@ def generate():
         processed_results_urls.append(final_uri_for_db_and_response)
 
         # Prepare data for database insertion for this image
+        # Store the ORIGINAL prompt from the user/GPT, not the combined one, for history clarity
         db_save_tasks.append({
             "user_id": user_id,
             "title": title,
             "niche": niche,
-            "prompt": image_prompt, # Store the original user prompt for context
+            "prompt": original_image_prompt, # Store the original prompt
             "image_url": final_uri_for_db_and_response, # Original Flux URI
             "preview_image_url": preview_uri # Preview URI (from final) or None
         })
 
     # 6. --- Deduct Credits (Unchanged) ---
-    # Credits are deducted *after* generation attempt, regardless of processing success,
-    # as the Flux API call was made and likely charged by FAL.
     new_credits = max(0, current_credits - TOTAL_CREDIT_COST)
     try:
         logging.info(f"Attempting to deduct {TOTAL_CREDIT_COST} credits from user {user_id} (new balance: {new_credits}).")
@@ -593,16 +544,14 @@ def generate():
     else:
         logging.warning(f"No valid images to save to history for user {user_id}.")
 
-    # 8. --- Return Success Response (Unchanged) ---
-    # Ensure we only return valid URLs (should be okay if successful_count > 0)
+    # 8. --- Return Success Response ---
     if not processed_results_urls:
         logging.error(f"❌ No valid image URLs available to return for user {user_id} after processing.")
-        # Return error even if credits were deducted and history attempted, as user gets nothing.
         return jsonify({"error": "Image processing failed to produce any usable results."}), 500
 
     logging.info(f"✅ Returning {len(processed_results_urls)} processed image URLs to user {user_id}.")
     return jsonify({
-        "prompt": image_prompt, # Return original prompt for context
+        "prompt": original_image_prompt, # Return ORIGINAL prompt for context in UI
         "image_urls": processed_results_urls, # Return LIST of final (Flux) URLs
         "new_credits": new_credits # Return updated credit balance
     })

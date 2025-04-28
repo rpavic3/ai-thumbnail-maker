@@ -25,7 +25,7 @@
     <script src="https://js.stripe.com/v3/"></script>
 
     <style>
-     /* --- CSS Styles (Unchanged from your provided 'new' version) --- */
+     /* --- CSS Styles (Unchanged except for new .option-button styles) --- */
      :root {
          --bg: #0e0d11;
          --surface: #1c1a23;
@@ -48,6 +48,11 @@
          --success-color: #34d399; /* Green */
          --warning-color: #fbbf24; /* Amber */
          --error-color: #f87171; /* Red */
+         /* --- New variables for option buttons --- */
+         --option-bg: #4a4a5a; /* Light gray */
+         --option-bg-hover: #5a5a6a;
+         --option-bg-active: #6a6a7a; /* Darker gray */
+         --option-text: #e0e0e0;
      }
 
      * {
@@ -544,6 +549,52 @@
          margin-right: auto; /* Center if max-width is set */
      }
 
+     /* --- NEW Styles for Prompt Option Buttons --- */
+     #prompt-options-container {
+         margin-top: 1rem; /* Space below niche input */
+         margin-bottom: 1.5rem; /* Space above suggest button */
+         display: flex;
+         flex-wrap: wrap; /* Allow buttons to wrap */
+         gap: 0.5rem; /* Space between buttons */
+         align-items: center; /* Align items vertically */
+     }
+     #prompt-options-container label {
+         margin-bottom: 0; /* Remove bottom margin for the label */
+         margin-right: 0.5rem; /* Space after label */
+         font-size: 0.95rem; /* Match other labels */
+         color: var(--text-muted);
+         font-weight: 600;
+     }
+     .option-button {
+         padding: 0.4rem 0.8rem; /* Smaller padding */
+         font-size: 0.85rem; /* Smaller font */
+         background-color: var(--option-bg); /* Light gray */
+         color: var(--option-text);
+         border: 1px solid transparent; /* Add border for structure */
+         border-radius: calc(var(--radius) / 2.5); /* Slightly smaller radius */
+         cursor: pointer;
+         transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
+         /* Override general button styles if needed */
+         font-weight: normal;
+         display: inline-flex; /* Keep inline-flex */
+         align-items: center;
+         justify-content: center;
+         gap: 0; /* Remove gap */
+     }
+     .option-button:hover {
+         background-color: var(--option-bg-hover);
+         border-color: var(--border-color);
+         transform: none; /* No lift on hover */
+     }
+     .option-button.active {
+         background-color: var(--option-bg-active); /* Darker gray */
+         border-color: var(--accent); /* Highlight border when active */
+         color: var(--text);
+         font-weight: 600; /* Make active text bolder */
+         box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); /* Subtle inner shadow */
+     }
+     /* --- End of New Styles --- */
+
 
      /* --- Responsive Adjustments --- */
      @media (max-width: 600px) {
@@ -607,6 +658,15 @@
           .how-it-works-intro {
               margin-bottom: 1rem; /* Adjust spacing */
           }
+
+          /* Responsive option buttons */
+          #prompt-options-container {
+              gap: 0.4rem; /* Slightly smaller gap */
+          }
+          .option-button {
+              padding: 0.3rem 0.6rem;
+              font-size: 0.8rem;
+          }
      }
 
      /* --- simple image modal (added) --- */
@@ -666,8 +726,22 @@
                  <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
                  <label for="niche">Channel Niche / Video Topic</label>
                  <input type="text" id="niche" placeholder="e.g. Tech Reviews, Travel Vlogs, Cooking Tutorials" required />
-                 <div style="margin-top: 1rem; text-align: center;">
-                      <button type="submit" id="generate-prompt-button">Suggest Prompt Idea</button>
+
+                 <div id="prompt-options-container">
+                    <label>Special requests:</label>
+                    <button type="button" class="option-button">no text</button>
+                    <button type="button" class="option-button">no humans</button>
+                    <button type="button" class="option-button">cartoon style</button>
+                    <button type="button" class="option-button">photorealistic</button>
+                    <button type="button" class="option-button">pixel art</button>
+                    <button type="button" class="option-button">3d render</button>
+                    <button type="button" class="option-button">oil painting</button>
+                    <button type="button" class="option-button">watercolor</button>
+                    <button type="button" class="option-button">retro</button>
+                    <button type="button" class="option-button">bright and cheerful</button>
+                    <button type="button" class="option-button">dark and mysterious</button>
+                 </div>
+                 <div style="margin-top: 1rem; text-align: center;"> <button type="submit" id="generate-prompt-button">Suggest Prompt Idea</button>
                  </div>
              </form>
 
@@ -708,14 +782,12 @@
                  <span class="step-number">1.</span>
                  <h3>Enter Video Details</h3>
                  <img src="images/step1-input.png" alt="Screenshot of entering video title and niche" onerror="this.style.display='none'">
-                 <p>Provide your video title and niche/topic to give the AI context for generating relevant prompt ideas.</p>
-             </div>
+                 <p>Provide your video title and niche/topic. Optionally, select special requests like style or content exclusions.</p> </div>
              <div class="step-card">
                  <span class="step-number">2.</span>
                  <h3>Get Prompt Ideas</h3>
                   <img src="images/step2-prompt.png" alt="Screenshot showing AI generated prompt" onerror="this.style.display='none'">
-                 <p>Click "Suggest Prompt Idea". Our AI suggests a visual prompt. You can edit it or write your own from scratch.</p>
-             </div>
+                 <p>Click "Suggest Prompt Idea". Our AI suggests a visual prompt based on your input and requests. You can edit it or write your own from scratch.</p> </div>
              <div class="step-card">
                  <span class="step-number">3.</span>
                  <h3>Generate Thumbnails</h3>
@@ -798,6 +870,8 @@
      const howItWorksSection = document.getElementById('how-it-works-section');
      const purchaseControlsDiv = document.querySelector('.purchase-controls');
      const userInfoContainer = document.querySelector('.user-info-container'); // Reference user info header
+     // --- NEW: Reference for options container ---
+     const optionsContainer = document.getElementById('prompt-options-container');
 
 
      // --- Helper: Display Status Messages ---
@@ -1088,9 +1162,22 @@
            updateContentView();
      }
 
+     // --- NEW: Event Listener for Option Buttons ---
+     if (optionsContainer) {
+         optionsContainer.addEventListener('click', (event) => {
+             // Check if the clicked element is an option button
+             if (event.target.classList.contains('option-button')) {
+                 // Toggle the 'active' class on the clicked button
+                 event.target.classList.toggle('active');
+             }
+         });
+     } else {
+         console.warn("Prompt options container not found.");
+     }
+
 
      // --- API Call Logic ---
-     // Generate Prompt Suggestion (Step 1)
+     // Generate Prompt Suggestion (Step 1 - MODIFIED to send options)
      form.addEventListener('submit', async (e) => {
           e.preventDefault();
           if (!currentSession) { showStatus(authStatusP, "Please log in to get prompt suggestions.", 'warning', 3000); return; }
@@ -1099,11 +1186,21 @@
           generatePromptButton.disabled = true; generatePromptButton.innerText = "Generating...";
           const title = document.getElementById('title').value;
           const niche = document.getElementById('niche').value;
+
+          // --- NEW: Get selected options ---
+          const selectedOptionElements = optionsContainer ? optionsContainer.querySelectorAll('.option-button.active') : [];
+          const selectedOptions = Array.from(selectedOptionElements).map(button => button.textContent.trim());
+          console.log("Selected options:", selectedOptions); // Log selected options
+          // --- End of New Options Logic ---
+
           try {
+              // --- Send options in the request body ---
               const res = await fetch(`${BACKEND_URL}/generate_prompt`, {
                   method: "POST", headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ title, niche })
+                  body: JSON.stringify({ title, niche, options: selectedOptions }) // Add options here
               });
+              // --- End of Fetch Modification ---
+
               const responseBody = await res.text(); let data;
               try { data = JSON.parse(responseBody); } catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
               if (!res.ok) { throw new Error(data.error || `Server error: ${res.status}`); }
@@ -1128,7 +1225,7 @@
      }
 
 
-     // Generate Thumbnails (Step 2 - Confirm Prompt)
+     // Generate Thumbnails (Step 2 - Confirm Prompt - Unchanged)
      async function confirmPrompt() {
           const prompt = document.getElementById("custom-prompt").value;
           if (!prompt.trim()) { showStatus(creditWarningP, "Please enter a prompt describing the thumbnail.", 'warning', 3000); scrollToElement('custom-prompt'); return; }
@@ -1145,7 +1242,7 @@
               const token = currentSession.access_token;
               const res = await fetch(`${BACKEND_URL}/generate`, {
                   method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                  body: JSON.stringify({ title, niche, prompt })
+                  body: JSON.stringify({ title, niche, prompt }) // Sends the final prompt from textarea
               });
               const responseBody = await res.text(); let data;
               try { data = JSON.parse(responseBody); } catch (e) { throw new Error(`Server returned non-JSON response (Status: ${res.status})`); }
@@ -1181,6 +1278,7 @@
                       }
                   });
                   resultDiv.appendChild(gridDiv);
+                  // Display the original prompt used for generation in the UI
                   resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
                   scrollToElement('result');
                   if (data.new_credits !== undefined) { updateCreditState(data.new_credits); }
