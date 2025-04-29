@@ -202,8 +202,8 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
 #     [...] # Code remains commented out
 
 
-@app.route("/", methods=["GET", "HEAD"])
-def health_root():
+@app.route("/healthz", methods=["GET", "HEAD"])
+def health_check():
     """Basic health check endpoint."""
     return "ok", 200
 
