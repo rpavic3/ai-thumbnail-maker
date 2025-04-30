@@ -1033,7 +1033,12 @@
           const email = document.getElementById("auth-email").value;
           const password = document.getElementById("auth-password").value;
           try {
-              const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            const { data, error } = await supabaseClient.auth.signUp(
+                { email, password },
+                { 
+                    redirectTo: window.location.origin + '/app/' 
+                }
+            );
               if (error) { showStatus(authStatusP, `Login failed: ${error.message}`, 'error'); updateCreditState(null); }
               else { showStatus(authStatusP, ""); }
           } catch (e) { showStatus(authStatusP, `Login error: ${e.message}`, 'error'); updateCreditState(null); }
