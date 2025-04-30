@@ -1,1493 +1,647 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>AI Thumbnail Maker for YouTube Creators | AI Thumbnail Copilot</title>
-
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="shortcut icon" href="/favicon.ico">
-    <meta name="description" content="Generate viral YouTube thumbnails using AI with AI Thumbnail Copilot. Instantly create engaging thumbnails from your title and niche. No design skills needed." />
-    <meta name="author" content="AI Thumbnail Copilot" />
-    <meta name="robots" content="index, follow" />
-    <meta property="og:title" content="AI Thumbnail Maker for YouTube Creators | AI Thumbnail Copilot" />
-    <meta property="og:description" content="Instantly create stunning YouTube thumbnails with AI. Enter your title/niche, get ideas, generate!" />
-    <meta property="og:url" content="https://ai-thumbnail-copilot.vercel.app/" />
-    <meta property="og:site_name" content="AI Thumbnail Copilot" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://ai-thumbnail-copilot.vercel.app/LOGO.png" />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="AI Thumbnail Maker for YouTube Creators | AI Thumbnail Copilot" />
-    <meta name="twitter:description" content="Instantly create stunning YouTube thumbnails with AI. Enter your title/niche, get ideas, generate!" />
-    <meta name="twitter:image" content="https://ai-thumbnail-copilot.vercel.app/LOGO.png" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Thumbnail Copilot - Generate scroll-stopping YouTube thumbnails</title>
+  <meta name="description" content="Generate scroll-stopping YouTube thumbnails in seconds with AI. Boost your click-through rates with AI-powered thumbnails designed to capture attention." />
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Custom styles -->
+  <style>
+    /* Base styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0e0d11;
+      color: white;
+      overflow-x: hidden;
+    }
     
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
-    <script src="https://js.stripe.com/v3/"></script>
-
-    <style>
-     /* --- CSS Styles (Unchanged except for new .option-button styles) --- */
-     :root {
-         --bg: #0e0d11;
-         --surface: #1c1a23;
-         --text: #f5f5f7;
-         --text-muted: #a0a0a0;
-         --accent: #a78bfa; /* Primary accent (Violet) */
-         --accent-hover: #c4b5fd; /* Lighter violet */
-         --input-bg: #2a2733;
-         --logout: #fca5a5; /* Light red for logout */
-         --logout-hover: #f87171; /* Darker red */
-         --buy-button: #34d399; /* Green for buy button */
-         --buy-button-hover: #6ee7b7; /* Lighter green */
-         --radius: 16px;
-         --tab-inactive-bg: #2e2e38;
-         --tab-inactive-text: #888;
-         --tab-inactive-hover-bg: #3a3843;
-         --tab-inactive-hover-text: #ccc;
-         --card-bg: #222028;
-         --border-color: #3a3843;
-         --success-color: #34d399; /* Green */
-         --warning-color: #fbbf24; /* Amber */
-         --error-color: #f87171; /* Red */
-         /* --- New variables for option buttons --- */
-         --option-bg: #4a4a5a; /* Light gray */
-         --option-bg-hover: #5a5a6a;
-         --option-bg-active: #6a6a7a; /* Darker gray */
-         --option-text: #e0e0e0;
-     }
-
-     * {
-         box-sizing: border-box;
-         margin: 0;
-         padding: 0;
-     }
-
-     html {
-         scroll-behavior: smooth;
-     }
-
-     body {
-         background: var(--bg);
-         font-family: 'Outfit', sans-serif;
-         color: var(--text);
-         display: flex;
-         flex-direction: column;
-         align-items: center;
-         min-height: 100vh;
-         padding: 1rem; /* Add padding around the body */
-     }
-
-     /* --- Main Container & Tabs --- */
-     .tab-bar {
-         display: flex;
-         width: 100%;
-         max-width: 820px;
-         border-top-left-radius: var(--radius);
-         border-top-right-radius: var(--radius);
-         overflow: hidden;
-         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-         margin-top: 1rem; /* Reduced top margin */
-     }
-
-     .tab-button {
-         flex: 1;
-         padding: 1rem;
-         font-weight: 600;
-         font-size: 1rem;
-         border: none;
-         border-bottom: 3px solid transparent; /* Bottom border for active state */
-         cursor: pointer;
-         transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-         background: var(--tab-inactive-bg);
-         color: var(--tab-inactive-text);
-         text-align: center;
-     }
-
-     .tab-button.active {
-         background: var(--surface); /* Match container background */
-         color: var(--accent);
-         border-bottom: 3px solid var(--accent);
-         z-index: 1;
-     }
-
-     .tab-button:not(.active):hover {
-          background: var(--tab-inactive-hover-bg);
-          color: var(--tab-inactive-hover-text);
-     }
-
-     /* Style for disabled/coming soon tabs */
-     .tab-button.secondary-tab {
-          position: relative;
-          color: #666; /* Darker grey */
-          cursor: not-allowed;
-          background: #222; /* Darker background */
-     }
-     .tab-button.secondary-tab::after {
-          content: "Coming Soon";
-          position: absolute;
-          bottom: 5px;
-          left: 50%;
-          transform: translateX(-50%);
-          font-size: 0.7rem;
-          color: #555;
-     }
-     .tab-button.secondary-tab:hover {
-          background: #222; /* No hover effect */
-          color: #666;
-     }
-
-
-     .container {
-         width: 100%;
-         max-width: 820px;
-         background: var(--surface);
-         border-radius: var(--radius);
-         padding: 2rem 1.5rem; /* Adjusted padding */
-         box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-         display: flex;
-         flex-direction: column;
-         gap: 1.5rem;
-         position: relative;
-         margin-top: 0; /* Remove margin connecting to tabs */
-         border: 1px solid var(--border-color); /* Optional border */
-         border-top-left-radius: 0;  /* Connect to tabs */
-         border-top-right-radius: 0; /* Connect to tabs */
-     }
-
-     /* --- Headings --- */
-     h1 {
-         font-size: clamp(1.8rem, 5vw, 2.6rem); /* Responsive font size */
-         color: var(--accent);
-         text-align: center;
-         margin-bottom: 1rem;
-         padding-top: 1rem; /* Reduced padding */
-     }
-
-     h2 {
-         font-size: clamp(1.3rem, 4vw, 1.6rem);
-         color: var(--text);
-         margin-bottom: 1rem;
-         border-bottom: 1px solid var(--border-color);
-         padding-bottom: 0.5rem;
-     }
-
-     /* --- Forms & Inputs --- */
-     label {
-         font-weight: 600;
-         margin-bottom: 0.5rem;
-         display: block;
-         font-size: 0.95rem;
-         color: var(--text-muted);
-     }
-
-     input[type="email"],
-     input[type="password"],
-     input[type="text"],
-     textarea {
-         width: 100%;
-         padding: 0.9rem 1rem;
-         font-size: 1rem;
-         background: var(--input-bg);
-         border: 1px solid var(--border-color);
-         border-radius: calc(var(--radius) / 2); /* Slightly smaller radius */
-         color: var(--text);
-         transition: border-color 0.2s, box-shadow 0.2s;
-         margin-bottom: 1rem;
-         font-family: inherit; /* Ensure consistent font */
-     }
-
-     input:focus, textarea:focus {
-         outline: none;
-         border-color: var(--accent);
-         box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.3); /* Focus ring */
-     }
-
-     textarea {
-         resize: vertical; /* Allow vertical resize */
-         min-height: 80px;
-     }
-
-     /* --- Buttons --- */
-     button {
-         background: var(--accent);
-         color: #0e0d11; /* Dark text on accent */
-         padding: 0.8rem 1.2rem; /* Adjusted padding */
-         border: none;
-         border-radius: calc(var(--radius) / 2);
-         font-size: 1rem;
-         font-weight: 600;
-         cursor: pointer;
-         transition: background-color 0.2s, opacity 0.2s, transform 0.1s;
-         display: inline-flex; /* Align icon and text */
-         align-items: center;
-         justify-content: center;
-         gap: 0.5rem; /* Space between icon and text if needed */
-     }
-
-     button:hover {
-         background: var(--accent-hover);
-         transform: translateY(-1px); /* Subtle lift */
-     }
-
-     button:disabled {
-         opacity: 0.6;
-         cursor: not-allowed;
-         background: var(--accent); /* Keep base color */
-         transform: none; /* No lift when disabled */
-     }
-     button:disabled:hover {
-          background: var(--accent); /* Prevent hover color change */
-     }
-
-     /* Secondary Button Style */
-     .secondary-button {
-         background: transparent;
-         color: var(--accent);
-         border: 1px solid var(--accent);
-     }
-     .secondary-button:hover {
-         background: rgba(167, 139, 250, 0.1); /* Subtle background on hover */
-         color: var(--accent-hover);
-         border-color: var(--accent-hover);
-     }
-     .secondary-button:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-          background: transparent;
-          color: var(--accent);
-          border-color: var(--accent);
+    /* Animation keyframes */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
       }
-     .secondary-button:disabled:hover {
-          background: transparent;
-          color: var(--accent);
-          border-color: var(--accent);
+      to {
+        opacity: 1;
+        transform: translateY(0);
       }
-
-     /* Buy Credits Button Style (Base) */
-     .buy-credits-button {
-          background: var(--buy-button);
-          color: var(--bg); /* Dark text on green */
-     }
-     .buy-credits-button:hover {
-         background: var(--buy-button-hover);
-     }
-
-     /* Specific style for header buy button */
-     .header-buy-button {
-         padding: 0.4rem 0.8rem; /* Smaller padding */
-         font-size: 0.85rem; /* Smaller font */
-         margin-left: 0.5rem; /* Add some space from credits */
-     }
-
-
-     /* Logout Button Style */
-     #logout-button {
-         background: var(--logout);
-         color: var(--bg); /* Dark text on red */
-         padding: 0.5rem 0.8rem;
-         font-size: 0.85rem;
-     }
-     #logout-button:hover {
-         background: var(--logout-hover);
-     }
-
-     /* --- User Info & Status --- */
-     /* Status message base style (used by auth and purchase) */
-     #auth-status, #purchase-status {
-         font-size: 0.9rem;
-         color: var(--text-muted);
-         min-height: 1.2em; /* Reserve space */
-         text-align: center;
-         margin-top: 0.5rem;
-         width: 100%; /* Ensure it takes width in flex column */
-     }
-     #auth-status.error, #purchase-status.error { color: var(--error-color); }
-     #auth-status.success, #purchase-status.success { color: var(--success-color); }
-     #auth-status.warning, #purchase-status.warning { color: var(--warning-color); }
-
-     /* Style for purchase status in header */
-     .header-purchase-status {
-         font-size: 0.8rem; /* Smaller font */
-         margin-top: 0.3rem; /* Space below button */
-         text-align: center; /* Center text */
-         min-height: 1em; /* Reserve space */
-         width: 100%; /* Take width within its flex item */
-         margin-left: 0;
-         margin-right: 0;
-     }
-
-
-     /* Adjusted user info container */
-     .user-info-container {
-         display: flex;
-         flex-wrap: wrap; /* Allow wrapping on small screens */
-         justify-content: space-between; /* Space out items */
-         align-items: center; /* Vertically center items */
-         gap: 1rem; /* Space between items */
-         padding: 0.75rem 0; /* Adjusted padding */
-         border-bottom: 1px solid var(--border-color);
-         margin-bottom: 1.5rem;
-     }
-
-     .credits-display, .user-info-display {
-         font-size: 0.9rem;
-         color: var(--text-muted);
-         background-color: rgba(0,0,0, 0.2);
-         padding: 0.3rem 0.7rem;
-         border-radius: calc(var(--radius) / 3);
-         white-space: nowrap; /* Prevent wrapping */
-         display: inline-flex; /* Use flex to align text */
-         align-items: center;
-     }
-     .credits-display strong { color: var(--accent); font-weight: 700; }
-     .user-info-display span { color: var(--text); font-weight: 600; }
-
-     /* Wrapper for purchase controls in header */
-     .purchase-controls {
-         display: flex; /* Use flex for button and status */
-         flex-direction: column; /* Stack button and status */
-         align-items: center; /* Center items horizontally */
-     }
-
-
-     /* --- Results & History --- */
-     #result h2 { /* Style for the heading above the grid */
-          width: 100%;
-          text-align: center;
-          margin-bottom: 1.5rem;
-          color: var(--accent);
-          border-bottom: none; /* Remove border for this specific h2 */
-          padding-bottom: 0;
-     }
-     #result {
-         margin-top: 1.5rem;
-         padding-top: 1.5rem;
-         border-top: 1px solid var(--border-color);
-     }
-
-     .thumbnail-results-grid {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-          gap: 1.5rem;
-          margin-top: 1rem;
-          width: 100%;
-     }
-
-     .thumbnail-item {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          background-color: var(--card-bg); /* Use card background */
-          padding: 1rem;
-          border-radius: var(--radius);
-          border: 1px solid var(--border-color);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-     }
-
-     .thumbnail-item img {
-          max-width: 100%;
-          height: auto;
-          aspect-ratio: 16 / 9; /* Maintain aspect ratio */
-          object-fit: cover; /* Cover the area */
-          border-radius: calc(var(--radius) / 2);
-          margin-bottom: 1rem;
-          background-color: #333; /* Placeholder bg */
-          cursor: pointer; /* Indicate clickable for modal */
-     }
-
-     .thumbnail-item button {
-          width: 100%; /* Make button full width */
-          margin-top: auto; /* Push button to bottom if needed */
-          padding: 0.6rem 1rem; /* Smaller padding */
-          font-size: 0.9rem;
-     }
-
-     /* Prompt text display */
-     .prompt-text {
-         background: var(--input-bg);
-         padding: 1rem;
-         border-radius: calc(var(--radius) / 2);
-         margin-top: 1.5rem; /* Space above */
-         font-size: 0.9rem;
-         line-height: 1.5;
-         color: var(--text-muted);
-         border: 1px solid var(--border-color);
-         width: 100%; /* Take full width */
-     }
-     .prompt-text strong { color: var(--text); }
-
-
-     /* History Card Styling */
-     #history h2 {
-          text-align: center;
-          color: var(--accent);
-          margin-bottom: 1.5rem;
-     }
-     #history .card {
-         background: var(--card-bg);
-         padding: 1rem; /* Slightly less padding */
-         border-radius: var(--radius);
-         margin-bottom: 1.5rem;
-         border: 1px solid var(--border-color);
-         box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-     }
-     #history .card img {
-          max-width: 100%;
-          height: auto;
-          aspect-ratio: 16 / 9;
-          object-fit: cover;
-          border-radius: calc(var(--radius) / 2);
-          display: block;
-          margin-bottom: 1rem;
-          background-color: #333; /* Placeholder bg */
-          cursor: pointer; /* Add cursor for modal */
-     }
-     #history .card p {
-         margin: 0.4rem 0;
-         font-size: 0.9rem;
-         color: var(--text-muted);
-         word-wrap: break-word; /* Allow long prompts/titles to wrap */
-     }
-     #history .card p strong {
-          color: var(--text);
-          font-weight: 600;
-     }
-     #history .card p:last-child { /* Style for timestamp */
-          font-size: 0.75em;
-          color: #888;
-          margin-top: 0.8rem;
-     }
-     #history .card button { /* Style download button in history */
-          padding: 0.5rem 1rem;
-          font-size: 0.9rem;
-          margin-bottom: 1rem;
-          width: auto; /* Don't force full width */
-     }
-      /* Loading/Empty History Message */
-      #history p:only-child {
-           color: var(--text-muted);
-           text-align: center;
-           padding: 2rem 0;
-           font-style: italic;
-       }
-      /* End of History Message */
-      .no-more-history {
-           text-align:center;
-           color: var(--text-muted);
-           margin-top:1rem;
-           font-style: italic;
-           font-size: 0.9em;
-       }
-
-
-     /* --- Other Sections (How-it-works) --- */
-     #how-it-works-section {
-         text-align: center;
-         border-top: 1px solid var(--border-color);
-         margin-top: 2rem; /* Restore margin */
-         padding-top: 1.5rem; /* Restore padding */
-         width: 100%;
-     }
-     #how-it-works-section h2 { color: var(--accent); border-bottom: none; margin-bottom: 2rem; }
-     .steps-container { display: block; text-align: left; }
-     .step-card {
-         width: 100%;
-         margin-bottom: 1.5rem;
-         background: var(--input-bg);
-         padding: 1.5rem;
-         border-radius: var(--radius);
-         border: 1px solid var(--border-color);
-         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-         display: flex;
-         flex-direction: column;
-     }
-     .step-card .step-number { font-size: 1.5rem; font-weight: 700; color: var(--accent); margin-bottom: 0.5rem; }
-     .step-card h3 { margin: 0 0 1rem 0; font-size: 1.2rem; font-weight: 600; color: var(--text); }
-     .step-card img { max-width: 100%; height: auto; border-radius: calc(var(--radius) / 2); margin-bottom: 1rem; border: 1px solid var(--border-color); }
-     .step-card p { font-size: 1rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 0; }
-     #how-it-works-section button { margin-top: 1.5rem; background: var(--accent-hover); color: var(--bg); }
-
-     /* --- Utility & Feedback Styles --- */
-     #credit-warning {
-          color: var(--warning-color);
-          font-size: 0.9em;
-          margin-top: 0.8em;
-          padding: 0.5rem;
-          background-color: rgba(251, 191, 36, 0.1);
-          border: 1px solid var(--warning-color);
-          border-radius: calc(var(--radius) / 3);
-          text-align: center;
-     }
-     #credit-warning a {
-          color: var(--accent);
-          text-decoration: underline;
-          font-weight: bold;
-          margin-left: 0.5em;
+    }
+    
+    .animate-fade-in-up {
+      opacity: 0;
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    /* Adjust animation delay for sections */
+    .animate-scroll-trigger {
+      opacity: 0;
+    }
+    
+    .animate-scroll-trigger.animated {
+      animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    /* Glass effect */
+    .glass {
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+  </style>
+  
+  <script>
+    // Configure Tailwind
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#a78bfa',
+            dark: '#0e0d11',
+            surface: '#1c1a23',
+          }
+        }
       }
-     #credit-warning a:hover { color: var(--accent-hover); }
-
-     .download-error-message {
-          color: var(--warning-color);
-          font-size: 0.85em;
-          margin-top: 0.5rem;
-     }
-
-     /* --- Added for AI Badge & How-it-works Intro --- */
-     .ai-badge { /* Renamed from openai-badge */
-         font-size: 0.8rem;
-         color: var(--text-muted);
-         text-align: center;
-         margin-top: 0.5rem; /* Adjust as needed */
-         margin-bottom: 2rem; /* Space before How it Works */
-     }
-     .how-it-works-intro {
-         font-size: 0.95rem;
-         color: var(--text-muted);
-         margin-bottom: 1.5rem; /* Space before the steps */
-         text-align: center;
-         max-width: 600px; /* Optional: constrain width */
-         margin-left: auto; /* Center if max-width is set */
-         margin-right: auto; /* Center if max-width is set */
-     }
-
-     /* --- NEW Styles for Prompt Option Buttons --- */
-     #prompt-options-container {
-         margin-top: 1rem; /* Space below niche input */
-         margin-bottom: 1.5rem; /* Space above suggest button */
-         display: flex;
-         flex-wrap: wrap; /* Allow buttons to wrap */
-         gap: 0.5rem; /* Space between buttons */
-         align-items: center; /* Align items vertically */
-     }
-     #prompt-options-container label {
-         margin-bottom: 0; /* Remove bottom margin for the label */
-         margin-right: 0.5rem; /* Space after label */
-         font-size: 0.95rem; /* Match other labels */
-         color: var(--text-muted);
-         font-weight: 600;
-     }
-     .option-button {
-         padding: 0.4rem 0.8rem; /* Smaller padding */
-         font-size: 0.85rem; /* Smaller font */
-         background-color: var(--option-bg); /* Light gray */
-         color: var(--option-text);
-         border: 1px solid transparent; /* Add border for structure */
-         border-radius: calc(var(--radius) / 2.5); /* Slightly smaller radius */
-         cursor: pointer;
-         transition: background-color 0.2s, border-color 0.2s, transform 0.1s;
-         /* Override general button styles if needed */
-         font-weight: normal;
-         display: inline-flex; /* Keep inline-flex */
-         align-items: center;
-         justify-content: center;
-         gap: 0; /* Remove gap */
-     }
-     .option-button:hover {
-         background-color: var(--option-bg-hover);
-         border-color: var(--border-color);
-         transform: none; /* No lift on hover */
-     }
-     .option-button.active {
-         background-color: var(--option-bg-active); /* Darker gray */
-         border-color: var(--accent); /* Highlight border when active */
-         color: var(--text);
-         font-weight: 600; /* Make active text bolder */
-         box-shadow: inset 0 1px 2px rgba(0,0,0,0.2); /* Subtle inner shadow */
-     }
-     /* --- End of New Styles --- */
-
-
-     /* --- Responsive Adjustments --- */
-     @media (max-width: 600px) {
-          body { padding: 0.5rem; }
-          .container { padding: 1.5rem 1rem; }
-          h1 { padding-top: 1rem; }
-          .tab-button { font-size: 0.9rem; padding: 0.8rem 0.5rem; }
-          .tab-button.secondary-tab::after { font-size: 0.6rem; }
-
-          /* Responsive header bar */
-          .user-info-container {
-               flex-direction: column; /* Stack items vertically */
-               align-items: stretch; /* Stretch items full width */
-               padding-bottom: 1rem; /* Add padding below */
-          }
-          .user-info-container > div, /* Target direct div children (includes wrapper and user-info) */
-          .user-info-container > button#logout-button { /* Target logout button */
-              text-align: center;
-              width: 100%; /* Make items full width */
-              margin-bottom: 0.5rem; /* Add space between stacked items */
-          }
-          .credits-display, .user-info-display {
-              justify-content: center; /* Center text within display boxes */
-          }
-          .purchase-controls {
-              width: auto;
-              margin-bottom: 0;
-              text-align: center; /* Keep center alignment */
-          }
-          #logout-button {
-              order: 2; /* Move logout to the bottom */
-              margin-top: 0.5rem; /* Add space above logout */
-              margin-bottom: 0; /* Remove bottom margin */
-              width: 100%; /* Ensure full width */
-          }
-          .header-buy-button {
-              width: auto; /* Allow button to size naturally */
-              margin-left: 0; /* Remove left margin */
-          }
-          /* Target the wrapper specifically for order */
-          .user-info-container > div:has(#credits-container) { /* Target the wrapper */
-             order: 1;
-             align-items: center; /* Center content inside wrapper */
-          }
-          .user-info-display {
-             order: 0; /* Ensure user info comes before wrapper */
-          }
-
-
-          button { padding: 0.8rem 1rem; font-size: 0.95rem; }
-
-          #how-it-works-section { padding: 1.5rem 1rem; margin-top: 1rem; }
-          #how-it-works-section h2 { font-size: 1.4rem; margin-bottom: 1.5rem;}
-          .step-card h3 { font-size: 1.1rem; }
-          .step-card p { font-size: 0.95rem; }
-
-          /* Added for AI Badge & How-it-works Intro (Responsive) */
-          .ai-badge {
-              margin-bottom: 1.5rem; /* Adjust spacing */
-          }
-          .how-it-works-intro {
-              margin-bottom: 1rem; /* Adjust spacing */
-          }
-
-          /* Responsive option buttons */
-          #prompt-options-container {
-              gap: 0.4rem; /* Slightly smaller gap */
-          }
-          .option-button {
-              padding: 0.3rem 0.6rem;
-              font-size: 0.8rem;
-          }
-     }
-
-     /* --- simple image modal (added) --- */
-     #img-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);display:none;
-          align-items:center;justify-content:center;z-index:9999}
-     #img-modal img{max-width:90vw;max-height:90vh;border-radius:12px}
-
-    </style>
+    }
+  </script>
 </head>
 <body>
+  <!-- Hero section -->
+  <header class="relative min-h-screen flex flex-col justify-center items-center px-4 pt-20 pb-24 overflow-hidden animate-fade-in-up">
+    <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-[#0e0d11] to-transparent h-20"></div>
+    <div class="absolute inset-0 z-0">
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#a78bfa]/20 rounded-full filter blur-[80px]"></div>
+      <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#a78bfa]/20 rounded-full filter blur-[80px]"></div>
+    </div>
+    
+    <div class="relative z-10 container mx-auto text-center max-w-3xl">
+      <!-- Logo -->
+      <div class="flex items-center justify-center mb-6">
+        <div class="bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] p-3 rounded-xl">
+          <!-- Sparkles icon inline SVG -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-white">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+            <path d="M5 3v4"></path>
+            <path d="M19 17v4"></path>
+            <path d="M3 5h4"></path>
+            <path d="M17 19h4"></path>
+          </svg>
+        </div>
+        <h1 class="text-3xl font-bold ml-3">AI Thumbnail Copilot</h1>
+      </div>
+      
+      <!-- Value Proposition -->
+      <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#a78bfa]">
+        Generate scroll-stopping YouTube thumbnails in seconds.
+      </h2>
+      
+      <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
+        Boost your click-through rates with AI-powered thumbnails designed to capture attention and drive views.
+      </p>
+      
+      <!-- CTA Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <a 
+          href="/app/" 
+          class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-white"
+        >
+          Sign up / Log in
+        </a>
+        <a 
+          href="#demo"
+          class="w-full sm:w-auto px-8 py-4 bg-[#1c1a23] border border-[#a78bfa]/30 rounded-lg font-bold hover:bg-[#a78bfa]/10 transition-all"
+        >
+          Watch demo
+        </a>
+      </div>
+    </div>
+    
+    <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0e0d11] to-transparent"></div>
+  </header>
 
- <div class="tab-bar">
-     <button id="tab-prompt-gen" class="tab-button active">Image Generation</button>
-     <button id="tab-png-dump" class="tab-button secondary-tab">Bulk Tools</button>
- </div>
+  <!-- Social Proof Bar -->
+  <section class="py-10 bg-[#1c1a23]/50 border-y border-[#a78bfa]/10 animate-scroll-trigger">
+    <div class="container mx-auto px-4">
+      <p class="text-center text-gray-400 text-sm mb-6">TRUSTED BY 1,000+ CREATORS</p>
+      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16">
+        <!-- Social proof logos/text - using text for now -->
+        <div class="text-gray-300 font-medium">CreatorStudio</div>
+        <div class="text-gray-300 font-medium">YTAcademy</div>
+        <div class="text-gray-300 font-medium">VideoProHub</div>
+        <div class="text-gray-300 font-medium">ContentMakers</div>
+      </div>
+    </div>
+  </section>
 
- <div class="container">
-     <h1>✨ AI Thumbnail Copilot</h1>
+  <!-- Feature Trio -->
+  <section class="py-20 px-4 animate-scroll-trigger">
+    <div class="container mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">Why creators love our AI</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <!-- Feature 1 -->
+        <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
+          <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
+            <!-- Sparkles icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+              <path d="M5 3v4"></path>
+              <path d="M19 17v4"></path>
+              <path d="M3 5h4"></path>
+              <path d="M17 19h4"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold mb-2">Instant AI Prompting</h3>
+          <p class="text-gray-400">Generate perfect thumbnails from your video title with a single click. No more guesswork.</p>
+        </div>
+        
+        <!-- Feature 2 -->
+        <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
+          <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
+            <!-- TrendingUp icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+              <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+              <polyline points="16 7 22 7 22 13"></polyline>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold mb-2">2× Click-through rate*</h3>
+          <p class="text-gray-400">Users report doubling their CTR after switching to our AI-generated thumbnails.</p>
+        </div>
+        
+        <!-- Feature 3 -->
+        <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
+          <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
+            <!-- Palette icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+              <circle cx="13.5" cy="6.5" r="0.5"></circle>
+              <circle cx="17.5" cy="10.5" r="0.5"></circle>
+              <circle cx="8.5" cy="7.5" r="0.5"></circle>
+              <circle cx="6.5" cy="12.5" r="0.5"></circle>
+              <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold mb-2">No design skills needed</h3>
+          <p class="text-gray-400">Let AI handle the design work. Download ready-to-use thumbnails in seconds.</p>
+        </div>
+      </div>
+      
+      <p class="text-xs text-gray-500 text-center mt-6">*Based on average user-reported results</p>
+    </div>
+  </section>
 
-     <div id="auth">
-         <h2>Login or Sign up</h2>
-         <p id="signup-encouragement" style="color: var(--accent); text-align: center; margin-bottom: 1.5rem; font-size: 1.05rem;">
-              ✨ New here? Sign up to get <strong>10 free credits</strong> and start creating amazing thumbnails! ✨
-         </p>
-         <label for="auth-email">Email</label>
-         <input type="email" id="auth-email" placeholder="you@example.com" required />
-         <label for="auth-password">Password</label>
-         <input type="password" id="auth-password" placeholder="••••••••" required />
-         <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
-              <button onclick="login()" style="flex: 1;">Log In</button>
-              <button class="secondary-button" onclick="signup()" style="flex: 1;">Sign Up</button>
-         </div>
-         <p id="auth-status"></p>
-     </div>
+  <!-- Example Thumbnails Section -->
+  <section id="demo" class="py-20 px-4 bg-gradient-to-b from-[#0e0d11] to-[#1c1a23]/50 animate-scroll-trigger">
+    <div class="container mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-6">See it in action</h2>
+      <p class="text-center text-gray-400 max-w-2xl mx-auto mb-16">
+        Our AI creates eye-catching thumbnails that drive more clicks and views for your videos.
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Example thumbnails -->
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img 
+            src="https://placehold.co/512x288?text=Example+1" 
+            alt="Thumbnail example 1"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <!-- Plus icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img 
+            src="https://placehold.co/512x288?text=Example+2" 
+            alt="Thumbnail example 2"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <!-- Plus icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+        
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img 
+            src="https://placehold.co/512x288?text=Example+3" 
+            alt="Thumbnail example 3"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <!-- Plus icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-     <div id="main-app-content" style="display: none; width: 100%;">
+  <!-- Step by Step Section -->
+  <section class="py-20 px-4 animate-scroll-trigger">
+    <div class="container mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-6">How it works</h2>
+      <p class="text-center text-gray-400 max-w-2xl mx-auto mb-16">
+        Create click-worthy thumbnails in three simple steps
+      </p>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+        <!-- Step 1 -->
+        <div class="relative">
+          <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
+            <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
+            <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
+              <!-- MousePointer icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+                <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Enter title & niche</h3>
+            <p class="text-gray-400">
+              Just input your video title and select your content niche to get started.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="relative">
+          <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
+            <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
+            <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
+              <!-- Edit icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Edit suggested prompt</h3>
+            <p class="text-gray-400">
+              Optionally refine the AI-generated prompt to customize your results.
+            </p>
+          </div>
+        </div>
+        
+        <!-- Step 3 -->
+        <div class="relative">
+          <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
+            <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
+            <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
+              <!-- Download icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </div>
+            <h3 class="text-xl font-bold mb-2">Get ready thumbnails</h3>
+            <p class="text-gray-400">
+              Receive two download-ready thumbnails optimized for maximum CTR.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-         <div class="user-info-container">
-             <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.5rem;">
-                 <div id="credits-container" class="credits-display" style="display: none;">
-                     Credits: <strong id="credits-display">--</strong>
-                 </div>
-                 <div class="purchase-controls" style="display: none;">
-                     <button class="buy-credits-button header-buy-button" data-price-id="price_1RIwfTFj9LYfI1R0gVPq3kRS"> Buy 50 Credits (€9.99) </button>
-                     <p id="purchase-status" class="header-purchase-status"></p>
-                 </div>
-             </div>
-             <div id="user-info-display" class="user-info-display" style="display: none;">
-                 User: <span id="user-email-display"></span>
-             </div>
-             <button id="logout-button" onclick="logout()">Log Out</button>
-         </div>
+  <!-- Pricing Teaser -->
+  <section class="py-20 px-4 bg-[#1c1a23]/50 animate-scroll-trigger">
+    <div class="container mx-auto max-w-lg">
+      <div class="bg-[#1c1a23] rounded-xl p-8 border border-[#a78bfa]/20 relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 bg-[#a78bfa] w-40 h-40 rounded-full opacity-10"></div>
+        
+        <h2 class="text-3xl font-bold mb-8 text-center">Simple pricing</h2>
+        
+        <!-- Free Credits Badge -->
+        <div class="bg-[#a78bfa]/10 border border-[#a78bfa]/20 rounded-full py-2 px-4 inline-flex items-center mx-auto mb-6 text-sm font-medium text-[#a78bfa]">
+          <!-- Star icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          10 free credits on sign-up
+        </div>
+        
+        <div class="bg-gradient-to-br from-[#1c1a23] to-[#2a2635] p-6 rounded-lg border border-[#a78bfa]/10 mb-8">
+          <div class="flex justify-between items-center mb-4">
+            <div>
+              <h3 class="text-xl font-bold">50 credits</h3>
+              <p class="text-gray-400 text-sm">Generate 50 thumbnails</p>
+            </div>
+            <div class="text-2xl font-bold">€15</div>
+          </div>
+          <div class="h-px bg-[#a78bfa]/10 my-4"></div>
+          <p class="text-sm text-gray-400 mb-2">
+            ✓ High-resolution outputs
+          </p>
+          <p class="text-sm text-gray-400 mb-2">
+            ✓ Commercial usage rights
+          </p>
+          <p class="text-sm text-gray-400">
+            ✓ Custom prompt editing
+          </p>
+        </div>
+        
+        <a 
+          href="/app/" 
+          class="block w-full py-3 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-center text-white"
+        >
+          Get started
+        </a>
+      </div>
+    </div>
+  </section>
 
-         <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
-             <form id="thumbnailForm">
-                 <label for="title">Video Title</label>
-                 <input type="text" id="title" placeholder="e.g. How I Got 1M Views From Shorts" required />
-                 <label for="niche">Channel Niche / Video Topic</label>
-                 <input type="text" id="niche" placeholder="e.g. Tech Reviews, Travel Vlogs, Cooking Tutorials" required />
+  <!-- FAQ Section -->
+  <section class="py-20 px-4 animate-scroll-trigger">
+    <div class="container mx-auto max-w-3xl">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">Frequently asked questions</h2>
+      
+      <div class="space-y-4">
+        <!-- FAQ Item 1 -->
+        <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
+          <button
+            class="flex justify-between items-center w-full p-6 text-left faq-toggle"
+            aria-expanded="false"
+            aria-controls="faq-answer-1"
+            data-faq="1"
+          >
+            <h3 class="text-lg font-medium">How do AI-generated thumbnails improve CTR?</h3>
+            <!-- ChevronDown icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq-answer-1"
+            class="px-6 pb-6 text-gray-400 hidden faq-content"
+          >
+            Our AI analyzes millions of successful YouTube thumbnails to create designs that trigger curiosity and emotional response. Users report an average 2× increase in click-through rates compared to their previous thumbnails.
+          </div>
+        </div>
+        
+        <!-- FAQ Item 2 -->
+        <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
+          <button
+            class="flex justify-between items-center w-full p-6 text-left faq-toggle"
+            aria-expanded="false"
+            aria-controls="faq-answer-2"
+            data-faq="2"
+          >
+            <h3 class="text-lg font-medium">Do I need design experience to use this tool?</h3>
+            <!-- ChevronDown icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq-answer-2"
+            class="px-6 pb-6 text-gray-400 hidden faq-content"
+          >
+            Not at all! The AI handles all the design work. Just enter your video title and niche, then choose from generated options. You can download ready-to-use thumbnails without any design skills.
+          </div>
+        </div>
+        
+        <!-- FAQ Item 3 -->
+        <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
+          <button
+            class="flex justify-between items-center w-full p-6 text-left faq-toggle"
+            aria-expanded="false"
+            aria-controls="faq-answer-3"
+            data-faq="3"
+          >
+            <h3 class="text-lg font-medium">How many credits do I need per thumbnail?</h3>
+            <!-- ChevronDown icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq-answer-3"
+            class="px-6 pb-6 text-gray-400 hidden faq-content"
+          >
+            Each generation costs 1 credit and provides 2 thumbnail options. New accounts start with 10 free credits, and you can purchase additional credit packs starting at €15 for 50 credits.
+          </div>
+        </div>
+        
+        <!-- FAQ Item 4 -->
+        <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
+          <button
+            class="flex justify-between items-center w-full p-6 text-left faq-toggle"
+            aria-expanded="false"
+            aria-controls="faq-answer-4"
+            data-faq="4"
+          >
+            <h3 class="text-lg font-medium">Can I customize the generated thumbnails?</h3>
+            <!-- ChevronDown icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+          
+          <div 
+            id="faq-answer-4"
+            class="px-6 pb-6 text-gray-400 hidden faq-content"
+          >
+            Yes! While the AI creates high-converting designs automatically, you can influence the outcome by editing the prompt. For further customization, download the thumbnail and make additional edits in your preferred image editor.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-                 <div id="prompt-options-container">
-                    <label>Special requests:</label>
-                    <button type="button" class="option-button">no text</button>
-                    <button type="button" class="option-button">no humans</button>
-                    <button type="button" class="option-button">cartoon style</button>
-                    <button type="button" class="option-button">photorealistic</button>
-                    <button type="button" class="option-button">pixel art</button>
-                    <button type="button" class="option-button">3d render</button>
-                    <button type="button" class="option-button">oil painting</button>
-                    <button type="button" class="option-button">watercolor</button>
-                    <button type="button" class="option-button">retro</button>
-                    <button type="button" class="option-button">bright and cheerful</button>
-                    <button type="button" class="option-button">dark and mysterious</button>
-                 </div>
-                 <div style="margin-top: 1rem; text-align: center;"> <button type="submit" id="generate-prompt-button">Suggest Prompt Idea</button>
-                 </div>
-             </form>
+  <!-- Final CTA Banner -->
+  <section class="py-20 px-4 animate-scroll-trigger">
+    <div class="container mx-auto max-w-4xl">
+      <div class="bg-gradient-to-r from-[#a78bfa]/20 to-[#9b87f5]/20 rounded-xl p-8 md:p-12 text-center relative overflow-hidden">
+        <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMDUiIG51bU9jdGF2ZXM9IjIiIHN0aXRjaFRpbGVzPSJzdGl0Y2giIC8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-50"></div>
+        
+        <div class="relative z-10">
+          <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to level-up your thumbnails?</h2>
+          <p class="text-lg text-gray-300 mb-8 max-w-xl mx-auto">
+            Join thousands of creators who are boosting their CTR and growing their channels with AI-powered thumbnails.
+          </p>
+          
+          <a 
+            href="https://ai-thumbnail-copilot.vercel.app" 
+            class="inline-block px-8 py-4 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-white"
+          >
+            Get started for free
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-             <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
-                 <label for="custom-prompt">Edit AI Prompt Suggestion (or enter your own)</label>
-                 <textarea id="custom-prompt" rows="4" placeholder="Describe the thumbnail you want the AI to create..."></textarea>
-                 <button onclick="confirmPrompt()" id="confirm-prompt-button" style="margin-top: 0.5rem; width: 100%;">Generate 2 Thumbnails (Cost: 2 Credits)</button>
-                 <p id="credit-warning" style="display: none;"></p>
-             </div>
+  <!-- Footer -->
+  <footer class="py-12 px-4 border-t border-[#a78bfa]/10">
+    <div class="container mx-auto">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-6 md:mb-0">
+          <div class="flex items-center justify-center md:justify-start">
+            <div class="bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] p-2 rounded-lg">
+              <!-- Sparkles icon -->
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-white">
+                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
+                <path d="M5 3v4"></path>
+                <path d="M19 17v4"></path>
+                <path d="M3 5h4"></path>
+                <path d="M17 19h4"></path>
+              </svg>
+            </div>
+            <p class="ml-2 font-bold">AI Thumbnail Copilot</p>
+          </div>
+          <p class="text-sm text-gray-500 mt-2">© 2025 AI Thumbnail Copilot</p>
+        </div>
+        
+        <div class="flex gap-6">
+          <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Terms</a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Privacy</a>
+          <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
-             <div id="result">
-                 </div>
-
-             <div style="margin-top: 2rem; text-align: center;">
-                 <button id="history-button" onclick="fetchHistory()" class="secondary-button">Show My History</button>
-             </div>
-
-             <div id="history" style="display: none; margin-top: 1rem;">
-                 </div>
-             <div id="history-load-more-container" style="text-align: center; margin-top: 1rem; display: none;">
-                 <button id="history-load-more-button" class="secondary-button">Load More History</button>
-             </div>
-
-         </div> <div id="png-dump-content" style="display: none; width: 100%; text-align: center; padding: 2rem 0;">
-             <h2>Bulk Tools</h2>
-             <p style="color: var(--text-muted);">This section is coming soon!</p>
-             </div>
-
-     </div> <p class="ai-badge">🚀 Powered by advanced AI image generation</p>
-
-     <div id="how-it-works-section">
-         <h2>Create Thumbnails in 3 Easy Steps</h2>
-         <p class="how-it-works-intro">
-             Our AI utilizes state-of-the-art models, renowned for delivering stunningly creative and high-quality visual results.
-         </p>
-         <div class="steps-container">
-             <div class="step-card">
-                 <span class="step-number">1.</span>
-                 <h3>Enter Video Details</h3>
-                 <img src="images/step1-input.png" alt="Screenshot of entering video title and niche" onerror="this.style.display='none'">
-                 <p>Provide your video title and niche/topic. Optionally, select special requests like style or content exclusions.</p> </div>
-             <div class="step-card">
-                 <span class="step-number">2.</span>
-                 <h3>Get Prompt Ideas</h3>
-                  <img src="images/step2-prompt.png" alt="Screenshot showing AI generated prompt" onerror="this.style.display='none'">
-                 <p>Click "Suggest Prompt Idea". Our AI suggests a visual prompt based on your input and requests. You can edit it or write your own from scratch.</p> </div>
-             <div class="step-card">
-                 <span class="step-number">3.</span>
-                 <h3>Generate Thumbnails</h3>
-                  <img src="images/step3-thumbnail.png" alt="Screenshot of a generated thumbnail" onerror="this.style.display='none'">
-                 <p>Click "Generate Thumbnails". The AI creates two unique, eye-catching options based on your final prompt!</p>
-             </div>
-         </div>
-         <button onclick="scrollToElement('auth')">
-              Sign Up Now & Get 10 Free Credits!
-         </button>
-     </div>
-
- </div> <div id="img-modal" onclick="this.style.display='none'">
-     <img src="" alt="preview"/>
- </div>
-
-
- <script>
-     // --- Configuration (Ensure these match your setup) ---
-     const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co"; // Your Supabase URL
-     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk"; // Your Supabase Anon Key
-     const BACKEND_URL = "https://ai-thumbnail-maker.onrender.com"; // Your Flask backend URL
-     const STRIPE_PUBLISHABLE_KEY = "pk_live_51RGO3VFj9LYfI1R0cQJetymluTuFJypOZ50kEaYzTNuyldVzHAp44DzqZWasbk5mBd2Rw0x5dXW4zAJxnPsP7SKK00aGiig0wu"; // Your Stripe Publishable Key
-
-     // --- Constants ---
-     const NUM_IMAGES_EXPECTED = 2;
-     const CREDIT_COST_PER_IMAGE = 1;
-     const TOTAL_GENERATION_COST = NUM_IMAGES_EXPECTED * CREDIT_COST_PER_IMAGE;
-     const HISTORY_ITEMS_PER_PAGE = 10;
-
-     // --- Initialization ---
-     let stripe = null;
-     try {
-          if (!STRIPE_PUBLISHABLE_KEY || STRIPE_PUBLISHABLE_KEY === "YOUR_STRIPE_PUBLISHABLE_KEY") {
-              throw new Error("Stripe Publishable Key is not configured.");
-          }
-          stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
-     } catch (e) {
-          console.error("Stripe initialization failed:", e);
-          const purchaseStatusElement = document.getElementById('purchase-status');
-          if (purchaseStatusElement) {
-               purchaseStatusElement.innerText = "Payment system error.";
-               purchaseStatusElement.className = 'error header-purchase-status'; // Add header class
-          }
-          const buyButtons = document.querySelectorAll('.buy-credits-button');
-          buyButtons.forEach(btn => btn.disabled = true);
-     }
-     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-     // --- Global state ---
-     let currentSession = null;
-     let currentUserCredits = null;
-     let currentHistoryPage = 1;
-     let totalHistoryItems = 0;
-     let isLoadingHistory = false;
-
-
-     // --- DOM Element References ---
-     const form = document.getElementById('thumbnailForm');
-     const resultDiv = document.getElementById('result');
-     const authDiv = document.getElementById('auth');
-     const authStatusP = document.getElementById('auth-status');
-     const mainAppContentDiv = document.getElementById('main-app-content');
-     const promptGenContentDiv = document.getElementById('prompt-gen-tab-content');
-     const pngDumpContentDiv = document.getElementById('png-dump-content');
-     const logoutButton = document.getElementById('logout-button');
-     const historyButton = document.getElementById('history-button');
-     const historyDiv = document.getElementById('history');
-     const promptPreviewDiv = document.getElementById('prompt-preview');
-     const creditsContainer = document.getElementById('credits-container');
-     const creditsDisplaySpan = document.getElementById('credits-display');
-     const generatePromptButton = document.getElementById('generate-prompt-button');
-     const confirmPromptButton = document.getElementById('confirm-prompt-button');
-     const creditWarningP = document.getElementById('credit-warning');
-     const userInfoDisplayDiv = document.getElementById('user-info-display');
-     const userEmailDisplaySpan = document.getElementById('user-email-display');
-     const purchaseStatusP = document.getElementById('purchase-status');
-     const loadMoreContainer = document.getElementById('history-load-more-container');
-     const loadMoreButton = document.getElementById('history-load-more-button');
-     const howItWorksSection = document.getElementById('how-it-works-section');
-     const purchaseControlsDiv = document.querySelector('.purchase-controls');
-     const userInfoContainer = document.querySelector('.user-info-container'); // Reference user info header
-     // --- NEW: Reference for options container ---
-     const optionsContainer = document.getElementById('prompt-options-container');
-
-
-     // --- Helper: Display Status Messages ---
-     function showStatus(element, message, type = 'info', duration = 0) {
-          if (!element) return;
-          const isPurchaseStatus = element.id === 'purchase-status';
-          element.innerText = message;
-          element.className = type + (isPurchaseStatus ? ' header-purchase-status' : '');
-          if (duration > 0) {
-              setTimeout(() => {
-                  if (element.innerText === message) {
-                      element.innerText = '';
-                      element.className = (isPurchaseStatus ? 'header-purchase-status' : '');
-                  }
-              }, duration);
-          }
-     }
-
-     // --- Purchase Button Event Listener (Attached to user info container) ---
-     if (userInfoContainer) {
-          userInfoContainer.addEventListener('click', async (event) => {
-              const button = event.target.closest('.buy-credits-button.header-buy-button');
-              if (button && stripe) {
-                  event.preventDefault();
-                  if (!currentSession) {
-                      showStatus(purchaseStatusP, "Please log in to purchase credits.", 'warning', 3000);
-                      return;
-                  }
-                  const priceId = button.dataset.priceId;
-                  if (!priceId || priceId === "YOUR_STRIPE_PRICE_ID_HERE") {
-                       console.error("Buy button missing or has placeholder data-price-id attribute.");
-                       showStatus(purchaseStatusP, "Error: Purchase option not configured.", 'error', 5000);
-                       return;
-                  }
-
-                  const originalButtonText = button.innerText;
-                  showStatus(purchaseStatusP, "Processing...", 'info');
-                  button.disabled = true;
-                  button.innerText = "Redirecting...";
-
-                  try {
-                      const token = currentSession.access_token;
-                      const res = await fetch(`${BACKEND_URL}/create-checkout-session`, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                          body: JSON.stringify({ priceId: priceId })
-                      });
-
-                      const responseBody = await res.text();
-                      let data;
-                      try { data = JSON.parse(responseBody); }
-                      catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
-
-                      if (!res.ok) { throw new Error(data.error || `Failed to start purchase (Status: ${res.status})`); }
-
-                      if (data.url) {
-                          window.location.href = data.url; // Redirect to Stripe
-                      } else {
-                          throw new Error("Could not get checkout URL from server.");
-                      }
-                  } catch (err) {
-                      console.error("Purchase initiation failed:", err);
-                      showStatus(purchaseStatusP, `Error: ${err.message}`, 'error', 5000);
-                      button.disabled = false;
-                      button.innerText = originalButtonText;
-                      if (err.message.includes("Authent")) {
-                           showStatus(authStatusP, "Authentication error. Please log in again.", 'error');
-                           await logout();
-                      }
-                  }
-              }
+  <!-- Lightbox -->
+  <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4">
+    <button 
+      id="close-lightbox"
+      class="absolute top-4 right-4 bg-white/10 p-2 rounded-full"
+    >
+      <!-- X icon -->
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+        <line x1="18" y1="6" x2="6" y2="18"></line>
+        <line x1="6" y1="6" x2="18" y2="18"></line>
+      </svg>
+    </button>
+    <img 
+      id="lightbox-image" 
+      src="" 
+      alt="Enlarged thumbnail" 
+      class="max-w-full max-h-[90vh] object-contain"
+    />
+  </div>
+  
+  <!-- Scripts -->
+  <script>
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href');
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop,
+            behavior: 'smooth'
           });
-     } else {
-          console.warn("User info container not found in DOM for purchase listener.");
-     }
-
-
-     // --- Utility to update Credit UI and Button States ---
-     function updateCreditState(credits) {
-          currentUserCredits = credits;
-
-          const creditsWrapper = creditsContainer ? creditsContainer.parentElement : null;
-
-          if (credits === 'loading') {
-                creditsDisplaySpan.innerText = '...';
-                if (creditsContainer) creditsContainer.style.display = 'inline-flex';
-                if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'flex';
-            } else if (credits !== null && typeof credits === 'number' && credits >= 0) {
-                creditsDisplaySpan.innerText = credits;
-                if (creditsContainer) creditsContainer.style.display = 'inline-flex';
-                if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'flex';
-            } else {
-                if (creditsContainer) creditsContainer.style.display = 'none';
-                 if (creditsWrapper && creditsWrapper !== userInfoContainer) creditsWrapper.style.display = 'none';
-                creditsDisplaySpan.innerText = '--';
-            }
-
-          const generateButtonEnabled = (credits !== null && typeof credits === 'number' && credits >= TOTAL_GENERATION_COST);
-          confirmPromptButton.disabled = !generateButtonEnabled;
-          confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Cost: ${TOTAL_GENERATION_COST} Credits)`;
-
-          if (credits !== null && typeof credits === 'number' && credits < TOTAL_GENERATION_COST) {
-              const creditsTargetElement = creditsContainer.closest('.user-info-container > div') || creditsContainer;
-              creditWarningP.innerHTML = `You need ${TOTAL_GENERATION_COST} credits (have ${credits}). <a href="#" onclick="event.preventDefault(); scrollToElement(creditsTargetElement.id || 'credits-container');">Buy More Credits?</a>`;
-              creditWarningP.style.display = 'block';
-          } else {
-              creditWarningP.style.display = 'none';
-              creditWarningP.innerHTML = '';
+        }
+      });
+    });
+    
+    // Intersection Observer for scroll animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('animated');
+        }
+      });
+    }, {
+      threshold: 0.1
+    });
+    
+    document.querySelectorAll('.animate-scroll-trigger').forEach(element => {
+      observer.observe(element);
+    });
+    
+    // FAQ accordion functionality
+    document.querySelectorAll('.faq-toggle').forEach(button => {
+      button.addEventListener('click', () => {
+        const faqId = button.getAttribute('data-faq');
+        const content = document.getElementById(`faq-answer-${faqId}`);
+        const icon = button.querySelector('.faq-icon');
+        
+        // Close all other FAQs
+        document.querySelectorAll('.faq-content').forEach(item => {
+          if (item.id !== `faq-answer-${faqId}`) {
+            item.classList.add('hidden');
           }
-
-           if (credits === null && !currentSession) {
-                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Login Required)`;
-                confirmPromptButton.disabled = true;
-           } else if (credits === null && currentSession) {
-                confirmPromptButton.innerText = `Generate ${NUM_IMAGES_EXPECTED} Thumbnails (Credit Error)`;
-                confirmPromptButton.disabled = true;
-           }
-     }
-
-     // --- Function to Fetch User Credits ---
-     async function fetchUserCredits() {
-          if (!currentSession) { updateCreditState(null); return; }
-          console.log("Fetching user credits...");
-          updateCreditState('loading');
-
-          try {
-              const token = currentSession.access_token;
-              const res = await fetch(`${BACKEND_URL}/get_profile`, {
-                  method: "GET", headers: { "Authorization": `Bearer ${token}` }
-              });
-
-              const responseBody = await res.text();
-              let data;
-              try { data = JSON.parse(responseBody); }
-              catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
-
-              if (!res.ok) {
-                  if (res.status === 401) { console.warn("fetchUserCredits received 401, letting auth listener handle logout."); return; }
-                  throw new Error(data.error || `Failed to fetch credits (Status: ${res.status})`);
-              }
-              updateCreditState(data.credits);
-          } catch (err) {
-              console.error("Error fetching credits:", err);
-              if(currentSession) { showStatus(authStatusP, `Error loading credits: ${err.message}`, 'error'); }
-              updateCreditState(null);
+        });
+        
+        document.querySelectorAll('.faq-toggle').forEach(btn => {
+          if (btn !== button) {
+            btn.setAttribute('aria-expanded', 'false');
+            btn.querySelector('.faq-icon').innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
           }
-     }
-
-
-     // --- Auth Functions (Login, Signup, Logout) ---
-     async function login() {
-          showStatus(authStatusP, "Logging in...", 'info');
-          const email = document.getElementById("auth-email").value;
-          const password = document.getElementById("auth-password").value;
-          try {
-              const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-              if (error) { showStatus(authStatusP, `Login failed: ${error.message}`, 'error'); updateCreditState(null); }
-              else { showStatus(authStatusP, ""); }
-          } catch (e) { showStatus(authStatusP, `Login error: ${e.message}`, 'error'); updateCreditState(null); }
-     }
-     async function signup() {
-          showStatus(authStatusP, "Signing up...", 'info');
-          const email = document.getElementById("auth-email").value;
-          const password = document.getElementById("auth-password").value;
-           try {
-              const { data, error } = await supabaseClient.auth.signUp({ email, password });
-              if (error) {
-                  console.error("Signup Error Object:", error);
-                  if (error.message && error.message.toLowerCase().includes("user already registered")) { showStatus(authStatusP, "This email is already registered. Please log in.", 'warning'); }
-                  else { showStatus(authStatusP, `Signup failed: ${error.message}`, 'error'); }
-              } else if (data && data.user) {
-                   console.log("Signup Data Object:", data);
-                   if (data.user.identities && data.user.identities.length === 0) { showStatus(authStatusP, "Signup attempt processed. If this is your first time, check your email for verification. If you already have an account, please log in.", 'warning', 15000); }
-                   else if (!data.session) { showStatus(authStatusP, "Signup successful! Please check your email for a verification link.", 'success', 10000); }
-                   else if (data.session) { showStatus(authStatusP, "Signup successful! You can now log in.", 'success', 5000); }
-                   else { showStatus(authStatusP, "Signup processed.", 'info', 5000); }
-              } else {
-                   console.warn("Signup returned no error and no user data:", data);
-                   showStatus(authStatusP, "Signup status unclear. Please try logging in.", 'warning');
-              }
-          } catch (e) { showStatus(authStatusP, `Signup error: ${e.message}`, 'error'); }
-     }
-     async function logout() {
-          console.log("--- Logout function called ---");
-          showStatus(authStatusP, "Logging out...", 'info');
-          try {
-              const { error } = await supabaseClient.auth.signOut();
-              if (error) {
-                  console.error("--- Supabase signOut error:", error.message);
-                   currentSession = null; updateContentView(); updateCreditState(null);
-                   showStatus(authStatusP, "Logout may have failed, please refresh if needed.", 'warning');
-              } else {
-                  console.log("--- Supabase signOut successful (callback pending) ---");
-                   if (currentSession !== null) {
-                       console.warn("--- Forcing UI update after successful signOut call ---")
-                       currentSession = null; updateContentView(); updateCreditState(null);
-                   }
-                   showStatus(authStatusP, "Logged out successfully.", 'success', 2000);
-              }
-          } catch (e) {
-               console.error("--- Error during logout function execution:", e);
-               currentSession = null; updateContentView(); updateCreditState(null);
-               showStatus(authStatusP, "Error during logout, please refresh.", 'error');
-          }
-     }
-
-     // --- Core View Update Logic ---
-     function updateContentView() {
-          const isLoggedIn = !!currentSession;
-          const activeTabButton = document.querySelector('.tab-button.active');
-          const activeTabId = activeTabButton ? activeTabButton.id : 'tab-prompt-gen';
-
-          console.log(`Updating view. Logged in: ${isLoggedIn}, Active Tab: ${activeTabId}`);
-
-          authDiv.style.display = isLoggedIn ? 'none' : 'block';
-          mainAppContentDiv.style.display = isLoggedIn ? 'block' : 'none';
-
-           const showHowItWorks = !isLoggedIn && activeTabId === 'tab-prompt-gen';
-           if(howItWorksSection) howItWorksSection.style.display = showHowItWorks ? 'block' : 'none';
-           const badge = document.querySelector('.ai-badge'); // Use updated class name
-           if (badge) badge.style.display = 'block';
-
-          showStatus(authStatusP, '');
-          showStatus(purchaseStatusP, '');
-
-          if (isLoggedIn) {
-              // Logged In View
-              authDiv.style.display = 'none';
-              promptGenContentDiv.style.display = activeTabId === 'tab-prompt-gen' ? 'block' : 'none';
-              pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
-
-              if (purchaseControlsDiv) {
-                   purchaseControlsDiv.style.display = 'flex';
-                  const wrapper = purchaseControlsDiv.parentElement;
-                  if(wrapper && wrapper !== userInfoContainer){ wrapper.style.display = 'flex'; }
-              }
-
-              if (currentSession.user?.email) {
-                  userEmailDisplaySpan.innerText = currentSession.user.email;
-                  userInfoDisplayDiv.style.display = 'inline-flex';
-              } else { userInfoDisplayDiv.style.display = 'none'; }
-              updateCreditState(currentUserCredits === null ? 'loading' : currentUserCredits);
-
-              if (activeTabId === 'tab-prompt-gen' && historyDiv.style.display === "block") {
-                   historyButton.innerText = "Hide History";
-                   const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
-                   if (loadMoreContainer && currentlyLoadedCount > 0 && currentlyLoadedCount < totalHistoryItems) { loadMoreContainer.style.display = 'block'; }
-              } else {
-                   historyButton.innerText = "Show My History";
-                   if (historyDiv.style.display === "block") {
-                        historyDiv.style.display = "none";
-                        if (loadMoreContainer) loadMoreContainer.style.display = 'none';
-                   }
-              }
-
-          } else {
-              // Logged Out View
-              currentUserCredits = null; updateCreditState(null);
-              userInfoDisplayDiv.style.display = 'none';
-              if (purchaseControlsDiv) {
-                   purchaseControlsDiv.style.display = 'none';
-                   const wrapper = purchaseControlsDiv.parentElement;
-                   if(wrapper && wrapper !== userInfoContainer){ wrapper.style.display = 'none'; }
-              }
-
-              if (activeTabId === 'tab-prompt-gen') {
-                  authDiv.style.display = 'block';
-                  document.getElementById("signup-encouragement").style.display = "block";
-                   pngDumpContentDiv.style.display = 'none';
-              } else {
-                   authDiv.style.display = 'block';
-                   pngDumpContentDiv.style.display = activeTabId === 'tab-png-dump' ? 'block' : 'none';
-              }
-
-              historyDiv.style.display = "none"; historyButton.innerText = "Show My History";
-              currentHistoryPage = 1; totalHistoryItems = 0; historyDiv.innerHTML = "";
-              isLoadingHistory = false; if(loadMoreContainer) loadMoreContainer.style.display = 'none';
-              resultDiv.innerHTML = ""; promptPreviewDiv.style.display = "none";
-          }
-     }
-
-     // --- Tab Switching ---
-     function handleTabSwitch(button) {
-           if (button.classList.contains('secondary-tab')) return;
-           const tabButtons = document.querySelectorAll('.tab-button');
-           tabButtons.forEach(btn => btn.classList.remove('active'));
-           button.classList.add('active');
-           updateContentView();
-     }
-
-     // --- NEW: Event Listener for Option Buttons ---
-     if (optionsContainer) {
-         optionsContainer.addEventListener('click', (event) => {
-             // Check if the clicked element is an option button
-             if (event.target.classList.contains('option-button')) {
-                 // Toggle the 'active' class on the clicked button
-                 event.target.classList.toggle('active');
-             }
-         });
-     } else {
-         console.warn("Prompt options container not found.");
-     }
-
-
-     // --- API Call Logic ---
-     // Generate Prompt Suggestion (Step 1 - MODIFIED to send options)
-     form.addEventListener('submit', async (e) => {
-          e.preventDefault();
-          if (!currentSession) { showStatus(authStatusP, "Please log in to get prompt suggestions.", 'warning', 3000); return; }
-          resultDiv.innerHTML = "<p style='text-align:center;'>🧠 Generating prompt idea...</p>";
-          promptPreviewDiv.style.display = "none";
-          generatePromptButton.disabled = true; generatePromptButton.innerText = "Generating...";
-          const title = document.getElementById('title').value;
-          const niche = document.getElementById('niche').value;
-
-          // --- NEW: Get selected options ---
-          const selectedOptionElements = optionsContainer ? optionsContainer.querySelectorAll('.option-button.active') : [];
-          const selectedOptions = Array.from(selectedOptionElements).map(button => button.textContent.trim());
-          console.log("Selected options:", selectedOptions); // Log selected options
-          // --- End of New Options Logic ---
-
-          try {
-              // --- Send options in the request body ---
-              const res = await fetch(`${BACKEND_URL}/generate_prompt`, {
-                  method: "POST", headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ title, niche, options: selectedOptions }) // Add options here
-              });
-              // --- End of Fetch Modification ---
-
-              const responseBody = await res.text(); let data;
-              try { data = JSON.parse(responseBody); } catch(e) { throw new Error(`Server returned invalid response (Status: ${res.status})`); }
-              if (!res.ok) { throw new Error(data.error || `Server error: ${res.status}`); }
-              if (data.prompt) {
-                  resultDiv.innerHTML = `<p style="color: var(--success-color); text-align: center;">✅ Prompt suggestion generated!</p>`;
-                  document.getElementById("custom-prompt").value = data.prompt;
-                  promptPreviewDiv.style.display = "block";
-                  updateCreditState(currentUserCredits); scrollToElement('prompt-preview');
-              } else { throw new Error(data.error || 'AI did not return a prompt.'); }
-          } catch (err) {
-              console.error("Prompt Generation Error:", err);
-              resultDiv.innerHTML = `<p style="color: var(--error-color); text-align: center;">❌ Error Generating Prompt: ${err.message}</p>`;
-          } finally { generatePromptButton.disabled = false; generatePromptButton.innerText = "Suggest Prompt Idea"; }
-     });
-
-     // --- Image Preview Modal Helper ---
-     function showModal(src){
-          const modal=document.getElementById('img-modal');
-          if (!modal || !modal.querySelector('img')) return; // Add safety check
-          modal.querySelector('img').src=src;
-          modal.style.display='flex';
-     }
-
-
-     // Generate Thumbnails (Step 2 - Confirm Prompt - Unchanged)
-     async function confirmPrompt() {
-          const prompt = document.getElementById("custom-prompt").value;
-          if (!prompt.trim()) { showStatus(creditWarningP, "Please enter a prompt describing the thumbnail.", 'warning', 3000); scrollToElement('custom-prompt'); return; }
-          if (!currentSession) { showStatus(authStatusP, "Please log in to generate thumbnails.", 'warning', 3000); scrollToElement('auth'); return; }
-           const creditsTargetElement = creditsContainer.closest('.user-info-container > div') || creditsContainer;
-           if (currentUserCredits === null || currentUserCredits < TOTAL_GENERATION_COST) { scrollToElement(creditsTargetElement.id || 'credits-container'); return; }
-
-          resultDiv.innerHTML = `<p style="text-align: center;">🎨 Generating ${NUM_IMAGES_EXPECTED} thumbnails... (Cost: ${TOTAL_GENERATION_COST} credits). It can take up to a minute. Please wait.</p>`;
-          promptPreviewDiv.style.display = "none";
-          confirmPromptButton.disabled = true; confirmPromptButton.innerText = "Generating...";
-          const title = document.getElementById("title").value;
-          const niche = document.getElementById("niche").value;
-          try {
-              const token = currentSession.access_token;
-              const res = await fetch(`${BACKEND_URL}/generate`, {
-                  method: "POST", headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                  body: JSON.stringify({ title, niche, prompt }) // Sends the final prompt from textarea
-              });
-              const responseBody = await res.text(); let data;
-              try { data = JSON.parse(responseBody); } catch (e) { throw new Error(`Server returned non-JSON response (Status: ${res.status})`); }
-              if (!res.ok) {
-                  if (res.status === 401) throw new Error("Authentication error.");
-                  if (res.status === 403 && data.error?.includes("Insufficient credits")) throw new Error(data.error);
-                  if (res.status === 0) { throw new Error("NetworkError when attempting to fetch resource."); }
-                  throw new Error(data.error || `Server error: ${res.status}`);
-              }
-              if (data.image_urls && Array.isArray(data.image_urls) && data.image_urls.length > 0) {
-                  resultDiv.innerHTML = `<h2>Generated Thumbnails:</h2>`;
-                  const gridDiv = document.createElement('div'); gridDiv.className = 'thumbnail-results-grid';
-                  let displayedImages = 0;
-                  data.image_urls.forEach((imageUrl, index) => {
-                      // Check if imageUrl is a valid Data URI
-                      if (imageUrl && imageUrl.startsWith('data:image')) {
-                           displayedImages++;
-                           const itemDiv = document.createElement('div'); itemDiv.className = 'thumbnail-item';
-                           const img = document.createElement('img'); img.src = imageUrl; img.alt = `Generated Thumbnail Option ${index + 1}`;
-                           img.onclick = () => showModal(imageUrl); // Add modal click handler
-                           img.onerror = () => { img.alt = 'Error loading image'; }
-                           const button = document.createElement('button');
-                           const downloadFilename = `${title || 'thumbnail'}_${index + 1}`;
-                           button.innerText = `⬇ Download Option ${index + 1}`;
-                           button.onclick = () => downloadImage(imageUrl, downloadFilename);
-                           itemDiv.appendChild(img); itemDiv.appendChild(button);
-                           gridDiv.appendChild(itemDiv);
-                      } else {
-                           console.warn(`Received invalid image URL at index ${index}:`, imageUrl);
-                           const itemDiv = document.createElement('div'); itemDiv.className = 'thumbnail-item';
-                           itemDiv.innerHTML = `<p style="color:var(--warning-color); text-align: center; padding: 2rem 0;">⚠️ Image ${index + 1} failed.</p>`;
-                           gridDiv.appendChild(itemDiv);
-                      }
-                  });
-                  resultDiv.appendChild(gridDiv);
-                  // Display the original prompt used for generation in the UI
-                  resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
-                  scrollToElement('result');
-                  if (data.new_credits !== undefined) { updateCreditState(data.new_credits); }
-                  else { fetchUserCredits(); }
-                  promptPreviewDiv.style.display = "block";
-                  if (displayedImages < NUM_IMAGES_EXPECTED) { showStatus(resultDiv, `Generated ${displayedImages}/${NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000); }
-              } else { throw new Error('Received invalid image data from server.'); }
-          } catch (err) {
-              console.error("Image Generation Error:", err);
-              resultDiv.innerHTML = `<p style="color:var(--error-color); text-align: center;">❌ Generation Failed: ${err.message}</p>`;
-              promptPreviewDiv.style.display = "block";
-              if (err.message.includes("Insufficient credits")) { await fetchUserCredits(); scrollToElement(creditsTargetElement.id || 'credits-container'); }
-              else if (err.message.includes("Authent")) { await logout(); }
-              else { updateCreditState(currentUserCredits); }
-          } finally { confirmPromptButton.disabled = false; updateCreditState(currentUserCredits); }
-     }
-
-
-     // --- History Fetch ---
-     async function fetchHistory(loadMore = false) {
-          if (isLoadingHistory && loadMore) return;
-          if (!currentSession) { showStatus(authStatusP, "Log in to view history.", 'warning', 3000); historyDiv.style.display = "none"; if (loadMoreContainer) loadMoreContainer.style.display = 'none'; return; }
-          if (!loadMore) {
-              if (historyDiv.style.display === "block") { historyDiv.style.display = "none"; historyButton.innerText = "Show My History"; if (loadMoreContainer) loadMoreContainer.style.display = 'none'; return; }
-              else { currentHistoryPage = 1; totalHistoryItems = 0; historyDiv.innerHTML = "<p>📦 Loading history...</p>"; historyDiv.style.display = "block"; historyButton.innerText = "Fetching..."; if (loadMoreContainer) loadMoreContainer.style.display = 'none'; }
-          } else { if (loadMoreButton) { loadMoreButton.disabled = true; loadMoreButton.innerText = "Loading..."; } }
-          isLoadingHistory = true; historyButton.disabled = true;
-          try {
-              const token = currentSession.access_token;
-              const fetchUrl = `${BACKEND_URL}/history?page=${currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
-              const res = await fetch(fetchUrl, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
-              const responseBody = await res.text(); let data;
-              try { data = JSON.parse(responseBody); } catch(e) { throw new Error(`Server returned invalid history response (Status: ${res.status})`); }
-              if (res.status === 401) throw new Error("Authentication error.");
-              if (!res.ok) { throw new Error(data.error || `Server error fetching history: ${res.status}`); }
-              const items = data.items || []; totalHistoryItems = data.total || 0;
-              if (currentHistoryPage === 1) {
-                  historyDiv.innerHTML = "";
-                  if (items.length === 0 && totalHistoryItems === 0) { historyDiv.innerHTML = "<h2>History</h2><p>🕸️ No thumbnails generated yet.</p>"; }
-                  else if (items.length > 0 || totalHistoryItems > 0) { historyDiv.innerHTML = `<h2>History (${totalHistoryItems} total)</h2>`; }
-              }
-              const itemsHtml = items.map(item => {
-                  const displayImageUrl = item.preview_image_url || item.image_url || '';
-                  const fullImageUrl = item.image_url; // Full res for modal and download
-                  const showDownload = fullImageUrl && fullImageUrl.startsWith('data:image');
-                  const generatedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
-                  const maxPromptLength = 100;
-                  const displayPrompt = (item.prompt && item.prompt.length > maxPromptLength) ? item.prompt.substring(0, maxPromptLength) + '...' : (item.prompt || 'N/A');
-                  // Add onclick to history image for modal
-                  return `
-                  <div class="card">
-                       ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy" onclick="showModal('${fullImageUrl || displayImageUrl}')"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
-                       ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
-                       <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                       <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
-                       <p title="${item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
-                       <p>Generated: ${generatedDate}</p>
-                  </div>`;
-              }).join("");
-              historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
-              const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
-              if (loadMoreContainer) {
-                  if (items.length > 0 && currentlyLoadedCount < totalHistoryItems) {
-                      loadMoreContainer.style.display = 'block';
-                      if (loadMoreButton) { loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History"; }
-                      currentHistoryPage++;
-                  } else {
-                      loadMoreContainer.style.display = 'none';
-                      if (currentlyLoadedCount > 0 && currentHistoryPage > 1 && currentlyLoadedCount >= totalHistoryItems) {
-                           if (!historyDiv.querySelector('.no-more-history')) { historyDiv.insertAdjacentHTML('beforeend', '<p class="no-more-history">-- End of History --</p>'); }
-                      }
-                  }
-              }
-          } catch (err) {
-              console.error("Error fetching history:", err);
-              if (currentHistoryPage === 1) { historyDiv.innerHTML = `<p style="color:var(--error-color);">❌ Error fetching history: ${err.message}</p>`; historyDiv.style.display = "block"; }
-              else {
-                   if (loadMoreButton) {
-                       loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History";
-                       const errorP = loadMoreContainer.querySelector('.load-more-error') || document.createElement('p');
-                       errorP.className = 'load-more-error error'; errorP.style.color = 'var(--error-color)';
-                       errorP.textContent = `Failed to load more: ${err.message}`;
-                       if (!errorP.parentNode) loadMoreContainer.appendChild(errorP);
-                       setTimeout(() => { if (errorP.parentNode) errorP.remove(); }, 4000);
-                   }
-              }
-              if (err.message.includes("Authent")) await logout();
-          } finally {
-              isLoadingHistory = false; historyButton.disabled = false;
-              historyButton.innerText = historyDiv.style.display === "block" ? "Hide History" : "Show My History";
-               if (loadMoreButton && loadMoreContainer && loadMoreContainer.style.display === 'block') { loadMoreButton.disabled = false; loadMoreButton.innerText = "Load More History"; }
-          }
-     }
-
-     // --- Event Listener for Load More Button ---
-     if (loadMoreButton) { loadMoreButton.addEventListener('click', () => fetchHistory(true)); }
-
-
-     // --- Download Image Utility ---
-     function downloadImage(url, baseFilename = 'thumbnail') {
-          const buttons = document.querySelectorAll('button'); let downloadButton = null;
-          buttons.forEach(btn => { if (btn.onclick && btn.onclick.toString().includes(url.substring(0, 50))) { downloadButton = btn; } });
-          const parentElement = downloadButton ? downloadButton.closest('.thumbnail-item, .card') : resultDiv;
-          let errorTarget = parentElement || resultDiv;
-           const existingError = errorTarget.querySelector('.download-error-message');
-           if (existingError) existingError.remove();
-           if (!url || !url.startsWith('data:image')) {
-                console.error("Download failed: Invalid or missing Data URI.", url);
-                const errorP = document.createElement('p'); errorP.className = 'download-error-message';
-                errorP.innerText = `Download failed: Image data missing or invalid.`;
-                if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
-                else errorTarget.appendChild(errorP);
-                return;
-           }
-          const safeFilename = baseFilename.replace(/[^a-z0-9_]/gi, '_').toLowerCase() || 'thumbnail';
-          const formatMatch = url.match(/^data:image\/([a-zA-Z+]+);base64,/);
-          const extension = formatMatch ? formatMatch[1].replace('+', '') : 'png'; // Default to png if format unknown
-          const filename = `${safeFilename}_${Date.now()}.${extension}`;
-          try {
-               const link = document.createElement("a"); link.href = url; link.download = filename;
-               document.body.appendChild(link); link.click(); document.body.removeChild(link);
-               console.log(`Download initiated for: ${filename}`);
-          } catch (err) {
-               console.error("Download failed via link click:", err);
-               const errorP = document.createElement('p'); errorP.className = 'download-error-message';
-               errorP.innerText = `Download failed (${err.message}). Try right-clicking the image > 'Save Image As...'.`;
-                if(downloadButton) downloadButton.parentNode.insertBefore(errorP, downloadButton.nextSibling);
-                else errorTarget.appendChild(errorP);
-          }
-     }
-
-
-     // --- Scroll Utility ---
-      function scrollToElement(elementId) {
-        let element;
-        if (typeof elementId === 'string') { element = document.getElementById(elementId); }
-        else if (elementId instanceof Element) { element = elementId; }
-
-        if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            const elementIdentifier = element.id || element.className;
-            // Highlight applicable elements
-            if (['auth', 'credit-warning', 'custom-prompt', 'result', 'credits-container'].includes(elementIdentifier) || element.closest('.user-info-container > div')) {
-                 element.style.transition = 'background-color 0.5s ease-in-out, box-shadow 0.5s ease-in-out';
-                 const highlightColor = (element.id === 'result') ? 'rgba(167, 139, 250, 0.05)' : 'rgba(167, 139, 250, 0.1)';
-                 element.style.backgroundColor = highlightColor;
-                 element.style.boxShadow = '0 0 15px rgba(167, 139, 250, 0.3)';
-                 setTimeout(() => { element.style.backgroundColor = ''; element.style.boxShadow = ''; }, 1500);
-             }
-         } else { console.warn(`scrollToElement: Element not found for identifier:`, elementId); }
-     }
-
-
-     // --- Initialization and Auth State Change Listener ---
-     document.addEventListener('DOMContentLoaded', () => {
-          const tabButtons = document.querySelectorAll('.tab-button');
-          tabButtons.forEach(button => button.addEventListener('click', () => handleTabSwitch(button)));
-
-          const urlParams = new URLSearchParams(window.location.search);
-          const paymentStatus = urlParams.get('payment');
-          const statusTargetElement = purchaseStatusP;
-
-          if (statusTargetElement) {
-               if (paymentStatus === 'success') {
-                    showStatus(statusTargetElement, "✅ Payment successful! Credits updating...", 'success');
-                    setTimeout(() => { if (currentSession) fetchUserCredits(); }, 3000);
-                    setTimeout(() => { if (statusTargetElement.innerText.includes("Payment successful")) showStatus(statusTargetElement, ''); }, 8000);
-                    if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
-               } else if (paymentStatus === 'cancel') {
-                    showStatus(statusTargetElement, "⚠️ Purchase cancelled.", 'warning', 5000);
-                    if (window.history.replaceState) window.history.replaceState(null, '', window.location.pathname);
-               }
-          }
-          updateContentView();
-     });
-
-     // Auth state change listener
-     supabaseClient.auth.onAuthStateChange((event, session) => {
-          console.log('--- Supabase Auth Event ---:', event, session ? `User: ${session.user?.id}` : "No session");
-          currentSession = session;
-          const shouldUpdateUI = event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'SIGNED_OUT';
-          if (shouldUpdateUI) {
-              console.log(` ---> Triggering full UI update (updateContentView) for event: ${event}`);
-               updateContentView();
-               if (session) {
-                    console.log(` ---> Session exists, triggering fetchUserCredits`);
-                    fetchUserCredits();
-               } else {
-                    console.log(` ---> Session is null, triggering updateCreditState(null)`);
-                    updateCreditState(null);
-               }
-          } else if (session && (event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
-               console.log(` ---> Event ${event} received while logged in, triggering fetchUserCredits`);
-               fetchUserCredits();
-          } else {
-               console.log(` ---> Event ${event} did not trigger specific action.`);
-               if (event === "PASSWORD_RECOVERY") {
-                    showStatus(authStatusP, "Password recovery email sent.", 'info', 5000);
-               }
-          }
-     });
-
- </script>
-
+        });
+        
+        // Toggle current FAQ
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', !isExpanded);
+        
+        if (isExpanded) {
+          content.classList.add('hidden');
+          icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
+        } else {
+          content.classList.remove('hidden');
+          icon.innerHTML = '<polyline points="18 15 12 9 6 15"></polyline>';
+        }
+      });
+    });
+    
+    // Lightbox functionality
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const closeLightbox = document.getElementById('close-lightbox');
+    
+    // Open lightbox
+    document.querySelectorAll('.thumbnail-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const imgSrc = item.querySelector('img').src;
+        lightboxImage.src = imgSrc;
+        lightbox.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      });
+    });
+    
+    // Close lightbox
+    closeLightbox.addEventListener('click', () => {
+      lightbox.style.display = 'none';
+      document.body.style.overflow = 'auto';
+    });
+    
+    // Close lightbox when clicking outside the image
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) {
+        lightbox.style.display = 'none';
+        document.body.style.overflow = 'auto';
+      }
+    });
+  </script>
 </body>
 </html>
