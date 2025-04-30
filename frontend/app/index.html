@@ -1098,14 +1098,15 @@
          showStatus(authStatusP, "Signing up...", 'info');
          const email = document.getElementById("auth-email").value;
          const password = document.getElementById("auth-password").value;
-          try {
-             // Add the redirectTo option here
-             const { data, error } = await supabaseClient.auth.signUp(
-                 { email, password },
-                 {
-                     redirectTo: window.location.origin + '/app/' // Redirect to /app/ after verification
-                 }
-             );
+         try {
+    // ------------- the only argument is this single object -------------
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/app/`
+      }
+    });
 
              if (error) {
                  console.error("Signup Error Object:", error);
