@@ -784,7 +784,6 @@
                  </div>
              </form>
 
-             <p class="generation-note">Note: AI generations sometimes need a few tries for perfect framing.</p>
 
              <div id="prompt-preview" style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
                  <label for="custom-prompt">Edit AI Prompt Suggestion (or enter your own)</label>
@@ -1406,7 +1405,7 @@
           isLoadingHistory = true; historyButton.disabled = true;
           try {
               const token = currentSession.access_token;
-              const fetchUrl = `<span class="math-inline">\{BACKEND\_URL\}/history?page\=</span>{currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
+              const fetchUrl = `${BACKEND_URL}/history?page=${currentHistoryPage}&limit=${HISTORY_ITEMS_PER_PAGE}`;
               const res = await fetch(fetchUrl, { method: "GET", headers: { "Authorization": `Bearer ${token}` } });
               const responseBody = await res.text(); let data;
               try { data = JSON.parse(responseBody); } catch(e) { throw new Error(`Server returned invalid history response (Status: ${res.status})`); }
