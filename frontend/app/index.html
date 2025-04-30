@@ -1418,23 +1418,26 @@
                   else if (items.length > 0 || totalHistoryItems > 0) { historyDiv.innerHTML = `<h2>History (${totalHistoryItems} total)</h2>`; }
               }
               const itemsHtml = items.map(item => {
-                  const displayImageUrl = item.preview_image_url || item.image_url || '';
-                  const fullImageUrl = item.image_url; // Full res for modal and download
-                  const showDownload = fullImageUrl && fullImageUrl.startsWith('data:image');
-                  const generatedDate = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
-                  const maxPromptLength = 100;
-                  const displayPrompt = (item.prompt && item.prompt.length > maxPromptLength) ? item.prompt.substring(0, maxPromptLength) + '...' : (item.prompt || 'N/A');
-                  // Add onclick to history image for modal
-                  return `
-                  <div class="card">
-                       ${displayImageUrl ? `<img src="${displayImageUrl}" alt="Thumbnail for ${item.title || 'untitled'}" loading="lazy" onclick="showModal('${fullImageUrl || displayImageUrl}')"/>` : '<p style="text-align:center; color:var(--warning-color); padding: 1rem 0;">⚠️ Image data unavailable</p>'}
-                       ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}', '${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
-                       <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
-                       <p><strong>Niche:</strong> <span class="math-inline">\{item\.niche \|\| 'N/A'\}</p\>
-<p title\="</span>{item.prompt || ''}"><strong>Prompt:</strong> ${displayPrompt}</p>
-                       <p>Generated: ${generatedDate}</p>
-                  </div>`;
-              }).join("");
+  const displayImageUrl = item.preview_image_url || item.image_url || '';
+  const fullImageUrl    = item.image_url;
+  const showDownload    = fullImageUrl && fullImageUrl.startsWith('data:image');
+  const generatedDate   = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
+  const maxPromptLength = 100;
+  const displayPrompt   = (item.prompt && item.prompt.length > maxPromptLength)
+                            ? item.prompt.substring(0, maxPromptLength) + '…'
+                            : (item.prompt || 'N/A');
+
+  return `
+    <div class="card">
+      ${displayImageUrl ? `<img src="${displayImageUrl}" ...>` : '<p>⚠️ Image unavailable</p>'}
+      ${showDownload ? `<button onclick="downloadImage('${fullImageUrl}','${item.title || 'thumbnail'}')" class="secondary-button">⬇ Download</button>` : ''}
+      <p><strong>Title:</strong> ${item.title || 'N/A'}</p>
+      <p><strong>Niche:</strong> ${item.niche || 'N/A'}</p>
+      <p><strong>Prompt:</strong> ${displayPrompt}</p>
+      <p>Generated: ${generatedDate}</p>
+    </div>`;
+}).join('');
+
               historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
               const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
               if (loadMoreContainer) {
