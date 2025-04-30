@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Thumbnail Copilot - Generate scroll-stopping YouTube thumbnails</title>
   <meta name="description" content="Generate scroll-stopping YouTube thumbnails in seconds with AI. Boost your click-through rates with AI-powered thumbnails designed to capture attention." />
-  
-  <!-- Tailwind CSS -->
+
   <script src="https://cdn.tailwindcss.com"></script>
-  
-  <!-- Google Fonts -->
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <!-- Custom styles -->
+
   <style>
     /* Base styles */
     body {
@@ -23,7 +20,7 @@
       color: white;
       overflow-x: hidden;
     }
-    
+
     /* Animation keyframes */
     @keyframes fadeInUp {
       from {
@@ -35,28 +32,28 @@
         transform: translateY(0);
       }
     }
-    
+
     .animate-fade-in-up {
       opacity: 0;
       animation: fadeInUp 0.6s ease-out forwards;
     }
-    
+
     /* Adjust animation delay for sections */
     .animate-scroll-trigger {
       opacity: 0;
     }
-    
+
     .animate-scroll-trigger.animated {
       animation: fadeInUp 0.6s ease-out forwards;
     }
-    
+
     /* Glass effect */
     .glass {
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
     }
   </style>
-  
+
   <script>
     // Configure Tailwind
     tailwind.config = {
@@ -73,19 +70,16 @@
   </script>
 </head>
 <body>
-  <!-- Hero section -->
   <header class="relative min-h-screen flex flex-col justify-center items-center px-4 pt-20 pb-24 overflow-hidden animate-fade-in-up">
     <div class="absolute top-0 left-0 right-0 z-10 bg-gradient-to-b from-[#0e0d11] to-transparent h-20"></div>
     <div class="absolute inset-0 z-0">
       <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-[#a78bfa]/20 rounded-full filter blur-[80px]"></div>
       <div class="absolute bottom-1/4 right-1/4 w-96 h-96 bg-[#a78bfa]/20 rounded-full filter blur-[80px]"></div>
     </div>
-    
+
     <div class="relative z-10 container mx-auto text-center max-w-3xl">
-      <!-- Logo -->
       <div class="flex items-center justify-center mb-6">
         <div class="bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] p-3 rounded-xl">
-          <!-- Sparkles icon inline SVG -->
           <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-white">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
             <path d="M5 3v4"></path>
@@ -96,60 +90,103 @@
         </div>
         <h1 class="text-3xl font-bold ml-3">AI Thumbnail Copilot</h1>
       </div>
-      
-      <!-- Value Proposition -->
+
       <h2 class="text-4xl md:text-5xl lg:text-6xl font-extrabold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-[#a78bfa]">
         Generate scroll-stopping YouTube thumbnails in seconds.
       </h2>
-      
+
       <p class="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto">
         Boost your click-through rates with AI-powered thumbnails designed to capture attention and drive views.
       </p>
-      
-      <!-- CTA Buttons -->
+
       <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-        <a 
-          href="/app/" 
+        <a
+          href="/app/"
           class="w-full sm:w-auto px-8 py-4 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-white"
         >
           Sign up / Log in
         </a>
-        <a 
+        <a
           href="#demo"
           class="w-full sm:w-auto px-8 py-4 bg-[#1c1a23] border border-[#a78bfa]/30 rounded-lg font-bold hover:bg-[#a78bfa]/10 transition-all"
         >
-          Watch demo
+          See Examples
         </a>
       </div>
     </div>
-    
+
+    <a href="#demo" class="scroll-indicator absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 animate-bounce">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white/70 hover:text-white transition-colors">
+            <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+    </a>
+
     <div class="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0e0d11] to-transparent"></div>
   </header>
 
-  <!-- Social Proof Bar -->
-  <section class="py-10 bg-[#1c1a23]/50 border-y border-[#a78bfa]/10 animate-scroll-trigger">
-    <div class="container mx-auto px-4">
-      <p class="text-center text-gray-400 text-sm mb-6">TRUSTED BY 1,000+ CREATORS</p>
-      <div class="flex flex-wrap justify-center items-center gap-8 md:gap-16">
-        <!-- Social proof logos/text - using text for now -->
-        <div class="text-gray-300 font-medium">CreatorStudio</div>
-        <div class="text-gray-300 font-medium">YTAcademy</div>
-        <div class="text-gray-300 font-medium">VideoProHub</div>
-        <div class="text-gray-300 font-medium">ContentMakers</div>
+  <section id="demo" class="py-20 px-4 bg-gradient-to-b from-[#0e0d11] to-[#1c1a23]/50 animate-scroll-trigger">
+    <div class="container mx-auto">
+      <h2 class="text-3xl md:text-4xl font-bold text-center mb-6">See it in action</h2>
+      <p class="text-center text-gray-400 max-w-2xl mx-auto mb-16">
+        Our AI creates eye-catching thumbnails that drive more clicks and views for your videos.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img
+            src="step1-input.png" alt="Thumbnail example 1"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img
+            src="step2-prompt.png" alt="Thumbnail example 2"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
+          <img
+            src="step3-thumbnail.png" alt="Thumbnail example 3"
+            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
+          />
+          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
+                <path d="M5 12h14"></path>
+                <path d="M12 5v14"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- Feature Trio -->
   <section class="py-20 px-4 animate-scroll-trigger">
     <div class="container mx-auto">
       <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">Why creators love our AI</h2>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-        <!-- Feature 1 -->
         <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
           <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
-            <!-- Sparkles icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
               <path d="M5 3v4"></path>
@@ -161,11 +198,9 @@
           <h3 class="text-xl font-bold mb-2">Instant AI Prompting</h3>
           <p class="text-gray-400">Generate perfect thumbnails from your video title with a single click. No more guesswork.</p>
         </div>
-        
-        <!-- Feature 2 -->
+
         <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
           <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
-            <!-- TrendingUp icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
               <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
               <polyline points="16 7 22 7 22 13"></polyline>
@@ -174,11 +209,9 @@
           <h3 class="text-xl font-bold mb-2">2× Click-through rate*</h3>
           <p class="text-gray-400">Users report doubling their CTR after switching to our AI-generated thumbnails.</p>
         </div>
-        
-        <!-- Feature 3 -->
+
         <div class="bg-[#1c1a23] rounded-xl p-6 backdrop-blur-sm border border-[#a78bfa]/10 hover:border-[#a78bfa]/30 transition-all">
           <div class="bg-[#a78bfa]/10 p-3 rounded-lg w-fit mb-4">
-            <!-- Palette icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
               <circle cx="13.5" cy="6.5" r="0.5"></circle>
               <circle cx="17.5" cy="10.5" r="0.5"></circle>
@@ -191,90 +224,23 @@
           <p class="text-gray-400">Let AI handle the design work. Download ready-to-use thumbnails in seconds.</p>
         </div>
       </div>
-      
+
       <p class="text-xs text-gray-500 text-center mt-6">*Based on average user-reported results</p>
     </div>
   </section>
 
-  <!-- Example Thumbnails Section -->
-  <section id="demo" class="py-20 px-4 bg-gradient-to-b from-[#0e0d11] to-[#1c1a23]/50 animate-scroll-trigger">
-    <div class="container mx-auto">
-      <h2 class="text-3xl md:text-4xl font-bold text-center mb-6">See it in action</h2>
-      <p class="text-center text-gray-400 max-w-2xl mx-auto mb-16">
-        Our AI creates eye-catching thumbnails that drive more clicks and views for your videos.
-      </p>
-      
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <!-- Example thumbnails -->
-        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
-          <img 
-            src="step1-input.png" 
-            alt="Thumbnail example 1"
-            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
-          />
-          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
-              <!-- Plus icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
-          <img 
-            src="step2-prompt.png" 
-            alt="Thumbnail example 2"
-            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
-          />
-          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
-              <!-- Plus icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-        
-        <div class="relative cursor-pointer group overflow-hidden rounded-xl thumbnail-item">
-          <img 
-            src="step3-thumbnail.png" 
-            alt="Thumbnail example 3"
-            class="w-full h-auto rounded-xl transition-transform duration-300 group-hover:scale-105"
-          />
-          <div class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-            <div class="bg-white/10 backdrop-blur-sm p-2 rounded-full">
-              <!-- Plus icon -->
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Step by Step Section -->
   <section class="py-20 px-4 animate-scroll-trigger">
     <div class="container mx-auto">
       <h2 class="text-3xl md:text-4xl font-bold text-center mb-6">How it works</h2>
       <p class="text-center text-gray-400 max-w-2xl mx-auto mb-16">
         Create click-worthy thumbnails in three simple steps
       </p>
-      
+
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-        <!-- Step 1 -->
         <div class="relative">
           <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
             <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">1</div>
             <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
-              <!-- MousePointer icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
                 <path d="M3 3l7.07 16.97 2.51-7.39 7.39-2.51L3 3z"></path>
               </svg>
@@ -285,13 +251,11 @@
             </p>
           </div>
         </div>
-        
-        <!-- Step 2 -->
+
         <div class="relative">
           <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
             <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">2</div>
             <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
-              <!-- Edit icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
@@ -303,13 +267,11 @@
             </p>
           </div>
         </div>
-        
-        <!-- Step 3 -->
+
         <div class="relative">
           <div class="bg-[#1c1a23] rounded-xl p-6 border border-[#a78bfa]/10">
             <div class="absolute -top-4 -left-4 bg-[#a78bfa] w-8 h-8 rounded-full flex items-center justify-center font-bold">3</div>
             <div class="bg-[#a78bfa]/10 p-4 rounded-full w-fit mb-6">
-              <!-- Download icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-[#a78bfa]">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                 <polyline points="7 10 12 15 17 10"></polyline>
@@ -326,23 +288,20 @@
     </div>
   </section>
 
-  <!-- Pricing Teaser -->
   <section class="py-20 px-4 bg-[#1c1a23]/50 animate-scroll-trigger">
     <div class="container mx-auto max-w-lg">
       <div class="bg-[#1c1a23] rounded-xl p-8 border border-[#a78bfa]/20 relative overflow-hidden">
         <div class="absolute -top-10 -right-10 bg-[#a78bfa] w-40 h-40 rounded-full opacity-10"></div>
-        
+
         <h2 class="text-3xl font-bold mb-8 text-center">Simple pricing</h2>
-        
-        <!-- Free Credits Badge -->
+
         <div class="bg-[#a78bfa]/10 border border-[#a78bfa]/20 rounded-full py-2 px-4 inline-flex items-center mx-auto mb-6 text-sm font-medium text-[#a78bfa]">
-          <!-- Star icon -->
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-4 w-4 mr-2">
             <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
           </svg>
           10 free credits on sign-up
         </div>
-        
+
         <div class="bg-gradient-to-br from-[#1c1a23] to-[#2a2635] p-6 rounded-lg border border-[#a78bfa]/10 mb-8">
           <div class="flex justify-between items-center mb-4">
             <div>
@@ -362,9 +321,9 @@
             ✓ Custom prompt editing
           </p>
         </div>
-        
-        <a 
-          href="/app/" 
+
+        <a
+          href="/app/"
           class="block w-full py-3 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-center text-white"
         >
           Get started
@@ -373,13 +332,11 @@
     </div>
   </section>
 
-  <!-- FAQ Section -->
   <section class="py-20 px-4 animate-scroll-trigger">
     <div class="container mx-auto max-w-3xl">
       <h2 class="text-3xl md:text-4xl font-bold text-center mb-16">Frequently asked questions</h2>
-      
+
       <div class="space-y-4">
-        <!-- FAQ Item 1 -->
         <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
           <button
             class="flex justify-between items-center w-full p-6 text-left faq-toggle"
@@ -388,21 +345,19 @@
             data-faq="1"
           >
             <h3 class="text-lg font-medium">How do AI-generated thumbnails improve CTR?</h3>
-            <!-- ChevronDown icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          
-          <div 
+
+          <div
             id="faq-answer-1"
             class="px-6 pb-6 text-gray-400 hidden faq-content"
           >
             Our AI analyzes millions of successful YouTube thumbnails to create designs that trigger curiosity and emotional response. Users report an average 2× increase in click-through rates compared to their previous thumbnails.
           </div>
         </div>
-        
-        <!-- FAQ Item 2 -->
+
         <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
           <button
             class="flex justify-between items-center w-full p-6 text-left faq-toggle"
@@ -411,21 +366,19 @@
             data-faq="2"
           >
             <h3 class="text-lg font-medium">Do I need design experience to use this tool?</h3>
-            <!-- ChevronDown icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          
-          <div 
+
+          <div
             id="faq-answer-2"
             class="px-6 pb-6 text-gray-400 hidden faq-content"
           >
             Not at all! The AI handles all the design work. Just enter your video title and niche, then choose from generated options. You can download ready-to-use thumbnails without any design skills.
           </div>
         </div>
-        
-        <!-- FAQ Item 3 -->
+
         <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
           <button
             class="flex justify-between items-center w-full p-6 text-left faq-toggle"
@@ -434,60 +387,36 @@
             data-faq="3"
           >
             <h3 class="text-lg font-medium">How many credits do I need per thumbnail?</h3>
-            <!-- ChevronDown icon -->
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          
-          <div 
+
+          <div
             id="faq-answer-3"
             class="px-6 pb-6 text-gray-400 hidden faq-content"
           >
             Each generation costs 1 credit and provides 2 thumbnail options. New accounts start with 10 free credits, and you can purchase additional credit packs starting at €15 for 50 credits.
           </div>
         </div>
-        
-        <!-- FAQ Item 4 -->
-        <div class="bg-[#1c1a23] rounded-xl overflow-hidden border border-[#a78bfa]/10">
-          <button
-            class="flex justify-between items-center w-full p-6 text-left faq-toggle"
-            aria-expanded="false"
-            aria-controls="faq-answer-4"
-            data-faq="4"
-          >
-            <h3 class="text-lg font-medium">Can I customize the generated thumbnails?</h3>
-            <!-- ChevronDown icon -->
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-[#a78bfa] faq-icon">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-          
-          <div 
-            id="faq-answer-4"
-            class="px-6 pb-6 text-gray-400 hidden faq-content"
-          >
-            Yes! While the AI creates high-converting designs automatically, you can influence the outcome by editing the prompt. For further customization, download the thumbnail and make additional edits in your preferred image editor.
-          </div>
+
         </div>
-      </div>
     </div>
   </section>
 
-  <!-- Final CTA Banner -->
   <section class="py-20 px-4 animate-scroll-trigger">
     <div class="container mx-auto max-w-4xl">
       <div class="bg-gradient-to-r from-[#a78bfa]/20 to-[#9b87f5]/20 rounded-xl p-8 md:p-12 text-center relative overflow-hidden">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjYwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJub2lzZSI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9IjAuMDUiIG51bU9jdGF2ZXM9IjIiIHN0aXRjaFRpbGVzPSJzdGl0Y2giIC8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI25vaXNlKSIgb3BhY2l0eT0iMC4wNSIvPjwvc3ZnPg==')] opacity-50"></div>
-        
+
         <div class="relative z-10">
           <h2 class="text-3xl md:text-4xl font-bold mb-6">Ready to level-up your thumbnails?</h2>
           <p class="text-lg text-gray-300 mb-8 max-w-xl mx-auto">
             Join thousands of creators who are boosting their CTR and growing their channels with AI-powered thumbnails.
           </p>
-          
-          <a 
-            href="https://ai-thumbnail-copilot.vercel.app" 
+
+          <a
+            href="/app/"
             class="inline-block px-8 py-4 bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] rounded-lg font-bold hover:opacity-90 transition-all shadow-lg shadow-[#a78bfa]/25 text-white"
           >
             Get started for free
@@ -497,14 +426,12 @@
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="py-12 px-4 border-t border-[#a78bfa]/10">
     <div class="container mx-auto">
       <div class="flex flex-col md:flex-row justify-between items-center">
         <div class="mb-6 md:mb-0">
           <div class="flex items-center justify-center md:justify-start">
             <div class="bg-gradient-to-r from-[#a78bfa] to-[#9b87f5] p-2 rounded-lg">
-              <!-- Sparkles icon -->
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-white">
                 <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"></path>
                 <path d="M5 3v4"></path>
@@ -517,37 +444,32 @@
           </div>
           <p class="text-sm text-gray-500 mt-2">© 2025 AI Thumbnail Copilot</p>
         </div>
-        
+
         <div class="flex gap-6">
-          <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Terms</a>
-          <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Privacy</a>
           <a href="#" class="text-sm text-gray-400 hover:text-white transition-colors">Contact</a>
         </div>
       </div>
     </div>
   </footer>
 
-  <!-- Lightbox -->
   <div id="lightbox" class="fixed inset-0 z-50 bg-black/90 hidden flex items-center justify-center p-4">
-    <button 
+    <button
       id="close-lightbox"
       class="absolute top-4 right-4 bg-white/10 p-2 rounded-full"
     >
-      <!-- X icon -->
       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-white">
         <line x1="18" y1="6" x2="6" y2="18"></line>
         <line x1="6" y1="6" x2="18" y2="18"></line>
       </svg>
     </button>
-    <img 
-      id="lightbox-image" 
-      src="" 
-      alt="Enlarged thumbnail" 
+    <img
+      id="lightbox-image"
+      src=""
+      alt="Enlarged thumbnail"
       class="max-w-full max-h-[90vh] object-contain"
     />
   </div>
-  
-  <!-- Scripts -->
+
   <script>
     // Smooth scroll for anchor links
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
@@ -563,7 +485,7 @@
         }
       });
     });
-    
+
     // Intersection Observer for scroll animations
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -574,36 +496,36 @@
     }, {
       threshold: 0.1
     });
-    
+
     document.querySelectorAll('.animate-scroll-trigger').forEach(element => {
       observer.observe(element);
     });
-    
+
     // FAQ accordion functionality
     document.querySelectorAll('.faq-toggle').forEach(button => {
       button.addEventListener('click', () => {
         const faqId = button.getAttribute('data-faq');
         const content = document.getElementById(`faq-answer-${faqId}`);
         const icon = button.querySelector('.faq-icon');
-        
+
         // Close all other FAQs
         document.querySelectorAll('.faq-content').forEach(item => {
           if (item.id !== `faq-answer-${faqId}`) {
             item.classList.add('hidden');
           }
         });
-        
+
         document.querySelectorAll('.faq-toggle').forEach(btn => {
           if (btn !== button) {
             btn.setAttribute('aria-expanded', 'false');
             btn.querySelector('.faq-icon').innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
           }
         });
-        
+
         // Toggle current FAQ
         const isExpanded = button.getAttribute('aria-expanded') === 'true';
         button.setAttribute('aria-expanded', !isExpanded);
-        
+
         if (isExpanded) {
           content.classList.add('hidden');
           icon.innerHTML = '<polyline points="6 9 12 15 18 9"></polyline>';
@@ -613,12 +535,12 @@
         }
       });
     });
-    
+
     // Lightbox functionality
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightbox-image');
     const closeLightbox = document.getElementById('close-lightbox');
-    
+
     // Open lightbox
     document.querySelectorAll('.thumbnail-item').forEach(item => {
       item.addEventListener('click', () => {
@@ -628,13 +550,13 @@
         document.body.style.overflow = 'hidden';
       });
     });
-    
+
     // Close lightbox
     closeLightbox.addEventListener('click', () => {
       lightbox.style.display = 'none';
       document.body.style.overflow = 'auto';
     });
-    
+
     // Close lightbox when clicking outside the image
     lightbox.addEventListener('click', (e) => {
       if (e.target === lightbox) {
