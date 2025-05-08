@@ -1,3 +1,0 @@
-User-agent: *
-Allow: /
-Sitemap: https://ai-thumbnail-copilot.vercel.app/sitemap.xml
