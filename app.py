@@ -1056,7 +1056,25 @@ def analyze_style():
             {
                 "role": "user",
                 "content": [
-                    {"type": "text", "text": "Create a JSON profile. This JSON profile should be a 'thumbnail style' profile that extracts data from these thumbnails so that I can send the JSON to an AI to give it immediate context on how to replicate such thumbnails. It shouldn't include specific data on a thumbnail to thumbnail basis, but it should give a broad overview of how to generate thumbnails in such a style. It shouldn't include branding. It should include the coloring style, contrast, saturation, the layout, the type of placement style, every single detail that will help AI replicate such thumbnails."}
+                    {"type": "text", "text": """
+Analyze these thumbnails and create a comprehensive JSON style profile with extraordinary detail. Include:
+
+- Color analysis: Identify exact colors (hex codes), color relationships, contrast levels, saturation choices, color psychology, and how colors are distributed across the thumbnails
+                
+- Visual composition: Describe the precise layout structure, focal points, rule of thirds usage, foreground/background separation, depth effects, negative space usage, and how elements are balanced
+
+- Typography details: Font styles, sizing ratios between headers and subtext, text positioning patterns, emphasis techniques, text effects (shadows, outlines, etc.), and how text interacts with imagery
+                
+- Technical elements: Image quality, sharpness levels, filter usage, special effects, editing techniques, blending modes, texture applications
+                
+- Subject treatment: How people/objects are positioned, expressions if people are present, cropping patterns, scaling techniques, and subject emphasis methods
+                
+- Emotional impact: The intended psychological effect (urgency, curiosity, excitement), emotional tone, how the thumbnail creates viewer engagement
+                
+- Distinctive patterns: Any recurring motifs, signature techniques, or unique stylistic choices that define this thumbnail style
+
+Provide extensive detail on ALL of these aspects - be comprehensive and specific so an AI image generator could recreate the exact style.
+"""}
                 ]
             }
         ]
