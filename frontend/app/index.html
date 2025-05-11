@@ -1124,9 +1124,9 @@
              <p style="text-align: center; color: var(--text-muted); margin-top: -1rem; margin-bottom: 1rem;">Upload a PNG image, describe the object you want to keep, and the AI will attempt to remove the background.</p>
 
              <div class="asset-input-area">
-                 <label for="asset-source-image">1. Upload Source Image (PNG only)</label>
-                 <input type="file" id="asset-source-image" accept="image/png" required />
-                 <p class="file-note">The AI works best with clear subjects and currently requires a PNG input.</p>
+                 <label for="asset-source-image">1. Upload Source Image (PNG or JPG/JPEG)</label>
+                 <input type="file" id="asset-source-image" accept="image/png,image/jpeg,image/jpg" required />
+                 <p class="file-note">The AI works best with clear subjects against contrasting backgrounds.</p>
                  <div id="asset-preview-container">
                       <img id="asset-preview-image" src="" alt="Selected image preview" />
                       <p id="asset-preview-placeholder" style="color: var(--text-muted);">Image preview will appear here</p>
