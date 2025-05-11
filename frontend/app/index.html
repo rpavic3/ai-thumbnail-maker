@@ -2076,8 +2076,9 @@
              updateCreditState(currentUserCredits); // Update button state
 
              if (file) {
-                 if (file.type !== 'image/png') {
-                     showStatus(assetStatusP, 'Invalid file type. Please select a PNG image.', 'error', 5000);
+                 // Check if file type is allowed (PNG, JPG, JPEG)
+                 if (file.type !== 'image/png' && file.type !== 'image/jpeg' && file.type !== 'image/jpg') {
+                     showStatus(assetStatusP, 'Invalid file type. Please select a PNG or JPG/JPEG image.', 'error', 5000);
                      assetSourceImageInput.value = ''; // Clear the input
                      return;
                  }
