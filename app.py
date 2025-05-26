@@ -410,12 +410,14 @@ def generate():
 
     # 3. --- Generate images with Flux ---
     generated_data_uris = []
+    generated_image_urls = []  # Store the direct FAL.ai URLs
     flux_errors = []
     logging.info(f"⏳ Requesting {NUM_IMAGES_TO_GENERATE} images from Flux for user {user_id}...")
     for i in range(NUM_IMAGES_TO_GENERATE):
         logging.info(f"   Generating image {i+1}/{NUM_IMAGES_TO_GENERATE}...")
         try:
             img_url = generate_flux_image(combined_prompt)
+            generated_image_urls.append(img_url)  # Store the direct URL
             logging.info(f"     Fetching image content from URL: {img_url}")
             img_response = requests.get(img_url, timeout=60); img_response.raise_for_status(); img_bytes = img_response.content
             # Determine mime type based on URL or headers (fallback to jpeg)
@@ -426,7 +428,7 @@ def generate():
 
             b64_encoded_data = base64.b64encode(img_bytes).decode('utf-8'); data_uri = f"data:image/{mime};base64,{b64_encoded_data}"
             generated_data_uris.append(data_uri); logging.info(f"   ✅ Image {i+1} fetched and encoded as {mime}.")
-        except Exception as e: logging.error(f"❌ Flux/fetch failed image {i+1}: {e}", exc_info=True); flux_errors.append(f"Img {i+1}: {e}"); generated_data_uris.append(None)
+        except Exception as e: logging.error(f"❌ Flux/fetch failed image {i+1}: {e}", exc_info=True); flux_errors.append(f"Img {i+1}: {e}"); generated_data_uris.append(None); generated_image_urls.append(None)
 
     if not any(generated_data_uris): logging.error(f"❌ Flux generation failed entirely."); return jsonify({"error": f"Image generation failed: {'; '.join(flux_errors)}"}), 502
     logging.info(f"✅ Successfully generated {sum(1 for u in generated_data_uris if u)}/{NUM_IMAGES_TO_GENERATE} images.")
@@ -434,13 +436,23 @@ def generate():
     # 5. --- Process Each Generated Image ---
     processed_results_urls = []
     db_save_tasks = []
-    for index, original_uri in enumerate(generated_data_uris):
-        if original_uri:
+    for index, (original_uri, image_url) in enumerate(zip(generated_data_uris, generated_image_urls)):
+        if original_uri and image_url:
             logging.info(f"⚙️ Processing image {index + 1}...")
             # Generate JPEG preview for thumbnails for smaller size
             preview_uri = generate_preview_data_uri(original_uri, target_width=160, output_format='JPEG', quality=50) # Source can be JPEG preview
-            processed_results_urls.append(original_uri) # Keep original full-res URI for display/download
-            db_save_tasks.append({"user_id": user_id, "title": title, "niche": niche, "prompt": original_image_prompt, "image_url": original_uri, "preview_image_url": preview_uri})
+            processed_results_urls.append(original_uri) # Keep original full-res URI for display/download for backward compatibility
+            
+            # Store the direct URL in the database, but also keep a preview data URI
+            db_save_tasks.append({
+                "user_id": user_id, 
+                "title": title, 
+                "niche": niche, 
+                "prompt": original_image_prompt, 
+                "image_url": image_url,  # Store the direct FAL.ai URL instead of base64 data
+                "preview_image_url": preview_uri,  # Still keep preview as data URI for thumbnails
+                "is_direct_url": True  # Flag to indicate this is a direct URL, not base64
+            })
         else:
             logging.warning(f"⚠️ Skipping processing for failed image {index + 1}.")
 
@@ -472,7 +484,12 @@ def generate():
 
     # 8. --- Return Success Response ---
     if not processed_results_urls: logging.error(f"❌ No valid URLs to return."); return jsonify({"error": "Processing failed."}), 500
-    logging.info(f"✅ Returning {len(processed_results_urls)} image URLs."); return jsonify({ "prompt": original_image_prompt, "image_urls": processed_results_urls, "new_credits": new_credits })
+    logging.info(f"✅ Returning {len(processed_results_urls)} image URLs."); return jsonify({ 
+        "prompt": original_image_prompt, 
+        "image_urls": processed_results_urls,  # Return data URIs for backward compatibility
+        "direct_urls": [url for url in generated_image_urls if url],  # Also return the direct URLs
+        "new_credits": new_credits 
+    })
 
 # --- /history (Thumbnail History) (unchanged) ---
 @app.route("/history", methods=["GET"])
