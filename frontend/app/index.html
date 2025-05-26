@@ -1980,7 +1980,7 @@
                   const gridDiv = document.createElement('div'); gridDiv.className = 'thumbnail-results-grid';
                   let displayedImages = 0;
                   data.image_urls.forEach((imageUrl, index) => {
-                      if (imageUrl && imageUrl.startsWith('data:image')) {
+                      if (imageUrl && (imageUrl.startsWith('data:image') || imageUrl.startsWith('http'))) {
                           displayedImages++;
                           const itemDiv = document.createElement('div'); itemDiv.className = 'thumbnail-item';
                           const img = document.createElement('img'); img.src = imageUrl; img.alt = `Generated Thumbnail Option ${index + 1}`;
@@ -2053,8 +2053,8 @@
              const itemsHtml = items.map(item => {
                  const displayImageUrl = item.preview_image_url || item.image_url || '';
                  const fullImageUrl    = item.image_url;
-                 const canClickPreview = displayImageUrl && displayImageUrl.startsWith('data:image');
-                 const showDownload    = fullImageUrl && fullImageUrl.startsWith('data:image');
+                 const canClickPreview = displayImageUrl && (displayImageUrl.startsWith('data:image') || displayImageUrl.startsWith('http'));
+                 const showDownload    = fullImageUrl && (fullImageUrl.startsWith('data:image') || fullImageUrl.startsWith('http'));
                  const generatedDate   = item.created_at ? new Date(item.created_at).toLocaleString() : 'N/A';
                  const maxPromptLength = 100;
                  const displayPrompt   = (item.prompt && item.prompt.length > maxPromptLength) ? item.prompt.substring(0, maxPromptLength) + '…' : (item.prompt || 'N/A');

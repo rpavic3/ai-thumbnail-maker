@@ -409,38 +409,30 @@ def generate():
     logging.info(f"🔧 Using only original prompt for Flux: '{combined_prompt}'")
 
     # 3. --- Generate images with Flux ---
-    generated_data_uris = []
+    generated_image_urls = []
     flux_errors = []
     logging.info(f"⏳ Requesting {NUM_IMAGES_TO_GENERATE} images from Flux for user {user_id}...")
     for i in range(NUM_IMAGES_TO_GENERATE):
         logging.info(f"   Generating image {i+1}/{NUM_IMAGES_TO_GENERATE}...")
         try:
             img_url = generate_flux_image(combined_prompt)
-            logging.info(f"     Fetching image content from URL: {img_url}")
-            img_response = requests.get(img_url, timeout=60); img_response.raise_for_status(); img_bytes = img_response.content
-            # Determine mime type based on URL or headers (fallback to jpeg)
-            content_type = img_response.headers.get('Content-Type', '').lower()
-            if 'png' in content_type or img_url.lower().endswith('.png'): mime = 'png'
-            elif 'jpeg' in content_type or 'jpg' in content_type or img_url.lower().endswith('.jpg') or img_url.lower().endswith('.jpeg'): mime = 'jpeg'
-            else: mime = 'jpeg'; logging.warning(f"Unknown content type '{content_type}', assuming jpeg.")
+            logging.info(f"     Got image URL from Flux: {img_url}")
+            generated_image_urls.append(img_url); logging.info(f"   ✅ Image {i+1} URL received.")
+        except Exception as e: logging.error(f"❌ Flux failed to generate image {i+1}: {e}", exc_info=True); flux_errors.append(f"Img {i+1}: {e}"); generated_image_urls.append(None)
 
-            b64_encoded_data = base64.b64encode(img_bytes).decode('utf-8'); data_uri = f"data:image/{mime};base64,{b64_encoded_data}"
-            generated_data_uris.append(data_uri); logging.info(f"   ✅ Image {i+1} fetched and encoded as {mime}.")
-        except Exception as e: logging.error(f"❌ Flux/fetch failed image {i+1}: {e}", exc_info=True); flux_errors.append(f"Img {i+1}: {e}"); generated_data_uris.append(None)
-
-    if not any(generated_data_uris): logging.error(f"❌ Flux generation failed entirely."); return jsonify({"error": f"Image generation failed: {'; '.join(flux_errors)}"}), 502
-    logging.info(f"✅ Successfully generated {sum(1 for u in generated_data_uris if u)}/{NUM_IMAGES_TO_GENERATE} images.")
+    if not any(generated_image_urls): logging.error(f"❌ Flux generation failed entirely."); return jsonify({"error": f"Image generation failed: {'; '.join(flux_errors)}"}), 502
+    logging.info(f"✅ Successfully generated {sum(1 for u in generated_image_urls if u)}/{NUM_IMAGES_TO_GENERATE} images.")
 
     # 5. --- Process Each Generated Image ---
     processed_results_urls = []
     db_save_tasks = []
-    for index, original_uri in enumerate(generated_data_uris):
-        if original_uri:
+    for index, img_url in enumerate(generated_image_urls):
+        if img_url:
             logging.info(f"⚙️ Processing image {index + 1}...")
-            # Generate JPEG preview for thumbnails for smaller size
-            preview_uri = generate_preview_data_uri(original_uri, target_width=160, output_format='JPEG', quality=50) # Source can be JPEG preview
-            processed_results_urls.append(original_uri) # Keep original full-res URI for display/download
-            db_save_tasks.append({"user_id": user_id, "title": title, "niche": niche, "prompt": original_image_prompt, "image_url": original_uri, "preview_image_url": preview_uri})
+            # No need to generate preview - we'll use the same URL for both
+            # Client can resize image for preview display
+            processed_results_urls.append(img_url) # Keep original URL
+            db_save_tasks.append({"user_id": user_id, "title": title, "niche": niche, "prompt": original_image_prompt, "image_url": img_url, "preview_image_url": img_url})
         else:
             logging.warning(f"⚠️ Skipping processing for failed image {index + 1}.")
 
