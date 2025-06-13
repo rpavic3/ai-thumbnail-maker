@@ -2245,8 +2245,11 @@ let isTextEditingLocked = false; // Keeping variable but not using it
               if (!fontFamilyForCSS) return; // Skip if name generation fails
 
               // Add @font-face rule
-              // Path relative from frontend/app/ to project_root/fonts/ is ../../fonts/
-              const fontFaceRule = `@font-face { font-family: '${fontFamilyForCSS}'; src: url('../../fonts/${filename}'); }\n`;
+              // Use absolute path for production compatibility
+              const fontPath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+                ? `../../fonts/${filename}` // Local development path
+                : `/fonts/${filename}`; // Production path
+              const fontFaceRule = `@font-face { font-family: '${fontFamilyForCSS}'; src: url('${fontPath}'); }\n`;
               if (styleSheet) styleSheet.appendChild(document.createTextNode(fontFaceRule));
 
               const button = document.createElement('button');
