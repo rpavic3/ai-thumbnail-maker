@@ -429,6 +429,12 @@ def get_user_id_from_token(auth_header):
         if not user or not user.id:
              logging.warning(f"⛔ Token validation failed or user ID missing. Status: {getattr(user_response, 'status_code', 'N/A')}")
              raise Exception("Invalid token or user not found.")
+        
+        # Check if email is confirmed
+        if user.email_confirmed_at is None:
+            logging.warning(f"⛔ User {user.id} has not confirmed their email.")
+            raise Exception("Email not verified. Please check your inbox for a verification link.")
+            
         user_id = str(user.id)
         logging.info(f"✅ Token validated successfully for user ID: {user_id}")
         return user_id
@@ -438,6 +444,8 @@ def get_user_id_from_token(auth_header):
         # Check for specific error messages related to token validity
         if "invalid token" in error_str or "jwt" in error_str or "token is invalid" in error_str:
              raise Exception("Invalid token.") from e
+        elif "email not verified" in error_str:
+             raise Exception("Email not verified. Please check your inbox for a verification link.") from e
         else:
              raise Exception("Token verification failed.") from e
 
@@ -1776,6 +1784,41 @@ Return only the refined prompt with no explanations or additional text."""
     except Exception as e:
         logging.error(f"❌ Unexpected error during prompt refinement: {e}", exc_info=True)
         return jsonify({"error": f"Failed to refine prompt: {e}"}), 500
+
+@app.route("/api/auth/check-email", methods=["POST", "OPTIONS"])
+def check_email_exists():
+    """Check if an email exists in the system without revealing too much information."""
+    # Handle OPTIONS request for CORS preflight
+    if request.method == "OPTIONS":
+        return "", 204
+        
+    data = request.json
+    email = data.get("email")
+    
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+        
+    try:
+        # For security reasons, we don't want to directly reveal if an email exists
+        # Instead, we'll check internally but return a generic message
+        
+        # Get user by email - this is for internal use only
+        res = supabase.auth.admin.list_users()
+        users = res.users if hasattr(res, 'users') else []
+        
+        email_exists = any(user.email == email for user in users)
+        logging.info(f"Email check for {email}: {'Exists' if email_exists else 'Not found'}")
+        
+        # Always return the same message regardless of result
+        return jsonify({
+            "message": "If this email is registered, you can log in or reset your password."
+        }), 200
+    except Exception as e:
+        logging.error(f"❌ Error checking email existence: {e}", exc_info=True)
+        # For security, don't reveal specific errors
+        return jsonify({
+            "message": "If this email is registered, you can log in or reset your password."
+        }), 200
 
 # --- Main Execution ---
 if __name__ == "__main__":

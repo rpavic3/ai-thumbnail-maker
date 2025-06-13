@@ -1312,6 +1312,9 @@
               <button onclick="login()" style="flex: 1;">Log In</button>
               <button class="secondary-button" onclick="signup()" style="flex: 1;">Sign Up</button>
          </div>
+         <div style="text-align: center; margin-top: 0.5rem;">
+              <a href="#" id="forgot-password-link" style="color: var(--accent); text-decoration: none; font-size: 0.9rem;">Forgot Password?</a>
+         </div>
          <div class="auth-separator" style="display: flex; align-items: center; margin: 1rem 0;">
               <div style="flex-grow: 1; height: 1px; background-color: var(--border-color);"></div>
               <span style="padding: 0 10px; color: var(--text-muted);">or</span>
@@ -1322,6 +1325,21 @@
               Continue with Google
          </button>
          <p id="auth-status"></p>
+     </div>
+
+     <!-- Forgot Password Modal -->
+     <div id="forgot-password-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center;">
+         <div class="modal-content" style="background-color: var(--bg); padding: 2rem; border-radius: var(--radius); max-width: 400px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+             <h3 style="margin-top: 0;">Reset Password</h3>
+             <p style="color: var(--text-muted);">Enter your email address and we'll send you a password reset link.</p>
+             <label for="forgot-password-email">Email</label>
+             <input type="email" id="forgot-password-email" placeholder="you@example.com" required style="width: 100%; margin-bottom: 1rem;" />
+             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                 <button onclick="resetPassword()" style="flex: 1;">Send Reset Link</button>
+                 <button class="secondary-button" onclick="closeForgotPasswordModal()" style="flex: 1;">Cancel</button>
+             </div>
+             <p id="forgot-password-status" style="margin-top: 1rem; text-align: center;"></p>
+         </div>
      </div>
 
      <div id="main-app-content" style="display: none; width: 100%;">
@@ -2226,6 +2244,81 @@ let isTextEditingLocked = false; // Keeping variable but not using it
           return name.replace(/\s+/g, ' ').trim(); // Normalize spaces
       }
 
+      // Global variable to store the working font path
+      let globalFontPath = './public/fonts/'; // Default path - relative to frontend/app/
+      
+      // Function to determine the correct font path
+      function determineFontPath() {
+          // Possible paths to try
+          const possiblePaths = [
+              '/public/fonts/', // Absolute path from root
+              './public/fonts/', // Relative to current directory
+              '../public/fonts/', // One directory up
+              '/fonts/', // Direct in root
+              './fonts/', // In current directory
+              '../../fonts/' // Two directories up (original path)
+          ];
+          
+          console.log('Using font path:', globalFontPath);
+          
+          // Return the current global path
+          return globalFontPath;
+      }
+      
+      // Function to check if a path works and update the global path
+      async function checkAndUpdateFontPath() {
+          const possiblePaths = [
+              '/public/fonts/', // Absolute path from root
+              './public/fonts/', // Relative to current directory
+              '../public/fonts/', // One directory up
+              '/fonts/', // Direct in root
+              './fonts/', // In current directory
+              '../../fonts/' // Two directories up (original path)
+          ];
+          
+          // Test font to check
+          const testFont = 'AlfaSlabOne-Regular.ttf';
+          
+          // Try each path
+          for (const path of possiblePaths) {
+              try {
+                  const response = await fetch(path + testFont, { method: 'HEAD' });
+                  if (response.ok) {
+                      console.log(`Found working font path: ${path}`);
+                      globalFontPath = path;
+                      return path;
+                  }
+              } catch (error) {
+                  console.log(`Path ${path} failed:`, error);
+              }
+          }
+          
+          console.log('No working font path found, using default');
+          return globalFontPath; // Return default if none work
+      }
+      
+      // Debug function to check if fonts are loading correctly
+      function debugFontLoading() {
+          console.log('Debugging font loading...');
+          console.log(`Current global font path: ${globalFontPath}`);
+          
+          // Check if our test font loads with the current path
+          const testFont = 'AlfaSlabOne-Regular.ttf';
+          const fullPath = `${globalFontPath}${testFont}`;
+          
+          fetch(fullPath)
+              .then(response => {
+                  if (response.ok) {
+                      console.log(`✅ Font loads successfully from: ${fullPath}`);
+                  } else {
+                      console.error(`❌ Font failed to load from: ${fullPath}`);
+                  }
+              })
+              .catch(error => {
+                  console.error(`❌ Error loading font from ${fullPath}:`, error);
+              });
+      }
+
       function generateFontUI() {
           if (!fontButtonContainer) return;
           fontButtonContainer.innerHTML = ''; // Clear existing buttons
@@ -2245,11 +2338,11 @@ let isTextEditingLocked = false; // Keeping variable but not using it
               if (!fontFamilyForCSS) return; // Skip if name generation fails
 
               // Add @font-face rule
-              // Use absolute path for production compatibility
-              const fontPath = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-                ? `../../fonts/${filename}` // Local development path
-                : `/fonts/${filename}`; // Production path
-              const fontFaceRule = `@font-face { font-family: '${fontFamilyForCSS}'; src: url('${fontPath}'); }\n`;
+              // Use the global font path with fallbacks for better compatibility
+              const fontFaceRule = `@font-face { 
+                font-family: '${fontFamilyForCSS}'; 
+                src: url('${globalFontPath}${filename}');
+              }\n`;
               if (styleSheet) styleSheet.appendChild(document.createTextNode(fontFaceRule));
 
               const button = document.createElement('button');
@@ -4504,6 +4597,11 @@ let isTextEditingLocked = false; // Keeping variable but not using it
          const email = document.getElementById('auth-email').value;
          const password = document.getElementById('auth-password').value;
          
+         if (!email || !password) {
+             showStatus(authStatusP, 'Please enter both email and password', 'warning');
+             return;
+         }
+         
          try {
              // Attempt to sign in with password
              const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
@@ -4513,10 +4611,70 @@ let isTextEditingLocked = false; // Keeping variable but not using it
                  if (error.message && (error.message.toLowerCase().includes('email not confirmed') || 
                                         error.message.toLowerCase().includes('email confirmation') ||
                                         error.message.toLowerCase().includes('not verified'))) {
-                     showStatus(authStatusP, 'Please verify your email before logging in. Check your inbox for a verification link.', 'warning', 10000);
+                     showStatus(authStatusP, 'Please verify your email before logging in. Check your inbox (and spam folder) for a verification link.', 'warning', 10000);
                      
+                     // Add a button to resend verification email
+                     const resendButton = document.createElement('button');
+                     resendButton.innerText = 'Resend Verification Email';
+                     resendButton.style.marginTop = '0.5rem';
+                     resendButton.style.width = '100%';
+                     resendButton.title = 'Click to send a new verification email if you did not receive the first one';
+                     resendButton.onclick = async () => {
+                         try {
+                             showStatus(authStatusP, 'Sending verification email...', 'info');
+                             const { data: resendData, error: resendError } = await supabaseClient.auth.resend({
+                                 type: 'signup',
+                                 email: email,
+                                 options: {
+                                     emailRedirectTo: `${window.location.origin}/app/`
+                                 }
+                             });
+                             
+                             if (resendError) {
+                                 console.error("Error resending verification email:", resendError);
+                                 showStatus(authStatusP, `Could not resend verification email: ${resendError.message}`, 'error', 10000);
+                             } else {
+                                 showStatus(authStatusP, 'Verification email resent. Please check your inbox.', 'success', 10000);
+                             }
+                         } catch (resendErr) {
+                             console.error("Exception resending verification email:", resendErr);
+                             showStatus(authStatusP, 'Could not resend verification email. Please try signing up again.', 'error', 10000);
+                         }
+                     };
+                     
+                     // Add the resend button to the auth status area
+                     if (authStatusP.nextElementSibling && authStatusP.nextElementSibling.classList.contains('resend-button')) {
+                         authStatusP.nextElementSibling.remove();
+                     }
+                     authStatusP.parentNode.insertBefore(resendButton, authStatusP.nextSibling);
+                     resendButton.classList.add('resend-button');
+                     
+                     return;
+                 }
+                 
+                 // Handle wrong password or email not found separately for better UX
+                 if (error.message && (error.message.toLowerCase().includes('invalid login') || 
+                                       error.message.toLowerCase().includes('invalid email') ||
+                                       error.message.toLowerCase().includes('invalid password'))) {
+                     showStatus(authStatusP, 'Invalid email or password', 'error');
+                     return;
+                 }
+                 
+                 throw error;
+             }
+             
+             // Check if user is verified by checking if session exists
+             if (!data.session) {
+                 showStatus(authStatusP, 'Please verify your email before logging in. Check your inbox (and spam folder) for a verification link.', 'warning', 10000);
+                 
+                 // Add a button to resend verification email
+                 const resendButton = document.createElement('button');
+                 resendButton.innerText = 'Resend Verification Email';
+                 resendButton.style.marginTop = '0.5rem';
+                 resendButton.style.width = '100%';
+                 resendButton.onclick = async () => {
                      try {
-                         // Send another verification email
+                         showStatus(authStatusP, 'Sending verification email...', 'info');
                          const { data: resendData, error: resendError } = await supabaseClient.auth.resend({
                              type: 'signup',
                              email: email,
@@ -4529,46 +4687,31 @@ let isTextEditingLocked = false; // Keeping variable but not using it
                              console.error("Error resending verification email:", resendError);
                              showStatus(authStatusP, `Could not resend verification email: ${resendError.message}`, 'error', 10000);
                          } else {
-                             showStatus(authStatusP, 'Verification email resent. Please check your inbox.', 'info', 10000);
+                             showStatus(authStatusP, 'Verification email resent. Please check your inbox.', 'success', 10000);
                          }
                      } catch (resendErr) {
                          console.error("Exception resending verification email:", resendErr);
                          showStatus(authStatusP, 'Could not resend verification email. Please try signing up again.', 'error', 10000);
                      }
-                     return;
-                 }
-                 throw error;
-             }
-             
-             // Check if user is verified by checking if session exists
-             if (!data.session) {
-                 showStatus(authStatusP, 'Please verify your email before logging in. Check your inbox for a verification link.', 'warning', 10000);
+                 };
                  
-                 try {
-                     // Send another verification email
-                     const { data: resendData, error: resendError } = await supabaseClient.auth.resend({
-                         type: 'signup',
-                         email: email,
-                         options: {
-                             emailRedirectTo: `${window.location.origin}/app/`
-                         }
-                     });
-                     
-                     if (resendError) {
-                         console.error("Error resending verification email:", resendError);
-                         showStatus(authStatusP, `Could not resend verification email: ${resendError.message}`, 'error', 10000);
-                     } else {
-                         showStatus(authStatusP, 'Verification email resent. Please check your inbox.', 'info', 10000);
-                     }
-                 } catch (resendErr) {
-                     console.error("Exception resending verification email:", resendErr);
-                     showStatus(authStatusP, 'Could not resend verification email. Please try signing up again.', 'error', 10000);
+                 // Add the resend button to the auth status area
+                 if (authStatusP.nextElementSibling && authStatusP.nextElementSibling.classList.contains('resend-button')) {
+                     authStatusP.nextElementSibling.remove();
                  }
+                 authStatusP.parentNode.insertBefore(resendButton, authStatusP.nextSibling);
+                 resendButton.classList.add('resend-button');
+                 
                  return;
              }
              
              // If we get here, user is verified and logged in successfully
              showStatus(authStatusP, 'Login successful! Loading app...', 'success');
+             
+             // Remove any resend button if it exists
+             if (authStatusP.nextElementSibling && authStatusP.nextElementSibling.classList.contains('resend-button')) {
+                 authStatusP.nextElementSibling.remove();
+             }
          } catch (error) {
              console.error("Login Error:", error);
              showStatus(authStatusP, `Login Failed: ${error.message || 'Unknown error'}`, 'error');
@@ -4578,6 +4721,24 @@ let isTextEditingLocked = false; // Keeping variable but not using it
           showStatus(authStatusP, "Signing up...", 'info');
           const email = document.getElementById("auth-email").value;
           const password = document.getElementById("auth-password").value;
+          
+          if (!email || !password) {
+              showStatus(authStatusP, 'Please enter both email and password', 'warning');
+              return;
+          }
+          
+          if (password.length < 6) {
+              showStatus(authStatusP, 'Password must be at least 6 characters long', 'warning');
+              return;
+          }
+          
+          // Validate email format
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(email)) {
+              showStatus(authStatusP, 'Please enter a valid email address', 'warning');
+              return;
+          }
+          
           try {
               // Configure signup to require email confirmation
               const { data, error } = await supabaseClient.auth.signUp({
@@ -4590,24 +4751,98 @@ let isTextEditingLocked = false; // Keeping variable but not using it
                   }
                 }
               });
+              
+              // Log the raw response for debugging
+              console.log("Signup response:", { data, error });
+              
+              // Check for the specific case of an existing user where Supabase doesn't return an error
+              // but returns a user with no identities (this is a known pattern)
+              if (data && data.user && data.user.identities && data.user.identities.length === 0) {
+                  console.log("Detected existing user: user has no identities");
+                  showStatus(authStatusP, "This email is already registered. Try logging in instead.", 'warning');
+                  return;
+              }
 
               if (error) {
                   console.error("Signup Error Object:", error);
-                  if (error.message && error.message.toLowerCase().includes("user already registered")) {
-                      showStatus(authStatusP, "This email is already registered. Please log in.", 'warning');
-                  } else {
+                  // Check for various forms of "already registered" messages
+                  const errorMsg = error.message ? error.message.toLowerCase() : '';
+                  
+                  // Check for common "user already exists" error patterns
+                  if (errorMsg.includes("already") && 
+                     (errorMsg.includes("registered") || errorMsg.includes("exists") || errorMsg.includes("taken"))) {
+                      showStatus(authStatusP, "This email is already registered. Try logging in instead.", 'warning');
+                  }
+                  // Check for error code that might indicate an existing user
+                  else if (error.status === 400 && errorMsg.includes("unique constraint")) {
+                      showStatus(authStatusP, "This email is already registered. Try logging in instead.", 'warning');
+                  }
+                  else {
                       showStatus(authStatusP, `Signup failed: ${error.message}`, 'error');
                   }
               } else if (data && data.user) {
                   console.log("Signup Data Object:", data);
+                                    console.log("User object details:", {
+                      id: data.user.id,
+                      email: data.user.email,
+                      email_confirmed_at: data.user.email_confirmed_at,
+                      created_at: data.user.created_at,
+                      updated_at: data.user.updated_at,
+                      has_identities: data.user.identities && data.user.identities.length > 0,
+                      app_metadata: data.user.app_metadata,
+                      is_new: data.user.app_metadata?.provider === 'email' && !data.user.email_confirmed_at
+                  });
                   
-                  // Check if email verification is needed
-                  if (!data.session) {
+                  // One final check - if we have a user with a confirmed email, it's an existing user
+              if (data.user.email_confirmed_at) {
+                  console.log("Detected existing user: email already confirmed");
+                  showStatus(authStatusP, "This email is already registered. Try logging in instead.", 'warning');
+                  return;
+              }
+              
+              // Check if email verification is needed
+              if (!data.session) {
                       // No session means email verification is required
-                      showStatus(authStatusP, "Signup successful! Please check your email for a verification link. You must verify your email before logging in.", 'success', 15000);
+                      showStatus(authStatusP, "Signup successful! Please check your email (including spam folder) for a verification link. You must verify your email before logging in.", 'success', 15000);
                       
                       // Clear the password field for security
                       document.getElementById("auth-password").value = "";
+                      
+                      // Add a button to resend verification email
+                      const resendButton = document.createElement('button');
+                      resendButton.innerText = 'Resend Verification Email';
+                      resendButton.style.marginTop = '0.5rem';
+                      resendButton.style.width = '100%';
+                      resendButton.title = 'Click to send a new verification email if you did not receive the first one';
+                      resendButton.onclick = async () => {
+                          try {
+                              showStatus(authStatusP, 'Sending verification email...', 'info');
+                              const { data: resendData, error: resendError } = await supabaseClient.auth.resend({
+                                  type: 'signup',
+                                  email: email,
+                                  options: {
+                                      emailRedirectTo: `${window.location.origin}/app/`
+                                  }
+                              });
+                              
+                              if (resendError) {
+                                  console.error("Error resending verification email:", resendError);
+                                  showStatus(authStatusP, `Could not resend verification email: ${resendError.message}`, 'error', 10000);
+                              } else {
+                                  showStatus(authStatusP, 'Verification email resent. Please check your inbox.', 'success', 10000);
+                              }
+                          } catch (resendErr) {
+                              console.error("Exception resending verification email:", resendErr);
+                              showStatus(authStatusP, 'Could not resend verification email. Please try signing up again.', 'error', 10000);
+                          }
+                      };
+                      
+                      // Add the resend button to the auth status area
+                      if (authStatusP.nextElementSibling && authStatusP.nextElementSibling.classList.contains('resend-button')) {
+                          authStatusP.nextElementSibling.remove();
+                      }
+                      authStatusP.parentNode.insertBefore(resendButton, authStatusP.nextSibling);
+                      resendButton.classList.add('resend-button');
                       
                       // Log the user out to ensure they verify email first
                       if (currentSession) {
@@ -4672,6 +4907,67 @@ let isTextEditingLocked = false; // Keeping variable but not using it
          } catch (e) {
              console.error('Exception during Google Sign-In:', e);
              showStatus(authStatusP, `Error during Google Sign-In: ${e.message}`, 'error');
+         }
+     }
+     
+     // Forgot Password Modal Functions
+     function showForgotPasswordModal() {
+         const modal = document.getElementById('forgot-password-modal');
+         if (modal) {
+             modal.style.display = 'flex';
+             document.getElementById('forgot-password-email').value = document.getElementById('auth-email').value || '';
+             document.getElementById('forgot-password-status').textContent = '';
+             // Focus on the email input
+             setTimeout(() => {
+                 document.getElementById('forgot-password-email').focus();
+             }, 100);
+         }
+     }
+     
+     function closeForgotPasswordModal() {
+         const modal = document.getElementById('forgot-password-modal');
+         if (modal) {
+             modal.style.display = 'none';
+             document.getElementById('forgot-password-status').textContent = '';
+         }
+     }
+     
+     // Close modal when clicking outside of it
+     window.addEventListener('click', (event) => {
+         const modal = document.getElementById('forgot-password-modal');
+         if (event.target === modal) {
+             closeForgotPasswordModal();
+         }
+     });
+     
+     async function resetPassword() {
+         const email = document.getElementById('forgot-password-email').value;
+         const statusEl = document.getElementById('forgot-password-status');
+         
+         if (!email) {
+             showStatus(statusEl, 'Please enter your email address', 'warning');
+             return;
+         }
+         
+         showStatus(statusEl, 'Sending password reset link...', 'info');
+         
+         try {
+             const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                 redirectTo: `${window.location.origin}/app/`
+             });
+             
+             if (error) {
+                 console.error('Password Reset Error:', error);
+                 showStatus(statusEl, `Error: ${error.message}`, 'error');
+             } else {
+                 showStatus(statusEl, 'If this email is registered, a password reset link has been sent.', 'success');
+                 setTimeout(() => {
+                     closeForgotPasswordModal();
+                 }, 3000);
+             }
+         } catch (e) {
+             console.error('Exception during password reset:', e);
+             showStatus(statusEl, `Error: ${e.message}`, 'error');
          }
      }
 
@@ -6440,9 +6736,44 @@ function createStyleCard(profile) {
          }
      }
      // --- Initialization and Auth State Change Listener ---
-     document.addEventListener('DOMContentLoaded', () => {
+     // Preload fonts for better performance
+     function preloadFonts() {
+         availableFontFiles.forEach(filename => {
+             const link = document.createElement('link');
+             link.rel = 'preload';
+             link.href = `${globalFontPath}${filename}`;
+             link.as = 'font';
+             link.type = 'font/ttf';
+             link.crossOrigin = 'anonymous';
+             document.head.appendChild(link);
+             console.log(`Preloading font: ${globalFontPath}${filename}`);
+         });
+     }
+     
+     document.addEventListener('DOMContentLoaded', async () => {
+         // Check and update font path
+         await checkAndUpdateFontPath();
+         
+         // Debug font loading
+         debugFontLoading();
+         
+         // Preload fonts
+         preloadFonts();
          // Attach Tab Listeners
          console.log("DOM Content Loaded - Attaching Tab Listeners..."); // Add log
+         
+         // Attach forgot password link listener
+         const forgotPasswordLink = document.getElementById('forgot-password-link');
+         if (forgotPasswordLink) {
+             forgotPasswordLink.addEventListener('click', (e) => {
+                 e.preventDefault();
+                 showForgotPasswordModal();
+             });
+             console.log("Attached listener to forgotPasswordLink");
+         } else {
+             console.warn("forgotPasswordLink not found");
+         }
+         
          if (promptGenTabButton) {
              promptGenTabButton.addEventListener('click', () => handleTabSwitch(promptGenTabButton));
              console.log("Attached listener to promptGenTabButton");
@@ -6502,9 +6833,37 @@ function createStyleCard(profile) {
 
      // Auth state change listener
      supabaseClient.auth.onAuthStateChange((event, session) => {
-         console.log('--- Supabase Auth Event ---:', event, session ? `User: ${session.user?.id}` : "No session");
-         const previousSession = currentSession; // Store previous state
-         currentSession = session;
+        console.log('--- Supabase Auth Event ---:', event, session ? `User: ${session.user?.id}` : "No session");
+        
+        // Store previous session state
+        const previousSession = currentSession;
+        
+        // Handle specific auth events
+        if (event === 'SIGNED_IN') {
+            // Check if email is verified
+            if (session && session.user && session.user.email_confirmed_at) {
+                console.log('User signed in with verified email');
+                currentSession = session;
+            } else if (session && session.user) {
+                            console.log('User signed in but email is not verified');
+            showStatus(authStatusP, 'Please verify your email before logging in. Check your inbox (and spam folder) for a verification link.', 'warning', 10000);
+                // Force logout if email not verified
+                supabaseClient.auth.signOut();
+                currentSession = null;
+            }
+        } else if (event === 'SIGNED_OUT') {
+            console.log('User signed out');
+            currentSession = null;
+        } else if (event === 'USER_UPDATED') {
+            // This could be triggered when a user verifies their email
+            console.log('User updated');
+            if (session && session.user && session.user.email_confirmed_at) {
+                currentSession = session;
+            }
+        } else {
+            // For other events, just update the session
+            currentSession = session;
+        }
 
          // Determine if a major UI update is needed
          const needsFullUpdate =
