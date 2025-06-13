@@ -1342,6 +1342,22 @@
          </div>
      </div>
 
+     <!-- Update Password Modal -->
+     <div id="update-password-modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); justify-content: center; align-items: center;">
+         <div class="modal-content" style="background-color: var(--bg); padding: 2rem; border-radius: var(--radius); max-width: 400px; width: 90%; box-shadow: 0 4px 20px rgba(0,0,0,0.2);">
+             <h3 style="margin-top: 0;">Set New Password</h3>
+             <p style="color: var(--text-muted);">Please enter your new password below.</p>
+             <label for="new-password">New Password</label>
+             <input type="password" id="new-password" placeholder="Enter new password" required style="width: 100%; margin-bottom: 1rem;" />
+             <label for="confirm-password">Confirm Password</label>
+             <input type="password" id="confirm-password" placeholder="Confirm new password" required style="width: 100%; margin-bottom: 1rem;" />
+             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                 <button onclick="updatePassword()" style="flex: 1;">Update Password</button>
+             </div>
+             <p id="update-password-status" style="margin-top: 1rem; text-align: center;"></p>
+         </div>
+     </div>
+
      <div id="main-app-content" style="display: none; width: 100%;">
 
          <div class="user-info-container">
@@ -4970,6 +4986,80 @@ let isTextEditingLocked = false; // Keeping variable but not using it
              showStatus(statusEl, `Error: ${e.message}`, 'error');
          }
      }
+     
+     function showUpdatePasswordModal() {
+         const modal = document.getElementById('update-password-modal');
+         if (modal) {
+             modal.style.display = 'flex';
+             document.getElementById('update-password-status').textContent = '';
+             // Focus on the password input
+             setTimeout(() => {
+                 document.getElementById('new-password').focus();
+             }, 100);
+         }
+     }
+     
+     function closeUpdatePasswordModal() {
+         const modal = document.getElementById('update-password-modal');
+         if (modal) {
+             modal.style.display = 'none';
+             document.getElementById('update-password-status').textContent = '';
+             // Clear password fields for security
+             document.getElementById('new-password').value = '';
+             document.getElementById('confirm-password').value = '';
+         }
+     }
+     
+     // Close update password modal when clicking outside of it
+     window.addEventListener('click', (event) => {
+         const modal = document.getElementById('update-password-modal');
+         if (event.target === modal) {
+             closeUpdatePasswordModal();
+         }
+     });
+     
+     async function updatePassword() {
+         const newPassword = document.getElementById('new-password').value;
+         const confirmPassword = document.getElementById('confirm-password').value;
+         const statusEl = document.getElementById('update-password-status');
+         
+         if (!newPassword || !confirmPassword) {
+             showStatus(statusEl, 'Please enter both password fields', 'warning');
+             return;
+         }
+         
+         if (newPassword.length < 6) {
+             showStatus(statusEl, 'Password must be at least 6 characters long', 'warning');
+             return;
+         }
+         
+         if (newPassword !== confirmPassword) {
+             showStatus(statusEl, 'Passwords do not match', 'warning');
+             return;
+         }
+         
+         showStatus(statusEl, 'Updating password...', 'info');
+         
+         try {
+             const { error } = await supabaseClient.auth.updateUser({
+                 password: newPassword
+             });
+             
+             if (error) {
+                 console.error('Password Update Error:', error);
+                 showStatus(statusEl, `Error: ${error.message}`, 'error');
+             } else {
+                 showStatus(statusEl, 'Password updated successfully!', 'success');
+                 setTimeout(() => {
+                     closeUpdatePasswordModal();
+                     showStatus(authStatusP, 'Password updated successfully! You can now log in with your new password.', 'success', 5000);
+                 }, 2000);
+             }
+         } catch (e) {
+             console.error('Exception during password update:', e);
+             showStatus(statusEl, `Error: ${e.message}`, 'error');
+         }
+     }
 
      // --- Core View Update Logic ---
      function updateContentView() {
@@ -6759,6 +6849,30 @@ function createStyleCard(profile) {
          
          // Preload fonts
          preloadFonts();
+         
+         // Check for password reset flow in URL
+         const hash = window.location.hash;
+         if (hash && hash.includes('type=recovery')) {
+             console.log("Password reset flow detected from URL hash");
+             // The auth state change listener will handle showing the update password modal
+             // when the PASSWORD_RECOVERY event fires
+         } else if (hash && hash.includes('error=access_denied') && hash.includes('error_code=otp_expired')) {
+             console.log("Expired password reset link detected");
+             showStatus(authStatusP, "Your password reset link has expired. Please request a new one.", 'error', 10000);
+             // Add a button to open the forgot password modal
+             const resetButton = document.createElement('button');
+             resetButton.innerText = 'Reset Password Again';
+             resetButton.style.marginTop = '0.5rem';
+             resetButton.style.width = '100%';
+             resetButton.onclick = () => showForgotPasswordModal();
+             
+             // Add the reset button to the auth status area
+             if (authStatusP.nextElementSibling && authStatusP.nextElementSibling.classList.contains('reset-button')) {
+                 authStatusP.nextElementSibling.remove();
+             }
+             authStatusP.parentNode.insertBefore(resetButton, authStatusP.nextSibling);
+             resetButton.classList.add('reset-button');
+         }
          // Attach Tab Listeners
          console.log("DOM Content Loaded - Attaching Tab Listeners..."); // Add log
          
@@ -6899,7 +7013,11 @@ function createStyleCard(profile) {
               fetchUserCredits();
          } else {
              console.log(` ---> Event ${event} did not trigger specific action.`);
-              if (event === "PASSWORD_RECOVERY") { showStatus(authStatusP, "Password recovery email sent.", 'info', 5000); }
+             if (event === "PASSWORD_RECOVERY") {
+                 console.log("Password recovery flow detected");
+                 showStatus(authStatusP, "Please set your new password", 'info');
+                 showUpdatePasswordModal();
+             }
          }
      });
 
