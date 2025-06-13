@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <!-- Console cleaner - disables console.log for production -->
-    <script src="console-cleaner.js"></script>
+<head>`n    <!-- Console cleaner - disables console.log for production -->`n    <script src="console-cleaner.js"></script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>AI Thumbnail Copilot</title>
@@ -1226,68 +1224,10 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Thumbnail Carousel Styles */
-        #left-carousel, #right-carousel {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            width: 495px; /* Total width for 2 columns (240px*2 + 15px gap) */
-            overflow: hidden;
-            pointer-events: none; /* Allow interaction with elements behind */
-            z-index: -1; /* Behind the main content */
-            height: 100vh; /* Full viewport height */
-        }
-        
-        #left-carousel {
-            left: 0;
-        }
-        
-        #right-carousel {
-            right: 0;
-        }
-        
-        .carousel-thumbnail {
-            position: absolute;
-            width: 240px; /* Larger thumbnails */
-            height: 140px; /* Larger thumbnails */
-            border-radius: var(--radius, 8px);
-            overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            pointer-events: auto; /* Re-enable pointer events for thumbnails */
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
-        
-        .carousel-thumbnail:hover {
-            transform: scale(1.05) translateX(10px);
-            z-index: 1;
-            opacity: 0.9;
-        }
-        
-        #right-carousel .carousel-thumbnail:hover {
-            transform: scale(1.05) translateX(-10px);
-        }
-        
-        .carousel-thumbnail img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        
-        /* Media query to hide carousels on small screens */
-        @media (max-width: 1800px) {
-            #left-carousel, #right-carousel {
-                display: none;
-            }
-        }
-
 </style>
 <style id="dynamic-font-styles"></style>
 </head>
 <body>
-
- <!-- Thumbnail Carousel Containers -->
- <div id="left-carousel"></div>
- <div id="right-carousel"></div>
 
  <div class="tab-bar">
      <button id="tab-prompt-gen" class="tab-button active">Image Generation</button>
@@ -1575,9 +1515,6 @@
  </div>
 
 
- <!-- Thumbnail Carousel Script -->
- <script src="js/thumbnail-carousel.js"></script>
-
  <script>
      // --- Helper function to show loading spinner on buttons ---
      function showLoadingSpinner(button, isLoading, loadingText = 'Loading...') {
@@ -1654,7 +1591,7 @@
      // --- Configuration (Ensure these match your setup) ---
      const SUPABASE_URL = "https://mjwjxxfnqbaroxwjewms.supabase.co"; // Your Supabase URL
      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2p4eGZucWJhcm94d2pld21zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDQzNDg1NDQsImV4cCI6MjA1OTkyNDU0NH0.dYc-6m6gjpWlCD-qXYP5q_biO0Ai_CdpZMsPcPfD6Vk"; // Your Supabase Anon Key
-     const BACKEND_URL = "https://ai-thumbnail-maker.onrender.com"; // DEV: Your Local Flask backend URL
+     const BACKEND_URL = "http://127.0.0.1:5000"; // DEV: Your Local Flask backend URL
      const STRIPE_PUBLISHABLE_KEY = "pk_live_51RGO3VFj9LYfI1R0cQJetymluTuFJypOZ50kEaYzTNuyldVzHAp44DzqZWasbk5mBd2Rw0x5dXW4zAJxnPsP7SKK00aGiig0wu"; // Your Stripe Publishable Key
 
      // --- Development/Debug Flags ---
@@ -4956,10 +4893,6 @@ let isTextEditingLocked = false; // Keeping variable but not using it
                   resultDiv.appendChild(gridDiv);
                   resultDiv.insertAdjacentHTML('beforeend', `<div class="prompt-text"><strong>Prompt Used:</strong><br>${data.prompt || prompt}</div>`);
                   scrollToElement('result');
-                  
-                  // We don't update the carousel with newly generated thumbnails anymore
-                  // Carousel now shows curated showcase thumbnails for all users
-                  
                   if (data.new_credits !== undefined) { updateCreditState(data.new_credits); }
                   else { fetchUserCredits(); } // Fallback if backend doesn't return new credits
                   if (displayedImages < NUM_IMAGES_EXPECTED) { showStatus(resultDiv, `Generated ${displayedImages}/${NUM_IMAGES_EXPECTED} images successfully.`, 'warning', 5000); }
@@ -5031,10 +4964,6 @@ let isTextEditingLocked = false; // Keeping variable but not using it
 
              historyDiv.insertAdjacentHTML('beforeend', itemsHtml);
              const currentlyLoadedCount = historyDiv.querySelectorAll('.card').length;
-             
-             // We don't update the carousel with history items anymore
-             // Carousel now shows curated showcase thumbnails for all users
-             
              if (loadMoreContainer) {
                  if (items.length > 0 && currentlyLoadedCount < totalHistoryItems) {
                      loadMoreContainer.style.display = 'block';
@@ -5422,31 +5351,13 @@ let isTextEditingLocked = false; // Keeping variable but not using it
           const existingError = errorTarget.querySelector('.download-error-message');
           if (existingError) existingError.remove();
 
-          if (!url) {
-              console.error("Download failed: URL is missing.");
+          if (!url || !(url.startsWith('data:image') || url.startsWith('blob:'))) { // Allow blob URLs too
+              console.error("Download failed: Invalid or missing Data/Blob URI.", url);
               const errorP = document.createElement('p'); errorP.className = 'download-error-message';
               errorP.innerText = `Download failed: Image data missing or invalid.`;
               errorTarget.appendChild(errorP); // Append error to the determined target
               return;
           }
-
-          // Handle different types of URLs
-          if (url.startsWith('data:image') || url.startsWith('blob:')) {
-              // Data URI or Blob URL - can download directly
-              handleDirectDownload(url, baseFilename, errorTarget);
-          } else if (url.startsWith('http://') || url.startsWith('https://')) {
-              // HTTP/HTTPS URL - need to fetch and convert to blob
-              handleRemoteImageDownload(url, baseFilename, errorTarget);
-          } else {
-              console.error("Download failed: Unsupported URL format.", url);
-              const errorP = document.createElement('p'); errorP.className = 'download-error-message';
-              errorP.innerText = `Download failed: Unsupported image format.`;
-              errorTarget.appendChild(errorP);
-          }
-     }
-
-     // Helper function for direct downloads (data URIs and blob URLs)
-     function handleDirectDownload(url, baseFilename, errorTarget) {
           const safeFilename = baseFilename.replace(/[^a-z0-9_.\-]/gi, '_').toLowerCase() || 'download'; // Allow dots and hyphens
           let extension = 'png'; // Default extension
           if (url.startsWith('data:image')) {
@@ -5468,75 +5379,6 @@ let isTextEditingLocked = false; // Keeping variable but not using it
               errorP.innerText = `Download failed (${err.message}). Try right-clicking the image > 'Save Image As...'.`;
               errorTarget.appendChild(errorP);
           }
-     }
-
-     // Helper function for remote image downloads (HTTP/HTTPS URLs)
-     function handleRemoteImageDownload(url, baseFilename, errorTarget) {
-          const statusP = document.createElement('p');
-          statusP.className = 'download-error-message';
-          statusP.style.color = 'var(--text-muted)';
-          statusP.innerText = 'Preparing download...';
-          errorTarget.appendChild(statusP);
-
-          // Fetch the image and convert to blob
-          fetch(url, { 
-              method: 'GET',
-              headers: {
-                  // Add cache control to avoid CORS issues
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache'
-              },
-              mode: 'cors' // Try CORS mode
-          })
-          .then(response => {
-              if (!response.ok) {
-                  throw new Error(`HTTP error! status: ${response.status}`);
-              }
-              return response.blob();
-          })
-          .then(blob => {
-              // Create a blob URL and download
-              const blobUrl = URL.createObjectURL(blob);
-              
-              // Get extension from content type or URL
-              let extension = 'png'; // Default
-              const contentType = blob.type;
-              if (contentType) {
-                  const match = contentType.match(/image\/([a-zA-Z+]+)/);
-                  if (match) {
-                      extension = match[1].toLowerCase();
-                      if (extension === 'jpeg') extension = 'jpg';
-                  }
-              } else if (url.includes('.')) {
-                  // Try to get extension from URL
-                  const urlExt = url.split('.').pop().toLowerCase();
-                  if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(urlExt)) {
-                      extension = urlExt;
-                  }
-              }
-              
-              // Create safe filename
-              const safeFilename = baseFilename.replace(/[^a-z0-9_.\-]/gi, '_').toLowerCase() || 'download';
-              const filename = safeFilename.endsWith('.' + extension) ? safeFilename : `${safeFilename}.${extension}`;
-              
-              // Download the blob
-              const link = document.createElement('a');
-              link.href = blobUrl;
-              link.download = filename;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              
-              // Clean up
-              URL.revokeObjectURL(blobUrl);
-              statusP.remove();
-              console.log(`Download completed for: ${filename}`);
-          })
-          .catch(error => {
-              console.error('Error downloading image:', error);
-              statusP.style.color = 'var(--error-color)';
-              statusP.innerText = `Download failed: ${error.message}. Try right-clicking the image and selecting 'Save Image As...'`;
-          });
      }
 
 

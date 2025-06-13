@@ -11,13 +11,17 @@ from dotenv import load_dotenv
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from openai import OpenAI, APIError # v1.x+ library
-from PIL import Image, UnidentifiedImageError # Pillow for image processing
+from PIL import Image, UnidentifiedImageError, ImageDraw, ImageFont # Pillow for image processing
 from supabase import create_client, Client
 # Optional, but good practice if dealing with filenames later:
 # from werkzeug.utils import secure_filename
 
 # --- Load Environment Variables FIRST ---
-load_dotenv() # Loads variables from .env file into environment
+load_dotenv()
+
+# Credit Costs
+CREDIT_COST_PER_PRECISION_PREVIEW_SET = 1 # Cost for generating a set of 6 preview images (ensure this is the correct/intended value)
+CREDIT_COST_HQ_THUMBNAIL = 2 # Cost for generating one HQ thumbnail # Loads variables from .env file into environment
 
 # --- Setup Logging ---
 # Will be reconfigured based on FLASK_DEBUG in __main__
@@ -81,6 +85,7 @@ if not PRICE_ID_TO_CREDITS: logging.warning("⚠️ PRICE_ID_TO_CREDITS mapping 
 CREDIT_COST_PER_THUMBNAIL = 1 # Cost for thumbnail generation (Flux)
 CREDIT_COST_PER_ASSET_EXTRACTION = 3 # Cost for asset extraction (OpenAI)
 CREDIT_COST_PER_STYLE_ANALYSIS = 5 # Cost for style profile analysis (ChatGPT)
+CREDIT_COST_PER_PRECISION_PREVIEW_SET = 1 # Cost for generating 6 precision mode previews
 
 # --- Flask App Initialization ---
 app = Flask(__name__)
@@ -129,6 +134,99 @@ def generate_flux_image(prompt: str) -> str:
          error_detail = getattr(e, 'response', None)
          error_text = getattr(error_detail, 'text', str(e))
          raise Exception(f"Flux generation failed: {error_text}") from e
+
+def generate_flux_hq_image(prompt: str) -> str:
+    """Calls FAL/Flux-11-Ultra and returns the public image URL"""
+    if not FAL_API_KEY:
+        logging.error("❌ Cannot generate Flux HQ image: FAL_API_KEY is not set.")
+        raise ValueError("Flux API Key is missing.")
+
+    logging.info(f"🌀 Sending prompt to Flux-11-Ultra: '{prompt}'")
+    api_url = "https://fal.run/fal-ai/flux-pro/v1.1-ultra" # Corrected API endpoint
+    headers = {
+        "Authorization": f"Key {FAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "prompt": prompt, 
+        "num_inference_steps": 30, 
+        "guidance_scale": 7,
+        "width": 1280, 
+        "height": 720
+    }
+    try:
+        # Increased timeout as flux-11-ultra might be more resource-intensive
+        r = requests.post(api_url, headers=headers, json=payload, timeout=180) 
+        r.raise_for_status()
+        response_data = r.json()
+        if not response_data or "images" not in response_data or not response_data["images"] or "url" not in response_data["images"][0]:
+             logging.error(f"❌ Flux-11-Ultra returned unexpected response structure: {response_data}")
+             raise ValueError("Flux-11-Ultra response missing expected image URL.")
+        image_url = response_data["images"][0]["url"]
+        logging.info(f"✅ Flux-11-Ultra responded successfully. Image URL: {image_url}")
+        return image_url
+    except requests.exceptions.RequestException as req_err:
+         logging.error(f"❌ Network error calling Flux-11-Ultra API: {req_err}", exc_info=True)
+         raise ConnectionError(f"Network error connecting to Flux-11-Ultra: {req_err}") from req_err
+    except Exception as e:
+         logging.error(f"❌ Failed Flux-11-Ultra API call: {e}", exc_info=True)
+         error_detail = getattr(e, 'response', None)
+         error_text = getattr(error_detail, 'text', str(e))
+         raise Exception(f"Flux-11-Ultra generation failed: {error_text}") from e
+
+def upscale_image_with_clarity(image_url: str, upscale_factor: float = 2.0) -> str:
+    """
+    Upscales an image using the fal-ai/clarity-upscaler model
+    
+    Args:
+        image_url: URL of the image to upscale
+        upscale_factor: Factor by which to upscale the image (default: 2.0)
+        
+    Returns:
+        URL of the upscaled image
+    """
+    if not FAL_API_KEY:
+        logging.error("❌ Cannot upscale image: FAL_API_KEY is not set.")
+        raise ValueError("Flux API Key is missing.")
+
+    logging.info(f"🔍 Upscaling image with clarity-upscaler (factor: {upscale_factor})")
+    api_url = "https://fal.run/fal-ai/clarity-upscaler"
+    headers = {
+        "Authorization": f"Key {FAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "image_url": image_url,
+        "upscale_factor": upscale_factor,
+        "prompt": "masterpiece, best quality, highres, 4k, detailed",
+        "negative_prompt": "(worst quality, low quality, normal quality:2)",
+        "creativity": 0.2,  # Lower value to stay closer to original
+        "resemblance": 0.8,  # Higher value to maintain resemblance to original
+        "guidance_scale": 4.0,
+        "num_inference_steps": 20
+    }
+    
+    try:
+        r = requests.post(api_url, headers=headers, json=payload, timeout=180)
+        r.raise_for_status()
+        response_data = r.json()
+        
+        if not response_data or "image" not in response_data or "url" not in response_data["image"]:
+            logging.error(f"❌ Clarity Upscaler returned unexpected response structure: {response_data}")
+            raise ValueError("Clarity Upscaler response missing expected image URL.")
+            
+        upscaled_image_url = response_data["image"]["url"]
+        logging.info(f"✅ Clarity Upscaler responded successfully. Image URL: {upscaled_image_url}")
+        return upscaled_image_url
+        
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"❌ Network error calling Clarity Upscaler API: {req_err}", exc_info=True)
+        raise ConnectionError(f"Network error connecting to Clarity Upscaler: {req_err}") from req_err
+    except Exception as e:
+        logging.error(f"❌ Failed Clarity Upscaler API call: {e}", exc_info=True)
+        error_detail = getattr(e, 'response', None)
+        error_text = getattr(error_detail, 'text', str(e))
+        raise Exception(f"Clarity Upscaler failed: {error_text}") from e
 
 def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WIDTH, output_format='JPEG', quality=60) -> str | None:
     """
@@ -202,6 +300,122 @@ def generate_preview_data_uri(full_data_uri: str, target_width: int = PREVIEW_WI
         logging.error(f"❌ Unexpected error generating preview image: {e}", exc_info=True)
         return None
 
+
+def generate_hidream_preview_image(prompt: str) -> str:
+    """Calls FAL/hidream-i1-fast and returns the public image URL"""
+    if not FAL_API_KEY:
+        logging.error("❌ Cannot generate HiDream image: FAL_API_KEY is not set.")
+        raise ValueError("Fal API Key is missing.")
+
+    logging.info(f"🎨 Sending prompt to HiDream: '{prompt}'")
+    api_url = "https://fal.run/fal-ai/hidream-i1-fast"
+    headers = {
+        "Authorization": f"Key {FAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "prompt": prompt,
+        "image_size": "landscape_16_9",
+        "num_inference_steps": 16 
+    }
+    try:
+        r = requests.post(api_url, headers=headers, json=payload, timeout=90) # 90 seconds timeout
+        r.raise_for_status() # Raises HTTPError for bad responses (4XX or 5XX)
+        response_data = r.json()
+        
+        if not response_data or "images" not in response_data or not isinstance(response_data["images"], list) or len(response_data["images"]) == 0 or "url" not in response_data["images"][0]:
+            logging.error(f"❌ HiDream returned unexpected response structure: {response_data}")
+            raise ValueError("HiDream response missing expected image URL.")
+        
+        image_url = response_data["images"][0]["url"]
+        logging.info(f"✅ HiDream responded successfully. Image URL: {image_url}")
+        return image_url
+    except requests.exceptions.Timeout:
+        logging.error(f"❌ Timeout error calling HiDream API for prompt: '{prompt}'", exc_info=True)
+        raise ConnectionError(f"Timeout connecting to HiDream for prompt: '{prompt}'")
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"❌ Network error calling HiDream API: {req_err}", exc_info=True)
+        raise ConnectionError(f"Network error connecting to HiDream: {req_err}") from req_err
+    except Exception as e: # Catch-all for other unexpected errors like JSON parsing
+        logging.error(f"❌ Unexpected error generating HiDream image: {e}", exc_info=True)
+        raise RuntimeError(f"Failed to generate HiDream image: {e}") from e
+
+def get_visual_prompts_from_gpt(video_topic: str) -> list[str]:
+    """
+    Sends the video topic to GPT-4o-mini to generate six visual thumbnail prompts.
+    Returns a list of 6 prompt strings.
+    """
+    if not client or not client.api_key or client.api_key == "dummy_key_if_missing": # Check for dummy key
+        logging.error("❌ OpenAI client not configured for generating visual prompts.")
+        raise ValueError("AI Service (OpenAI) is not configured.")
+
+    system_prompt = """You are a professional YouTube-thumbnail ideator.
+
+GOAL
+Generate SIX compelling, eyecatching, distinct (like different styles) **and highly specific** visual prompt idea for a YouTube thumbnail based on this video information. The prompts MUST describe concrete visual elements suitable for a literal AI image generator (like Flux or DALL-E). **IMPORTANT INSTRUCTIONS for the prompt content:**
+            * **Be Specific:** Describe exact objects, characters, settings, colors, lighting, and composition details.
+            * **Avoid Vague Terms:** Do NOT use generic or abstract terms like 'analytics', 'data', 'symbols', 'icons', 'graphs' unless you describe *exactly* what they look like (e.g., 'a glowing blue bar chart showing an upward trend', 'a simple red heart icon floating near the top left'). If you can't describe it visually and specifically, don't include it.
+            * **No Decorative Elements:** Avoid adding unnecessary decorative elements like confetti, sparkles, or generic symbols. Focus on core visual elements.
+            * **Focus:** Ensure the prompt clearly focuses on the main subject derived from the title and niche.
+            * **DETAIL:** Ensure the prompt is highly detailed and specific, with concrete visual elements that an AI image generator can understand.
+
+• Each prompt must be a fully-self-contained visual description that an AI image generator can understand.
+
+RULES
+1. No mention of text, captions, logos, watermarks or brand names.
+2. Vary them—different angles, colour palettes, or story beats.
+3. Use vivid, but concrete language (describe lighting, setting, subject pose).
+4. Output ONLY a JSON array of 6 strings. No commentary, headings or markdown."""
+
+    user_message = f"Video topic: {video_topic}\nReturn the six candidate prompts now."
+
+    logging.info(f"🤖 Sending to GPT-4o-mini for visual prompts. Topic: '{video_topic}'")
+    try:
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ],
+            response_format={"type": "json_object"} 
+        )
+        
+        response_content = completion.choices[0].message.content
+        logging.info(f"✅ GPT-4o-mini raw response for visual prompts: {response_content}")
+
+        prompts_list = []
+        try:
+            parsed_json = json.loads(response_content)
+            if isinstance(parsed_json, list):
+                prompts_list = parsed_json
+            elif isinstance(parsed_json, dict):
+                if "prompts" in parsed_json and isinstance(parsed_json["prompts"], list):
+                    prompts_list = parsed_json["prompts"]
+                elif "result" in parsed_json and isinstance(parsed_json["result"], list):
+                    prompts_list = parsed_json["result"]
+                elif parsed_json: 
+                    first_key = next(iter(parsed_json))
+                    if isinstance(parsed_json[first_key], list):
+                        prompts_list = parsed_json[first_key]
+
+            if not prompts_list or not all(isinstance(p, str) for p in prompts_list) or len(prompts_list) != 6:
+                logging.error(f"❌ GPT-4o-mini response format error. Expected JSON array of 6 strings, got: {response_content}")
+                raise ValueError("GPT-4o-mini response format error: Expected JSON array of 6 strings.")
+
+        except json.JSONDecodeError as e:
+            logging.error(f"❌ GPT-4o-mini response was not valid JSON: {response_content}. Error: {e}")
+            raise ValueError("GPT-4o-mini response format error: Invalid JSON.")
+
+        logging.info(f"✅ GPT-4o-mini generated {len(prompts_list)} visual prompts successfully.")
+        return prompts_list
+
+    except APIError as e:
+        logging.error(f"❌ OpenAI API Error during visual prompt generation: {e}", exc_info=True)
+        raise ConnectionError(f"AI service (OpenAI) error: {e}") from e
+    except Exception as e:
+        logging.error(f"❌ Unexpected error during visual prompt generation: {e}", exc_info=True)
+        raise RuntimeError(f"Failed to generate visual prompts: {e}") from e
+
 def get_user_id_from_token(auth_header):
     """Validates Supabase JWT and returns user ID or raises Exception."""
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -228,6 +442,346 @@ def get_user_id_from_token(auth_header):
              raise Exception("Token verification failed.") from e
 
 # --- API Routes ---
+
+@app.route('/api/precision/generate-previews', methods=['POST', 'OPTIONS'])
+def precision_generate_previews():
+    if request.method == "OPTIONS": # Handle CORS preflight
+        return "", 204
+
+    logging.info("🎯 /api/precision/generate-previews called")
+    
+    # Add call stack info to help debug
+    import traceback
+    stack = traceback.format_stack()
+    logging.info(f"📚 Call stack for /api/precision/generate-previews: {stack[-3:]}")
+    
+    auth_header = request.headers.get("Authorization")
+    try:
+        user_id = get_user_id_from_token(auth_header)
+    except Exception as e:
+        logging.warning(f"⚠️ Auth failed for /api/precision/generate-previews: {e}")
+        return jsonify({"error": str(e)}), 401
+
+    data = request.json
+    video_topic = data.get("video_topic")
+    is_refined_prompt = data.get("is_refined_prompt", False)  # New flag to indicate refined prompts
+    
+    # Log the request details for debugging
+    logging.info(f"📝 Request details - video_topic: '{video_topic}', is_refined_prompt: {is_refined_prompt}")
+    
+    # Check if this is a duplicate request (a simple concatenated prompt)
+    # Look for common edit instructions patterns
+    common_edit_patterns = [" make it ", " change to ", " add ", " remove "]
+    is_likely_concatenated = False
+    
+    for pattern in common_edit_patterns:
+        if pattern in video_topic.lower() and not is_refined_prompt:
+            parts = video_topic.split(pattern, 1)
+            if len(parts) > 1 and len(parts[0].split()) > 10:  # Original prompt is substantial
+                is_likely_concatenated = True
+                break
+    
+    if is_likely_concatenated:
+        logging.warning(f"⚠️ Detected concatenated prompt without is_refined_prompt flag. Skipping: '{video_topic}'")
+        # Return a success response with empty data to prevent errors in the frontend
+        return jsonify({
+            "images": [], 
+            "prompts": [],
+            "credits_remaining": 0,  # Frontend will ignore this as it's an empty response
+            "skipped_duplicate": True
+        }), 200
+
+    if not video_topic:
+        logging.warning("⚠️ /api/precision/generate-previews: Missing video_topic.")
+        return jsonify({"error": "Video topic is required."}), 400
+
+    cost = CREDIT_COST_PER_PRECISION_PREVIEW_SET
+    try:
+        user_profile_response = supabase.table("profiles").select("credits").eq("id", user_id).single().execute()
+        
+        if not user_profile_response.data:
+            logging.error(f"❌ User profile not found for user_id {user_id} during credit check.")
+            return jsonify({"error": "User profile not found for credit check."}), 404
+
+        current_credits = user_profile_response.data.get("credits", 0)
+
+        if current_credits < cost:
+            logging.warning(f"⚠️ User {user_id} has insufficient credits ({current_credits}) for precision previews (cost: {cost}).")
+            return jsonify({"error": "Insufficient credits."}), 402
+
+        new_credits = current_credits - cost
+        update_response = supabase.table("profiles").update({"credits": new_credits}).eq("id", user_id).execute()
+        
+        if hasattr(update_response, 'error') and update_response.error:
+            logging.error(f"❌ Failed to deduct credits for user {user_id}: {update_response.error}")
+            return jsonify({"error": "Credit deduction failed."}), 500
+        
+        logging.info(f"🪙 Credits deducted for user {user_id}. Old: {current_credits}, New: {new_credits} (Cost: {cost})")
+    
+    except Exception as e: 
+        logging.error(f"❌ Error during credit check/deduction for user {user_id}: {e}", exc_info=True)
+        return jsonify({"error": "Credit processing error."}), 500
+
+    try:
+        # Check if this is a refined prompt from the edit flow
+        # We can detect this by checking if is_refined_prompt flag is set
+        # or by checking if the prompt is longer/more detailed than typical video topics
+        if is_refined_prompt or len(video_topic.split()) > 15:  # Simple heuristic: refined prompts are usually longer
+            logging.info(f"🎨 Using REFINED prompt for all 6 images (from edit flow): '{video_topic}'")
+            
+            image_urls = [None] * 6 
+            generated_prompts_for_fe = [video_topic] * 6  # Same prompt for all 6 slots
+
+            # Generate 6 images with the same refined prompt
+            for i in range(6):
+                try:
+                    img_url = generate_hidream_preview_image(video_topic)
+                    image_urls[i] = img_url
+                    logging.info(f"✅ Generated preview image {i+1}/6 for user {user_id}")
+                except Exception as img_gen_err:
+                    logging.error(f"❌ Failed to generate preview image {i+1} for refined prompt (user {user_id}): {img_gen_err}", exc_info=True)
+        else:
+            # For regular video topics, use the original approach with GPT generating 6 different prompts
+            logging.info(f"🧠 Generating 6 different visual prompts for video topic: '{video_topic}'")
+            
+            visual_prompts = get_visual_prompts_from_gpt(video_topic)
+            if not visual_prompts or len(visual_prompts) != 6:
+                logging.error(f"❌ Did not receive exactly 6 prompts from GPT for user {user_id}. Received: {visual_prompts}")
+                return jsonify({"error": "Failed to generate the required number of thumbnail ideas."}), 500
+
+            image_urls = [None] * 6 
+            generated_prompts_for_fe = [None] * 6 
+
+            for i in range(6):
+                p_prompt = visual_prompts[i]
+                generated_prompts_for_fe[i] = p_prompt 
+                if p_prompt: 
+                    try:
+                        img_url = generate_hidream_preview_image(p_prompt)
+                        image_urls[i] = img_url
+                        logging.info(f"✅ Generated preview image {i+1}/6 for user {user_id}")
+                    except Exception as img_gen_err:
+                        logging.error(f"❌ Failed to generate preview image {i+1} for prompt '{p_prompt}' (user {user_id}): {img_gen_err}", exc_info=True)
+                else:
+                    logging.warning(f"⚠️ Skipping image generation for empty prompt at index {i} for user {user_id}.")
+
+        successful_image_count = sum(1 for url in image_urls if url is not None)
+        if successful_image_count < 6:
+             logging.warning(f"⚠️ Only {successful_image_count}/6 images generated successfully for user {user_id}.")
+
+        return jsonify({
+            "images": image_urls, 
+            "prompts": generated_prompts_for_fe, 
+            "credits_remaining": new_credits
+        }), 200
+
+    except ValueError as ve: 
+        logging.error(f"❌ Configuration error for /api/precision/generate-previews (user {user_id}): {ve}", exc_info=True)
+        return jsonify({"error": f"Service configuration error: {ve}"}), 503
+    except ConnectionError as ce:
+        logging.error(f"❌ Connection error during /api/precision/generate-previews (user {user_id}): {ce}", exc_info=True)
+        return jsonify({"error": f"External service connection error: {ce}"}), 502
+    except RuntimeError as rte: 
+        logging.error(f"❌ Runtime error during /api/precision/generate-previews (user {user_id}): {rte}", exc_info=True)
+        return jsonify({"error": f"Processing error: {rte}"}), 500
+    except Exception as e: 
+        logging.error(f"❌ Unexpected critical error in /api/precision/generate-previews (user {user_id}): {e}", exc_info=True)
+        return jsonify({"error": "An unexpected server error occurred."}), 500
+
+@app.route('/api/precision/generate-hq-thumbnail', methods=['POST', 'OPTIONS'])
+def precision_generate_hq_thumbnail():
+    if request.method == "OPTIONS": # Handle CORS preflight
+        return "", 204
+
+    logging.info("🎯 /api/precision/generate-hq-thumbnail called")
+    auth_header = request.headers.get("Authorization")
+    try:
+        user_id = get_user_id_from_token(auth_header)
+    except Exception as e:
+        logging.warning(f"⚠️ Auth failed for /api/precision/generate-hq-thumbnail: {e}")
+        return jsonify({"error": str(e)}), 401
+
+    data = request.json
+    base_prompt = data.get("prompt")
+    text_overlays = data.get("text_overlays") # Expects an array of text overlay objects
+
+    if not base_prompt:
+        logging.warning("⚠️ /api/precision/generate-hq-thumbnail: Missing base_prompt.")
+        return jsonify({"error": "Base prompt is required."}), 400
+    
+    # Validate text_overlays if present
+    if text_overlays is not None: # Allow empty list, but if key exists, it must be a list
+        if not isinstance(text_overlays, list):
+            logging.warning("⚠️ /api/precision/generate-hq-thumbnail: text_overlays is not a valid list.")
+            return jsonify({"error": "Invalid text_overlays format. Expected a list."}), 400
+        for i, overlay in enumerate(text_overlays):
+            if not isinstance(overlay, dict):
+                logging.warning(f"⚠️ /api/precision/generate-hq-thumbnail: item {{i}} in text_overlays is not a valid object.")
+                return jsonify({"error": f"Invalid item at index {{i}} in text_overlays. Expected an object."}), 400
+            # Each overlay should ideally have text, but we'll allow empty text strings;
+            # Pillow won't draw them, and frontend should filter if necessary.
+            # if not overlay.get("text") or not str(overlay.get("text")).strip():
+            #     logging.warning(f"⚠️ /api/precision/generate-hq-thumbnail: item {{i}} in text_overlays is missing 'text' property or text is empty.")
+            #     return jsonify({"error": f"Item at index {{i}} in text_overlays requires non-empty 'text' property."}), 400
+
+    cost = CREDIT_COST_HQ_THUMBNAIL
+    new_credits = 0
+    try:
+        user_profile_response = supabase.table("profiles").select("credits").eq("id", user_id).single().execute()
+        if not user_profile_response.data:
+            logging.error(f"❌ User profile not found for user_id {user_id} during credit check for HQ thumbnail.")
+            return jsonify({"error": "User profile not found for credit check."}), 404
+        current_credits = user_profile_response.data.get("credits", 0)
+        if current_credits < cost:
+            logging.warning(f"⚠️ User {user_id} has insufficient credits ({current_credits}) for HQ thumbnail (cost: {cost}).")
+            return jsonify({"error": "Insufficient credits."}), 402
+        new_credits = current_credits - cost
+        update_response = supabase.table("profiles").update({"credits": new_credits}).eq("id", user_id).execute()
+        if hasattr(update_response, 'error') and update_response.error:
+            logging.error(f"❌ Failed to deduct credits for HQ thumbnail for user {user_id}: {update_response.error}")
+            return jsonify({"error": "Credit deduction failed."}), 500
+        logging.info(f"🪙 Credits deducted for HQ thumbnail for user {user_id}. Old: {current_credits}, New: {new_credits} (Cost: {cost})")
+    except Exception as e:
+        logging.error(f"❌ Error during credit check/deduction for HQ thumbnail for user {user_id}: {e}", exc_info=True)
+        return jsonify({"error": "Credit processing error."}), 500
+
+    # Image generation prompt does NOT include text overlay instructions anymore
+    logging.info(f"ℹ️ Using base prompt for Fal image generation for user {user_id}: '{base_prompt}'")
+
+    try:
+        # Check if original_image_url is provided for upscaling
+        if data.get("original_image_url"):
+            original_image_url = data.get("original_image_url")
+            logging.info(f"🔍 Using clarity-upscaler on original image for user {user_id}")
+            base_image_url = upscale_image_with_clarity(original_image_url, 2.0)
+            logging.info(f"✅ Image upscaled with clarity-upscaler for user {user_id}. URL: {base_image_url}")
+        else:
+            # No original image URL provided, generate a new image with Flux
+            base_image_url = generate_flux_hq_image(base_prompt)
+            logging.info(f"🖼️ Base HQ image generated via Fal for user {user_id}. URL: {base_image_url}")
+
+        # 2. Fetch the generated image
+        image_response = requests.get(base_image_url)
+        image_response.raise_for_status() # Raise an exception for bad status codes
+        img_pil = Image.open(io.BytesIO(image_response.content)).convert("RGBA")
+        draw = ImageDraw.Draw(img_pil)
+
+        final_image_data_url = base_image_url # Default to base if no text details
+
+        # 3. If text_overlays are provided and valid, draw each text using Pillow
+        if text_overlays and isinstance(text_overlays, list) and len(text_overlays) > 0:
+            logging.info(f"✍️ {len(text_overlays)} text overlay(s) provided by user {user_id}. Rendering text with Pillow.")
+            valid_overlays_processed = 0
+            for i, td in enumerate(text_overlays): # td for text_details of current overlay
+                text_content = td.get("text", "")
+                if not text_content.strip(): # Skip if text is empty or only whitespace
+                    logging.info(f"Skipping text overlay {i+1} due to empty/whitespace text content.")
+                    continue
+
+                logging.info(f"Processing text overlay {i+1}/{len(text_overlays)}: '{text_content[:30]}...' ({td.get('font_filename', td.get('font_name', 'DefaultFont'))} @ {td.get('font_size', 30)}pt)")
+                
+                font_name = td.get("font_name", "Arial").strip() # Default font name if not specified
+                font_filename_from_frontend = td.get("font_filename", "").strip() # Actual .ttf filename from frontend
+                font_size = int(td.get("font_size", 30))
+                text_x = float(td.get("x", 0))
+                text_y = float(td.get("y", 0))
+                canvas_w = float(td.get("canvas_width", img_pil.width)) # original canvas width from frontend
+                canvas_h = float(td.get("canvas_height", img_pil.height)) # original canvas height from frontend
+                
+                fill_color = td.get("color", "#FFFFFF")
+                stroke_color = td.get("stroke_color", "#000000") 
+                stroke_width = int(td.get("stroke_width", 0))
+
+                # Font loading (fonts directory is at project root, relative to app.py's location)
+                font_file_to_load = ""
+                font_path = ""
+                try:
+                    if font_filename_from_frontend and font_filename_from_frontend.lower().endswith(".ttf"):
+                        font_file_to_load = font_filename_from_frontend
+                    elif font_name:
+                        font_file_to_load = font_name.lower().replace(" ", "") + ".ttf"
+                    else:
+                        logging.warning(f"⚠️ No valid font_name or font_filename for overlay {i+1}. Attempting default.")
+                        raise IOError("Missing font name/filename for overlay.")
+
+                    font_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts')
+                    if not os.path.exists(font_dir):
+                        try:
+                            os.makedirs(font_dir)
+                            logging.info(f"✅ Created missing fonts directory: {font_dir}")
+                        except OSError as e_mkdir:
+                            logging.error(f"❌ Failed to create fonts directory {font_dir}: {e_mkdir}. Font loading for overlay {i+1} might fail.")
+                    
+                    font_path = os.path.join(font_dir, font_file_to_load)
+                    logging.info(f"Attempting to load font for overlay {i+1}: {font_path} (size: {font_size})")
+                    image_font = ImageFont.truetype(font_path, font_size)
+                except IOError as font_io_error:
+                    logging.warning(f"⚠️ Font '{font_path if font_path else font_file_to_load}' not found/loadable for overlay {i+1}: {font_io_error}. Falling back.")
+                    try:
+                        image_font = ImageFont.truetype("arial.ttf", font_size) 
+                        logging.info(f"Successfully fell back to arial.ttf for overlay {i+1}.")
+                    except IOError:
+                        logging.warning(f"⚠️ Arial.ttf also not found for overlay {i+1}. Using Pillow's load_default().")
+                        image_font = ImageFont.load_default()
+                except Exception as e_font_load:
+                    logging.error(f"❌ Unexpected error loading font for overlay {i+1} (Name: '{font_name}', File: '{font_file_to_load}'): {e_font_load}")
+                    image_font = ImageFont.load_default()
+
+                # Coordinate scaling
+                img_w, img_h = img_pil.size
+                scaled_x = (text_x / canvas_w) * img_w if canvas_w > 0 else 0
+                scaled_y = (text_y / canvas_h) * img_h if canvas_h > 0 else 0
+
+                # Draw text
+                if stroke_width > 0:
+                    draw.text((scaled_x, scaled_y), text_content, font=image_font, fill=fill_color, 
+                              stroke_width=stroke_width, stroke_fill=stroke_color, anchor="la")
+                else:
+                    draw.text((scaled_x, scaled_y), text_content, font=image_font, fill=fill_color, anchor="la")
+                valid_overlays_processed += 1
+            
+            if valid_overlays_processed > 0:
+                buffered = io.BytesIO()
+                img_pil.save(buffered, format="PNG")
+                img_str_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                final_image_data_url = f"data:image/png;base64,{img_str_base64}"
+                logging.info(f"✅ {valid_overlays_processed} text overlay(s) rendered on image for user {user_id}. Returning base64 PNG.")
+            else: # No valid overlays were actually drawn (e.g., all had empty text)
+                logging.info(f"ℹ️ No valid text overlays to render for user {user_id} after filtering. Returning base Fal image as base64 PNG.")
+                buffered = io.BytesIO()
+                img_pil.save(buffered, format="PNG")
+                img_str_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+                final_image_data_url = f"data:image/png;base64,{img_str_base64}"
+
+        else: # No text_overlays provided, or list is empty initially
+            logging.info(f"ℹ️ No text overlays provided or list is empty for user {user_id}. Returning base Fal image as base64 PNG.")
+            buffered = io.BytesIO()
+            img_pil.save(buffered, format="PNG")
+            img_str_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+            final_image_data_url = f"data:image/png;base64,{img_str_base64}"
+
+        return jsonify({
+            "image_url": final_image_data_url, # This is now a data URL
+            "credits_remaining": new_credits
+        }), 200
+
+    except requests.exceptions.RequestException as req_err:
+        logging.error(f"❌ Failed to fetch base image from URL for Pillow processing (user {user_id}): {req_err}", exc_info=True)
+        return jsonify({"error": f"Failed to load base image for text rendering: {req_err}"}), 502
+    except UnidentifiedImageError:
+        logging.error(f"❌ Could not identify image from URL (user {user_id}). Content might not be a valid image.")
+        return jsonify({"error": "Invalid image format received from image generator."}), 502
+    except ValueError as ve:
+        logging.error(f"❌ Configuration or API response error for HQ thumbnail (user {user_id}): {ve}", exc_info=True)
+        return jsonify({"error": f"Image generation configuration error: {ve}"}), 503
+    except ConnectionError as ce:
+        logging.error(f"❌ Connection error during HQ thumbnail generation (user {user_id}): {ce}", exc_info=True)
+        return jsonify({"error": f"External service connection error: {ce}"}), 502
+    except Exception as e:
+        logging.error(f"❌ Unexpected critical error in HQ thumbnail generation (user {user_id}): {e}", exc_info=True)
+        return jsonify({"error": "An unexpected server error occurred during image generation."}), 500
+
+
 
 @app.route("/healthz", methods=["GET", "HEAD"])
 def health_check():
@@ -1132,6 +1686,96 @@ Provide extensive detail on ALL of these aspects - be comprehensive and specific
         "style_profile": style_profile,
         "new_credits": new_credits
     })
+
+@app.route('/api/precision/refine-prompt', methods=['POST', 'OPTIONS'])
+def precision_refine_prompt():
+    if request.method == "OPTIONS": # Handle CORS preflight
+        return "", 204
+
+    logging.info("🎯 /api/precision/refine-prompt called")
+    auth_header = request.headers.get("Authorization")
+    try:
+        user_id = get_user_id_from_token(auth_header)
+    except Exception as e:
+        logging.warning(f"⚠️ Auth failed for /api/precision/refine-prompt: {e}")
+        return jsonify({"error": str(e)}), 401
+
+    data = request.json
+    original_prompt = data.get("original_prompt")
+    refinement_instructions = data.get("refinement_instructions")
+    image_url = data.get("image_url")  # Optional, for reference
+
+    logging.info(f"📝 Received refinement request - User:{user_id}, Original Prompt: '{original_prompt}'")
+    logging.info(f"📝 Refinement Instructions: '{refinement_instructions}'")
+    if image_url:
+        logging.info(f"🖼️ Reference Image URL provided: '{image_url}'")
+
+    if not original_prompt or not refinement_instructions:
+        logging.warning("⚠️ /api/precision/refine-prompt: Missing original_prompt or refinement_instructions.")
+        return jsonify({"error": "Original prompt and refinement instructions are required."}), 400
+
+    # No credit check for prompt refinement - it's part of the edit flow which already costs credits
+
+    if not client or not client.api_key or client.api_key == "dummy_key_if_missing": # Check for dummy key
+        logging.error("❌ OpenAI client not configured for /api/precision/refine-prompt.")
+        return jsonify({"error": "AI Service (OpenAI) is not configured."}), 503
+
+    try:
+        system_prompt = """You are an expert at refining image generation prompts. Given an original prompt and refinement instructions, create a new coherent prompt that incorporates the requested changes while maintaining the overall style and intent of the original.
+
+Your task is to seamlessly integrate the refinement instructions into the original prompt, creating a single cohesive prompt that an AI image generator can understand. The refined prompt should read naturally as a complete instruction, not as two separate parts.
+
+DO NOT include phrases like "based on the original prompt" or references to the refinement process itself.
+DO NOT output anything except the refined prompt - no explanations or additional text.
+"""
+
+        logging.info(f"🤖 Sending to GPT-4o-mini for prompt refinement.")
+        logging.info(f"🤖 System Prompt: {system_prompt}")
+        
+        user_message = f"""Original prompt: {original_prompt}
+Refinement instructions: {refinement_instructions}
+
+Return only the refined prompt with no explanations or additional text."""
+
+        logging.info(f"🤖 User Message: {user_message}")
+
+        completion = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_message}
+            ]
+        )
+        
+        refined_prompt = completion.choices[0].message.content.strip()
+        logging.info(f"✅ GPT-4o-mini refined prompt: '{refined_prompt}'")
+        
+        # DEV: Log the comparison between original and refined prompts
+        logging.info("=== PROMPT REFINEMENT COMPARISON ===")
+        logging.info(f"ORIGINAL: {original_prompt}")
+        logging.info(f"INSTRUCTIONS: {refinement_instructions}")
+        logging.info(f"REFINED: {refined_prompt}")
+        logging.info("===================================")
+
+        # Log token usage for monitoring
+        if hasattr(completion, 'usage') and completion.usage:
+            prompt_tokens = getattr(completion.usage, 'prompt_tokens', 'N/A')
+            completion_tokens = getattr(completion.usage, 'completion_tokens', 'N/A')
+            total_tokens = getattr(completion.usage, 'total_tokens', 'N/A')
+            logging.info(f"📊 Token usage - Prompt: {prompt_tokens}, Completion: {completion_tokens}, Total: {total_tokens}")
+
+        return jsonify({
+            "refined_prompt": refined_prompt,
+            "original_prompt": original_prompt,  # Return original for comparison
+            "refinement_instructions": refinement_instructions  # Return instructions for reference
+        }), 200
+
+    except APIError as e:
+        logging.error(f"❌ OpenAI API Error during prompt refinement: {e}", exc_info=True)
+        return jsonify({"error": f"AI service (OpenAI) error: {e}"}), 502
+    except Exception as e:
+        logging.error(f"❌ Unexpected error during prompt refinement: {e}", exc_info=True)
+        return jsonify({"error": f"Failed to refine prompt: {e}"}), 500
 
 # --- Main Execution ---
 if __name__ == "__main__":
