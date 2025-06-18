@@ -362,7 +362,7 @@ Generate SIX compelling, eyecatching, distinct (like different styles) **and hig
 • Each prompt must be a fully-self-contained visual description that an AI image generator can understand.
 
 RULES
-1. No mention of text, captions, logos, watermarks or brand names.
+1. No mention of text, captions, logos, watermarks or brand names. I'm serious, do not include any text in the pictures.
 2. Vary them—different angles, colour palettes, or story beats.
 3. Use vivid, but concrete language (describe lighting, setting, subject pose).
 4. Output ONLY a JSON array of 6 strings. No commentary, headings or markdown."""
