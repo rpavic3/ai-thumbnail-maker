@@ -342,14 +342,14 @@ def generate_hidream_preview_image(prompt: str) -> str:
 
 def get_visual_prompts_from_gpt(video_topic: str) -> list[str]:
     """
-    Sends the video topic to GPT-4o-mini to generate six visual thumbnail prompts.
+    Sends the video topic to GPT-4o-mini to generate six visual thumbnail prompts. 
     Returns a list of 6 prompt strings.
     """
     if not client or not client.api_key or client.api_key == "dummy_key_if_missing": # Check for dummy key
         logging.error("❌ OpenAI client not configured for generating visual prompts.")
         raise ValueError("AI Service (OpenAI) is not configured.")
 
-    system_prompt = """You are a professional YouTube-thumbnail ideator who thinks of thumbnail ideas with no text on them.
+    system_prompt = """You are a professional YouTube-thumbnail ideator. The video topics/descriptions you receive will not always be perfect, they can be messy and not always have the right keywords. You will need to refine them to make them more specific and visual. The best course of action would be for you to extract the key things from the description, and think like a professional thumbnail creator. When you receive the description, you should basically create 6 different creative video titles for that topic, and then create 6 different visual prompts for that topic. It is important that every prompt is LONG, because that gives us more details and better images.
 
 GOAL
 Generate SIX compelling, eyecatching, distinct (like different styles) **and highly specific** visual prompt idea for a YouTube thumbnail based on this video information. The prompts MUST describe concrete visual elements suitable for a literal AI image generator (like Flux or DALL-E). **IMPORTANT INSTRUCTIONS for the prompt content:**
@@ -362,7 +362,7 @@ Generate SIX compelling, eyecatching, distinct (like different styles) **and hig
 • Each prompt must be a fully-self-contained visual description that an AI image generator can understand.
 
 RULES
-1. No mention of text, captions, logos, watermarks or brand names. I'm serious, do not include any text in the pictures. The point of this is that the user can add their own text to the picture afterwards.
+1. No mention of text, captions, logos, watermarks or brand names.
 2. Vary them—different angles, colour palettes, or story beats.
 3. Use vivid, but concrete language (describe lighting, setting, subject pose).
 4. Output ONLY a JSON array of 6 strings. No commentary, headings or markdown."""
@@ -534,7 +534,7 @@ def precision_generate_previews():
         # Check if this is a refined prompt from the edit flow
         # We can detect this by checking if is_refined_prompt flag is set
         # or by checking if the prompt is longer/more detailed than typical video topics
-        if is_refined_prompt or len(video_topic.split()) > 15:  # Simple heuristic: refined prompts are usually longer
+        if is_refined_prompt:  # Simple heuristic: refined prompts are usually longer
             logging.info(f"🎨 Using REFINED prompt for all 6 images (from edit flow): '{video_topic}'")
             
             image_urls = [None] * 6 
