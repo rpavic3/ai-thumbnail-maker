@@ -349,7 +349,7 @@ def get_visual_prompts_from_gpt(video_topic: str) -> list[str]:
         logging.error("❌ OpenAI client not configured for generating visual prompts.")
         raise ValueError("AI Service (OpenAI) is not configured.")
 
-    system_prompt = """You are a professional YouTube-thumbnail ideator.
+    system_prompt = """You are a professional YouTube-thumbnail ideator who thinks of thumbnail ideas with no text on them.
 
 GOAL
 Generate SIX compelling, eyecatching, distinct (like different styles) **and highly specific** visual prompt idea for a YouTube thumbnail based on this video information. The prompts MUST describe concrete visual elements suitable for a literal AI image generator (like Flux or DALL-E). **IMPORTANT INSTRUCTIONS for the prompt content:**
@@ -362,7 +362,7 @@ Generate SIX compelling, eyecatching, distinct (like different styles) **and hig
 • Each prompt must be a fully-self-contained visual description that an AI image generator can understand.
 
 RULES
-1. No mention of text, captions, logos, watermarks or brand names. I'm serious, do not include any text in the pictures.
+1. No mention of text, captions, logos, watermarks or brand names. I'm serious, do not include any text in the pictures. The point of this is that the user can add their own text to the picture afterwards.
 2. Vary them—different angles, colour palettes, or story beats.
 3. Use vivid, but concrete language (describe lighting, setting, subject pose).
 4. Output ONLY a JSON array of 6 strings. No commentary, headings or markdown."""
