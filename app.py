@@ -114,7 +114,9 @@ def generate_flux_image(prompt: str) -> str:
     }
     payload = {
         "prompt": prompt, "num_inference_steps": 30, "guidance_scale": 7,
-        "width": 1280, "height": 720
+        "width": 1280, "height": 720,
+        "enable_safety_checker": false
+
     }
     try:
         r = requests.post(api_url, headers=headers, json=payload, timeout=120)
