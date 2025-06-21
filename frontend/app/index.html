@@ -1420,11 +1420,9 @@
                     const shuffleTooltip = document.getElementById('shuffle-tooltip');
                     const quickTooltip = document.getElementById('quick-tooltip');
                     
-                    // Show tooltip on hover, but only if the tab is active
+                    // Show tooltip on hover, regardless of tab active state
                     subTabPrecision.addEventListener('mouseenter', function() {
-                        if (subTabPrecision.classList.contains('active')) {
-                            shuffleTooltip.style.display = 'block';
-                        }
+                        shuffleTooltip.style.display = 'block';
                     });
                     
                     subTabPrecision.addEventListener('mouseleave', function() {
@@ -1432,29 +1430,15 @@
                     });
                     
                     subTabQuick.addEventListener('mouseenter', function() {
-                        if (subTabQuick.classList.contains('active')) {
-                            quickTooltip.style.display = 'block';
-                        }
+                        quickTooltip.style.display = 'block';
                     });
                     
                     subTabQuick.addEventListener('mouseleave', function() {
                         quickTooltip.style.display = 'none';
                     });
                     
-                    // Update tooltip visibility when tabs are clicked
-                    subTabPrecision.addEventListener('click', function() {
-                        // The click handler already exists in the code, we're just adding tooltip handling
-                        if (subTabQuick.classList.contains('active')) {
-                            quickTooltip.style.display = 'none';
-                        }
-                    });
-                    
-                    subTabQuick.addEventListener('click', function() {
-                        // The click handler already exists in the code, we're just adding tooltip handling
-                        if (subTabPrecision.classList.contains('active')) {
-                            shuffleTooltip.style.display = 'none';
-                        }
-                    });
+                    // No need to update tooltip visibility on tab clicks anymore
+                    // since tooltips now show on hover regardless of active state
                 });
             </script>
 
