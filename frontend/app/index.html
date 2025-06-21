@@ -1050,65 +1050,6 @@
             overflow: auto;
             background-color: rgba(0, 0, 0, 0.9);
         }
-        
-        /* --- Tooltip Styles --- */
-        .tooltip-container {
-            display: inline-flex;
-            align-items: center;
-            margin-left: 5px;
-            position: relative;
-        }
-        
-        .tooltip-icon {
-            display: inline-flex;
-            justify-content: center;
-            align-items: center;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background-color: var(--text-muted);
-            color: var(--bg);
-            font-size: 12px;
-            font-weight: bold;
-            cursor: help;
-        }
-        
-        .tooltip-text {
-            visibility: hidden;
-            width: 250px;
-            background-color: var(--bg-secondary);
-            color: var(--text);
-            text-align: center;
-            border-radius: var(--radius);
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-            border: 1px solid var(--border-color);
-            font-weight: normal;
-            font-size: 0.85rem;
-        }
-        
-        .tooltip-text::after {
-            content: "";
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            margin-left: -5px;
-            border-width: 5px;
-            border-style: solid;
-            border-color: var(--bg-secondary) transparent transparent transparent;
-        }
-        
-        .tooltip-container:hover .tooltip-text {
-            visibility: visible;
-            opacity: 1;
-        }
         /* --- Sub-tab Styles --- */
         .sub-tab-bar {
             display: flex;
@@ -1437,21 +1378,85 @@
 
          <div id="prompt-gen-tab-content" style="display: none; width: 100%;">
             <div class="sub-tab-bar">
-                <div style="display: flex; align-items: center; flex-grow: 1;">
-                    <button id="sub-tab-precision" class="sub-tab-button active">Shuffle Mode</button>
-                    <div class="tooltip-container">
-                        <div class="tooltip-icon">?</div>
-                        <span class="tooltip-text">Get 6 fast, distinct thumbnails for your description. If you want a more specific choice, go to "QUICK MODE"</span>
-                    </div>
-                </div>
-                <div style="display: flex; align-items: center; flex-grow: 1;">
-                    <button id="sub-tab-quick" class="sub-tab-button">Quick Mode</button>
-                    <div class="tooltip-container">
-                        <div class="tooltip-icon">?</div>
-                        <span class="tooltip-text">Get an editable custom made visual prompt for your video that you can use to create 2 thumbnails</span>
-                    </div>
-                </div>
+                <button id="sub-tab-precision" class="sub-tab-button active">Shuffle Mode</button>
+                <div id="shuffle-tooltip" class="tab-tooltip" style="display: none;">Get 6 fast, distinct thumbnails for your description. If you want a more specific choice, go to "QUICK MODE"</div>
+                <button id="sub-tab-quick" class="sub-tab-button">Quick Mode</button>
+                <div id="quick-tooltip" class="tab-tooltip" style="display: none;">Get an editable custom made visual prompt for your video that you can use to create 2 thumbnails</div>
             </div>
+
+            <style>
+                .sub-tab-bar {
+                    position: relative;
+                }
+                .tab-tooltip {
+                    position: absolute;
+                    background-color: var(--bg);
+                    color: var(--text);
+                    padding: 8px 12px;
+                    border-radius: var(--radius-sm, 4px);
+                    font-size: 0.85rem;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                    z-index: 10;
+                    max-width: 250px;
+                    text-align: center;
+                    border: 1px solid var(--border-color);
+                    top: 100%;
+                    transform: translateY(8px);
+                    pointer-events: none;
+                }
+                #shuffle-tooltip {
+                    left: 10%;
+                }
+                #quick-tooltip {
+                    right: 10%;
+                }
+            </style>
+
+            <script>
+                // Add tooltip functionality
+                document.addEventListener('DOMContentLoaded', function() {
+                    const subTabPrecision = document.getElementById('sub-tab-precision');
+                    const subTabQuick = document.getElementById('sub-tab-quick');
+                    const shuffleTooltip = document.getElementById('shuffle-tooltip');
+                    const quickTooltip = document.getElementById('quick-tooltip');
+                    
+                    // Show tooltip on hover, but only if the tab is active
+                    subTabPrecision.addEventListener('mouseenter', function() {
+                        if (subTabPrecision.classList.contains('active')) {
+                            shuffleTooltip.style.display = 'block';
+                        }
+                    });
+                    
+                    subTabPrecision.addEventListener('mouseleave', function() {
+                        shuffleTooltip.style.display = 'none';
+                    });
+                    
+                    subTabQuick.addEventListener('mouseenter', function() {
+                        if (subTabQuick.classList.contains('active')) {
+                            quickTooltip.style.display = 'block';
+                        }
+                    });
+                    
+                    subTabQuick.addEventListener('mouseleave', function() {
+                        quickTooltip.style.display = 'none';
+                    });
+                    
+                    // Update tooltip visibility when tabs are clicked
+                    subTabPrecision.addEventListener('click', function() {
+                        // The click handler already exists in the code, we're just adding tooltip handling
+                        if (subTabQuick.classList.contains('active')) {
+                            quickTooltip.style.display = 'none';
+                        }
+                    });
+                    
+                    subTabQuick.addEventListener('click', function() {
+                        // The click handler already exists in the code, we're just adding tooltip handling
+                        if (subTabPrecision.classList.contains('active')) {
+                            shuffleTooltip.style.display = 'none';
+                        }
+                    });
+                });
+            </script>
 
             <div id="precision-mode-content" class="sub-tab-content active">
                 <div id="precision-step1-video-topic" style="padding: 1rem;">
